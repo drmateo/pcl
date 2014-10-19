@@ -93,60 +93,61 @@ ComputeXYZRGB::operator () (const Tuple &t)
 }
 
 //////////////////////////////////////////////////////////////////////////
-//void
-//DisparityToCloud::compute (const pcl::PCLImage::ConstPtr &depth_image,
-//                                     const pcl::PCLImage::ConstPtr &rgb_image,
-//                                     const pcl::CameraInfo::ConstPtr &info,
-//                                     PointCloudAOS<Device>::Ptr &output) 
-//{
-//  if (!output)
-//    output.reset (new PointCloudAOS<Device>);
-//
-//  using namespace thrust;
-//
-//  // Prepare the output
-//  output->height = depth_image->height;
-//  output->width  = depth_image->width;
-//  output->is_dense = false;
-//  output->points.resize (output->width * output->height);
-//
-//  // Copy the depth data and the RGB data on the card
-//  device_vector<float> depth (depth_image->data.size () / sizeof (float));
-//  thrust::copy ((float*)(&depth_image->data[0]), (float*)(&depth_image->data[0]) + depth.size (), depth.begin ());
-//
-//  // Prepare constants
-//  if (rgb_image)
-//  {
-//    device_vector<OpenNIRGB> rgb (rgb_image->width * rgb_image->height);
-//    thrust::copy ((OpenNIRGB*)(&rgb_image->data[0]),
-//                  (OpenNIRGB*)(&rgb_image->data[rgb_image->width * rgb_image->height * 3]), rgb.begin ());
-//
-//    // Suat: implement the rgb/depth stepping
-//    assert (rgb.size () == depth.size ());
-//
-//    // Send the data to the device
-//    transform (
-//        make_zip_iterator (make_tuple (depth.begin (), rgb.begin (), counting_iterator<int>(0))),
-//        make_zip_iterator (make_tuple (depth.begin (), rgb.begin (), counting_iterator<int>(0))) + 
-//                           depth_image->width * depth_image->height,
-//        output->points.begin (), 
-//        ComputeXYZRGB (depth_image->width, depth_image->height, 
-//                       depth_image->width >> 1, depth_image->height >> 1, 1.0 / info->P[0]));
-//  }
-//  else
-//  {
-//    // Send the data to the device
-//    transform (
-//        make_zip_iterator (make_tuple (depth.begin (), counting_iterator<int>(0))),
-//        make_zip_iterator (make_tuple (depth.begin (), counting_iterator<int>(0))) + 
-//                           depth_image->width * depth_image->height,
-//        output->points.begin (), 
-//        ComputeXYZ (depth_image->width, depth_image->height, 
-//                    depth_image->width >> 1, depth_image->height >> 1, 1.0 / info->P[0]));
-//  }
-//
-//}
-//
+void
+DisparityToCloud::compute (const pcl::PCLImage::ConstPtr &depth_image,
+                           const pcl::PCLImage::ConstPtr &rgb_image,
+                           //const pcl::CameraInfo::ConstPtr &info,
+                           const sensor_msgs::CameraInfoConstPtr& info,
+                           PointCloudAOS<Device>::Ptr &output) 
+{
+ if (!output)
+   output.reset (new PointCloudAOS<Device>);
+
+ using namespace thrust;
+
+ // Prepare the output
+ output->height = depth_image->height;
+ output->width  = depth_image->width;
+ output->is_dense = false;
+ output->points.resize (output->width * output->height);
+
+ // Copy the depth data and the RGB data on the card
+ device_vector<float> depth (depth_image->data.size () / sizeof (float));
+ thrust::copy ((float*)(&depth_image->data[0]), (float*)(&depth_image->data[0]) + depth.size (), depth.begin ());
+
+ // Prepare constants
+ if (rgb_image)
+ {
+   device_vector<OpenNIRGB> rgb (rgb_image->width * rgb_image->height);
+   thrust::copy ((OpenNIRGB*)(&rgb_image->data[0]),
+                 (OpenNIRGB*)(&rgb_image->data[rgb_image->width * rgb_image->height * 3]), rgb.begin ());
+
+   // Suat: implement the rgb/depth stepping
+   assert (rgb.size () == depth.size ());
+
+   // Send the data to the device
+   transform (
+       make_zip_iterator (make_tuple (depth.begin (), rgb.begin (), counting_iterator<int>(0))),
+       make_zip_iterator (make_tuple (depth.begin (), rgb.begin (), counting_iterator<int>(0))) + 
+                          depth_image->width * depth_image->height,
+       output->points.begin (), 
+       ComputeXYZRGB (depth_image->width, depth_image->height, 
+                      depth_image->width >> 1, depth_image->height >> 1, 1.0 / info->P[0]));
+ }
+ else
+ {
+   // Send the data to the device
+   transform (
+       make_zip_iterator (make_tuple (depth.begin (), counting_iterator<int>(0))),
+       make_zip_iterator (make_tuple (depth.begin (), counting_iterator<int>(0))) + 
+                          depth_image->width * depth_image->height,
+       output->points.begin (), 
+       ComputeXYZ (depth_image->width, depth_image->height, 
+                   depth_image->width >> 1, depth_image->height >> 1, 1.0 / info->P[0]));
+ }
+
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //void
 //DisparityToCloud::compute (const pcl::PCLImage::ConstPtr &depth_image,

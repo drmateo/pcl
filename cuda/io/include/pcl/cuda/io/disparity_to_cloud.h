@@ -43,7 +43,9 @@
 #include <pcl/io/openni_camera/openni_image.h>
 #include <pcl/io/openni_camera/openni_depth_image.h>
 //#include <pcl/CameraInfo.h>
-//#include <pcl/PCLImage.h>
+#include <sensor_msgs/CameraInfo.h>
+
+#include <pcl/PCLImage.h>
 
 #include <boost/cstdint.hpp>
 
@@ -92,13 +94,14 @@ namespace cuda
   class PCL_EXPORTS DisparityToCloud
   {
     public:
-//      // compute using ROS images, Device output
-//      void
-//      compute (const pcl::PCLImage::ConstPtr &depth_image,
-//               const pcl::PCLImage::ConstPtr &rgb_image,
-//               const pcl::CameraInfo::ConstPtr &info,
-//               PointCloudAOS<Device>::Ptr &output);
-//      
+     // compute using ROS images, Device output
+     void
+     compute (const pcl::PCLImage::ConstPtr &depth_image,
+              const pcl::PCLImage::ConstPtr &rgb_image,
+              //const pcl::CameraInfo::ConstPtr &info,
+              const sensor_msgs::CameraInfoConstPtr& info,
+              PointCloudAOS<Device>::Ptr &output);
+     
 //      // compute using ROS images, Host output
 //      void
 //      compute (const pcl::PCLImage::ConstPtr &depth_image,
