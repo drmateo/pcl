@@ -493,6 +493,38 @@ namespace pcl
       initLocalReferenceFrames (const size_t& indices_size,
                                 const LRFEstimationPtr& lrf_estimation = LRFEstimationPtr());
   };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////
+  /** \brief FeatureWithGlobalReferenceFrames provides a public interface for descriptor
+    * extractor classes which need a global reference frame at each input keypoint.
+    *
+    * \author Carlos M. Mateo
+    * \ingroup features
+    */
+  template <typename PointInT, typename PointRFT>
+  class FeatureWithGlobalReferenceFrame : public FeatureWithLocalReferenceFrames<PointInT, PointRFT>
+  {
+    typedef pcl::PointCloud<PointRFT> PointCloudGRF;
+    typedef typename PointCloudGRF::Ptr PointCloudGRFPtr;
+    typedef typename PointCloudGRF::ConstPtr PointCloudGRFConstPtr;
+    public:
+      FeatureWithGlobalReferenceFrame ()
+      {}
+
+      ~FeatureWithGlobalReferenceFrame ()
+      {}
+
+    protected:
+      using FeatureWithLocalReferenceFrames<PointInT, PointRFT>::frames_;
+      using FeatureWithLocalReferenceFrames<PointInT, PointRFT>::frames_never_defined_;
+      
+      typedef typename Feature<PointInT, PointRFT>::Ptr GRFEstimationPtr;
+      
+      bool
+      initGlobalReferenceFrame (const GRFEstimationPtr& grf_estimation = GRFEstimationPtr ());
+  };
 }
 
 #include <pcl/features/impl/feature.hpp>

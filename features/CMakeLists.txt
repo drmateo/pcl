@@ -48,6 +48,8 @@ if(build)
         "include/pcl/${SUBSYS_NAME}/shot_lrf.h"
         "include/pcl/${SUBSYS_NAME}/shot_lrf_omp.h"
         "include/pcl/${SUBSYS_NAME}/shot_omp.h"
+	"include/pcl/${SUBSYS_NAME}/gshot.h"
+	"include/pcl/${SUBSYS_NAME}/shot_grf.h"
         "include/pcl/${SUBSYS_NAME}/spin_image.h"
         "include/pcl/${SUBSYS_NAME}/principal_curvatures.h"
         "include/pcl/${SUBSYS_NAME}/rift.h"
@@ -96,6 +98,8 @@ if(build)
         "include/pcl/${SUBSYS_NAME}/impl/shot_lrf.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/shot_lrf_omp.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/shot_omp.hpp"
+	"include/pcl/${SUBSYS_NAME}/impl/gshot.hpp"
+	"include/pcl/${SUBSYS_NAME}/impl/shot_grf.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/spin_image.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/principal_curvatures.hpp"
         "include/pcl/${SUBSYS_NAME}/impl/rift.hpp"
@@ -137,6 +141,8 @@ if(build)
         src/ppf.cpp
         src/shot.cpp
         src/shot_lrf.cpp
+	src/shot.cpp
+	src/shot_grf.cpp
         src/spin_image.cpp
         src/principal_curvatures.cpp
         src/rift.cpp
