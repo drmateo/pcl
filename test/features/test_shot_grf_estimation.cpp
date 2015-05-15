@@ -48,7 +48,12 @@
 #include <pcl/common/centroid.h>
 #include <pcl/common/transforms.h>
 
-#include <pcl/visualization/pcl_visualizer.h>
+// // #include <pcl/surface/mls.h>
+// // #include <pcl/visualization/pcl_visualizer.h>
+
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/variate_generator.hpp>
 
 typedef pcl::PointXYZ Point;
 typedef pcl::PointCloud<Point> Cloud;
@@ -58,36 +63,27 @@ typedef pcl::ReferenceFrame RFrame;
 typedef pcl::PointCloud<RFrame> RFrames;
 
 Cloud::Ptr cloud (new Cloud);
-Cloud::Ptr cloud_trans (new Cloud);
-
 boost::shared_ptr<std::vector<int> > indices;
-boost::shared_ptr<std::vector<int> > indices_trans;
 KdTree::Ptr tree;
-KdTree::Ptr tree_trans;
 float radius;
+
+Cloud::Ptr cloud_trans (new Cloud);
+boost::shared_ptr<std::vector<int> > indices_trans;
+KdTree::Ptr tree_trans;
 float radius_trans;
+
+Cloud::Ptr cloud_noise (new Cloud);
+boost::shared_ptr<std::vector<int> > indices_noise;
+KdTree::Ptr tree_noise;
+float radius_noise;
+
+RFrames bunny_LRF;
+RFrames bunny_noise_LRF;
+RFrames bunny_noise_GRF;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TEST (PCL, SHOTGlobalReferenceFrameEstimation)
 {
-  RFrames bunny_LRF;
-  // Compute SHOT LRF
-  pcl::SHOTLocalReferenceFrameEstimation<Point, RFrame> lrf_estimator;
-  lrf_estimator.setRadiusSearch (radius);
-  lrf_estimator.setInputCloud (cloud);
-  lrf_estimator.setSearchMethod (tree);
-  lrf_estimator.setIndices (indices);
-  lrf_estimator.compute (bunny_LRF);
-
-  RFrames bunny_trans_LRF;
-  // Compute SHOT LRF for bunny rotated
-  pcl::SHOTLocalReferenceFrameEstimation<Point, RFrame> lrf_estimator_for_bunny_rotated;
-  lrf_estimator_for_bunny_rotated.setRadiusSearch (radius_trans);
-  lrf_estimator_for_bunny_rotated.setInputCloud (cloud_trans);
-  lrf_estimator_for_bunny_rotated.setSearchMethod (tree_trans);
-  lrf_estimator_for_bunny_rotated.setIndices (indices_trans);
-  lrf_estimator_for_bunny_rotated.compute (bunny_trans_LRF);
-
   RFrames bunny_GRF;
   // Compute SHOT GRF
   pcl::SHOTGlobalReferenceFrameEstimation<Point, RFrame> grf_estimator;
@@ -99,24 +95,73 @@ TEST (PCL, SHOTGlobalReferenceFrameEstimation)
   EXPECT_EQ (indices->size (), 1);
   EXPECT_EQ (indices->size (), bunny_GRF.size ());
   EXPECT_EQ (bunny_LRF.size (), bunny_GRF.size ());
-
+  
   EXPECT_NEAR (radius, radius_trans, 1E-3);
 
-  Eigen::Vector3f point_0_x (0.988621f, -0.0301856f, 0.147371f);
-  Eigen::Vector3f point_0_y (0.105291f, 0.838536f, -0.534576f);
-  Eigen::Vector3f point_0_z (-0.107439f, 0.54401f, 0.832172f);
+  Eigen::Vector3f point_0_x (0.706783f, -0.682006f, 0.187951f);
+  Eigen::Vector3f point_0_y (-0.707416f, -0.683025f, 0.181765f);
+  Eigen::Vector3f point_0_z (0.00441039f, -0.261428f, -0.965213f);
 
   for (int d = 0; d < 3; ++d)
   {
-    // std::cout << bunny_LRF.at (0).x_axis[d] << " " << bunny_LRF.at (0).y_axis[d] << " " << bunny_LRF.at (0).z_axis[d] << std::endl;
+    // // std::cout << bunny_LRF.at (0).x_axis[d] << " " << bunny_LRF.at (0).y_axis[d] << " " << bunny_LRF.at (0).z_axis[d] << std::endl;
+
     EXPECT_NEAR (point_0_x[d], bunny_LRF.at (0).x_axis[d], 1E-3);
     EXPECT_NEAR (point_0_y[d], bunny_LRF.at (0).y_axis[d], 1E-3);
     EXPECT_NEAR (point_0_z[d], bunny_LRF.at (0).z_axis[d], 1E-3);
-
+    
     EXPECT_NEAR (bunny_GRF.at (0).x_axis[d], bunny_LRF.at (0).x_axis[d], 1E-3);
     EXPECT_NEAR (bunny_GRF.at (0).y_axis[d], bunny_LRF.at (0).y_axis[d], 1E-3);
     EXPECT_NEAR (bunny_GRF.at (0).z_axis[d], bunny_LRF.at (0).z_axis[d], 1E-3);
+
+    // // EXPECT_NEAR (bunny_noise_LRF.at (0).x_axis[d], bunny_LRF.at (0).x_axis[d], 1E-2);
+    // // EXPECT_NEAR (bunny_noise_LRF.at (0).y_axis[d], bunny_LRF.at (0).y_axis[d], 1E-2);
+    // // EXPECT_NEAR (bunny_noise_LRF.at (0).z_axis[d], bunny_LRF.at (0).z_axis[d], 1E-2);
+
+    // EXPECT_NEAR (bunny_noise_GRF.at (0).x_axis[d], bunny_GRF.at (0).x_axis[d], 1E-2);
+    // EXPECT_NEAR (bunny_noise_GRF.at (0).y_axis[d], bunny_GRF.at (0).y_axis[d], 1E-2);
+    // EXPECT_NEAR (bunny_noise_GRF.at (0).z_axis[d], bunny_GRF.at (0).z_axis[d], 1E-2);
   }
+}
+
+void
+init_data (const Cloud::ConstPtr& _cloud, boost::shared_ptr<std::vector<int> >& _indices, KdTree::Ptr& _tree, float& _radius)
+{
+  Eigen::VectorXf centroid;
+  pcl::computeNDCentroid<Point> (*_cloud, centroid);
+  Point p_centroid;
+  p_centroid.getVector4fMap () = centroid;
+
+  _tree.reset (new KdTree (true));
+  _tree->setInputCloud (_cloud);
+  _indices.reset (new std::vector<int> (_cloud->size ()));
+  std::vector<float> sqr_dist (_cloud->size ());
+  int k = _tree->nearestKSearch (p_centroid, _cloud->size (), *_indices, sqr_dist);
+  
+  _radius = sqrt (sqr_dist[k - 1]);
+  _indices->resize (1, *_indices->begin ());
+}
+
+void
+add_gaussian_noise (const Cloud::ConstPtr& cloud_in, Cloud::Ptr& cloud_out)
+{
+  double standard_deviation = 0.0009;
+
+  boost::mt19937 rng; rng.seed (static_cast<unsigned int> (time (0)));
+  boost::normal_distribution<> nd (0, standard_deviation);
+  boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor (rng, nd);
+
+  
+  cloud_out->resize (cloud_in->size ());
+  for (size_t point_i = 0; point_i < cloud_in->points.size (); ++ point_i)
+  {
+    cloud_out->points[point_i].x = cloud_in->points[point_i].x + static_cast<float> (var_nor ());
+    cloud_out->points[point_i].y = cloud_in->points[point_i].y + static_cast<float> (var_nor ());
+    cloud_out->points[point_i].z = cloud_in->points[point_i].z + static_cast<float> (var_nor ());
+  }
+  cloud_out->header = cloud_in->header;
+  cloud_out->width = cloud_in->width;
+  cloud_out->height = cloud_in->height;
 }
 
 /* ---[ */
@@ -135,47 +180,46 @@ main (int argc, char** argv)
     return (-1);
   }
 
-  pcl::visualization::PCLVisualizer viz;
-  viz.addCoordinateSystem (0.1);
-  viz.addPointCloud (cloud, "cloud 1");
+  init_data (cloud, indices, tree, radius);
 
-  Eigen::VectorXf centroid;
-  pcl::computeNDCentroid<Point> (*cloud, centroid);
-  Point p_centroid;
-  p_centroid.getVector4fMap () = centroid;
-  std::cout << centroid << std::endl;
-  tree.reset (new KdTree (true));
-  tree->setInputCloud (cloud);
-  indices.reset (new std::vector<int> ());
-  std::vector<float> sqr_dist;
-  int k = tree->nearestKSearch (p_centroid, cloud->size (), *indices, sqr_dist);
-  std::cout << k << " " << cloud->size () << std::endl;
-  radius = *std::max_element (sqr_dist.begin (), sqr_dist.end ());//sqr_dist[k - 1];
-  indices->resize (1, *indices->begin ());
-  viz.addSphere (p_centroid, radius, "sphere 1");
+  Eigen::Affine3f transform = Eigen::Affine3f::Identity ();
+  transform.prerotate (Eigen::AngleAxisf (0.25 * M_PI, Eigen::Vector3f::UnitX ()));
+  transform.prerotate (Eigen::AngleAxisf (0.5 * M_PI, Eigen::Vector3f::UnitZ ()));
+  transform.translate (Eigen::Vector3f (0, 1, 0));
+  pcl::transformPointCloud<Point> (*cloud, *cloud_trans, transform);
 
-  Eigen::Affine3f rotation = Eigen::Affine3f::Identity ();
-  rotation.prerotate (Eigen::AngleAxisf (0.25 * M_PI, Eigen::Vector3f::UnitX ()));
-  rotation.prerotate (Eigen::AngleAxisf (0.5 * M_PI, Eigen::Vector3f::UnitZ ()));
-  pcl::transformPointCloud<Point> (*cloud, *cloud_trans, rotation);
-  viz.addPointCloud (cloud_trans, "cloud 2");
+  init_data (cloud_trans, indices_trans, tree_trans, radius_trans);
 
-  pcl::computeNDCentroid<Point> (*cloud_trans, centroid);
-  p_centroid.getVector4fMap () = centroid;
-  std::cout << centroid << std::endl;
-  tree_trans.reset (new KdTree (true));
-  tree_trans->setInputCloud (cloud_trans);
-  indices_trans.reset (new std::vector<int> ());
-  sqr_dist.resize (0);
-  k = tree->nearestKSearch (p_centroid, cloud_trans->size (), *indices_trans, sqr_dist);
-  radius_trans = *std::max_element (sqr_dist.begin (), sqr_dist.end ());//sqr_dist[k -1];
-  indices_trans->resize (1, *indices_trans->begin ());
-  viz.addSphere (p_centroid, radius, "sphere 2");
-  
+  Cloud::Ptr cloud_noise_without_mls (new Cloud);
+  add_gaussian_noise (cloud, cloud_noise);
 
+  // // pcl::visualization::PCLVisualizer viz;
+  // // viz.addPointCloud (cloud_noise);
+  // // viz.spin ();
 
-  viz.spin ();
+  init_data (cloud_noise, indices_noise, tree_noise, radius_noise);
 
+  // Compute SHOT LRF
+  pcl::SHOTLocalReferenceFrameEstimation<Point, RFrame> lrf_estimator;
+  lrf_estimator.setRadiusSearch (radius);
+  lrf_estimator.setInputCloud (cloud);
+  lrf_estimator.setSearchMethod (tree);
+  lrf_estimator.setIndices (indices);
+  lrf_estimator.compute (bunny_LRF);
+
+  // Compute SHOT LRF for bunny rotated
+  pcl::SHOTLocalReferenceFrameEstimation<Point, RFrame> lrf_estimator_for_bunny_noised;
+  lrf_estimator_for_bunny_noised.setRadiusSearch (radius_noise);
+  lrf_estimator_for_bunny_noised.setInputCloud (cloud_noise);
+  lrf_estimator_for_bunny_noised.setSearchMethod (tree_noise);
+  lrf_estimator_for_bunny_noised.setIndices (indices_noise);
+  lrf_estimator_for_bunny_noised.compute (bunny_noise_LRF);
+
+  // Compute SHOT LRF for bunny rotated
+  pcl::SHOTGlobalReferenceFrameEstimation<Point, RFrame> grf_estimator_for_bunny_noised;
+  grf_estimator_for_bunny_noised.setInputCloud (cloud_noise);
+  grf_estimator_for_bunny_noised.setSearchMethod (tree_noise);
+  grf_estimator_for_bunny_noised.compute (bunny_noise_GRF);
 
   testing::InitGoogleTest (&argc, argv);
   return (RUN_ALL_TESTS ());

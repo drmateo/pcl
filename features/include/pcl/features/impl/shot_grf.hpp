@@ -81,11 +81,12 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
   Eigen::VectorXf centroid;
   computeNDCentroid<PointInT> (*surface_, centroid);
   query_point.getVector4fMap () = centroid;
-  indices_.reset (new std::vector<int> ());
-  std::vector<float> sqr_distances;
+
+  indices_.reset (new std::vector<int> (surface_->size ()));
+  std::vector<float> sqr_distances (surface_->size ());
   int k = tree_->nearestKSearch (query_point, surface_->size (), *indices_, sqr_distances);
 
-  setRadiusSearch (sqr_distances[k - 1]);
+  setRadiusSearch (sqrt (sqr_distances[k - 1]));
   indices_->resize (1, *indices_->begin ());
 
   return Feature<PointInT, PointOutT>::initCompute ();
