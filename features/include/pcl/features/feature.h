@@ -519,9 +519,10 @@ namespace pcl
     protected:
       using FeatureWithLocalReferenceFrames<PointInT, PointRFT>::frames_;
       using FeatureWithLocalReferenceFrames<PointInT, PointRFT>::frames_never_defined_;
+      using FeatureWithLocalReferenceFrames<PointInT, PointRFT>::initLocalReferenceFrames;
+      
       
       typedef typename Feature<PointInT, PointRFT>::Ptr GRFEstimationPtr;
-      
       bool
       initGlobalReferenceFrame (const GRFEstimationPtr& grf_estimation = GRFEstimationPtr ());
   };

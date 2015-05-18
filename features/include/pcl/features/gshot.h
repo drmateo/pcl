@@ -81,6 +81,7 @@ namespace pcl
       using Feature<PointInT, PointOutT>::search_radius_;
       using Feature<PointInT, PointOutT>::surface_;
       using Feature<PointInT, PointOutT>::fake_surface_;
+      using FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute;
       using FeatureFromNormals<PointInT, PointNT, PointOutT>::normals_;
       using FeatureWithGlobalReferenceFrame<PointInT, PointRFT>::frames_;
 
@@ -114,7 +115,7 @@ namespace pcl
          * \param[out] shot the resultant SHOT descriptor representing the feature at the query point
          */
       virtual void
-      computePointSHOT (const int index,
+      computePointSHOT (/*const int index,*/
                         const std::vector<int> &indices,
                         const std::vector<float> &sqr_dists,
                         Eigen::VectorXf &shot) = 0;

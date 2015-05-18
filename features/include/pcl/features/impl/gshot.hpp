@@ -102,7 +102,7 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
       getClassName().c_str ());
     return (false);
   }
-
+  
   // Default LRF estimation alg: SHOTLocalReferenceFrameEstimation
   typename SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>::Ptr grf_estimator(new SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>());
   grf_estimator->setRadiusSearch ((grf_radius_ > 0 ? grf_radius_ : search_radius_));
@@ -110,7 +110,7 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
   // The size of indices_ must be 1, otherwise it is only take the first one.
   grf_estimator->setIndices (indices_);
   if (!fake_surface_)
-    lrf_estimator->setSearchSurface(surface_);
+    grf_estimator->setSearchSurface(surface_);
 
   if (!FeatureWithGlobalReferenceFrame<PointInT, PointRFT>::initGlobalReferenceFrame (grf_estimator))
   {
@@ -421,17 +421,17 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computeFeature (pc
   }
 
   if (!isFinite ((*input_)[(*indices_)[0]]) ||
-      lrf_is_nan ||
+      grf_is_nan ||
       this->searchForNeighbors ((*indices_)[0], search_parameter_, nn_indices, nn_dists) == 0)
   {
     // Copy into the resultant cloud
     for (int d = 0; d < descLength_; ++d)
-      output.points[idx].descriptor[d] = std::numeric_limits<float>::quiet_NaN ();
+      output.points[0].descriptor[d] = std::numeric_limits<float>::quiet_NaN ();
     for (int d = 0; d < 9; ++d)
-      output.points[idx].rf[d] = std::numeric_limits<float>::quiet_NaN ();
+      output.points[0].rf[d] = std::numeric_limits<float>::quiet_NaN ();
 
     output.is_dense = false;
-    continue;
+    //continue;
   }
 
   // Estimate the SHOT descriptor at each patch
@@ -442,9 +442,9 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computeFeature (pc
     output.points[0].descriptor[d] = shot_[d];
   for (int d = 0; d < 3; ++d)
   {
-    output.points[0].rf[d + 0] = frames_->points[idx].x_axis[d];
-    output.points[0].rf[d + 3] = frames_->points[idx].y_axis[d];
-    output.points[0].rf[d + 6] = frames_->points[idx].z_axis[d];
+    output.points[0].rf[d + 0] = frames_->points[0].x_axis[d];
+    output.points[0].rf[d + 3] = frames_->points[0].y_axis[d];
+    output.points[0].rf[d + 6] = frames_->points[0].z_axis[d];
   }
 }
 

@@ -141,7 +141,7 @@ if(build)
         src/ppf.cpp
         src/shot.cpp
         src/shot_lrf.cpp
-	src/shot.cpp
+#	src/gshot.cpp
 	src/shot_grf.cpp
         src/spin_image.cpp
         src/principal_curvatures.cpp

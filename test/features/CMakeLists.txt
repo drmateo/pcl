@@ -32,10 +32,10 @@ PCL_ADD_TEST(feature_shot_estimation test_shot_estimation
              FILES test_shot_estimation.cpp
              LINK_WITH pcl_gtest pcl_features pcl_io
              ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
-PCL_ADD_TEST(feature_gshot_estimation test_gshot_estimation
-             FILES test_gshot_estimation.cpp
-             LINK_WITH pcl_gtest pcl_features pcl_io
-             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
+#PCL_ADD_TEST(feature_gshot_estimation test_gshot_estimation
+#             FILES test_gshot_estimation.cpp
+#             LINK_WITH pcl_gtest pcl_features pcl_io
+#             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
 PCL_ADD_TEST(feature_boundary_estimation test_boundary_estimation
              FILES test_boundary_estimation.cpp
              LINK_WITH pcl_gtest pcl_features pcl_io
