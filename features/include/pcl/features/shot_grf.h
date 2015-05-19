@@ -15,12 +15,20 @@ namespace pcl
       typedef boost::shared_ptr<const SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT> > ConstPtr;
 
       SHOTGlobalReferenceFrameEstimation ()
+        : fake_radius_ (true)
       {
         feature_name_ = "SHOTGlobalReferenceFrameEstimation";
       }
 
       virtual ~SHOTGlobalReferenceFrameEstimation ()
       {
+      }
+
+      void
+      setRadiusSearch (const float& radius)
+      {
+        search_radius_ = radius;
+        fake_radius_ = false;
       }
 
     protected:
@@ -30,6 +38,7 @@ namespace pcl
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::surface_;
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::tree_;
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::search_parameter_;
+      using Feature<PointInT, PointOutT>::search_radius_;
       using Feature<PointInT, PointOutT>::fake_surface_;
       using Feature<PointInT, PointOutT>::fake_indices_;
       using Feature<PointInT, PointOutT>::initCompute;
@@ -51,10 +60,10 @@ namespace pcl
       virtual void
       computeFeature (PointCloudOut& output);
 
+      bool fake_radius_;
+
     private:
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF;
-      using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::setIndices;
-      using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::setRadiusSearch;
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::setKSearch;
   };
 }

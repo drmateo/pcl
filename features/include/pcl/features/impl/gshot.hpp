@@ -88,7 +88,7 @@ areEquals (float val1, float val2, float zeroFloatEps = zeroFloatEps8)
 template <typename PointInT, typename PointNT, typename PointOutT, typename PointRFT> bool
 pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
 {
-  if (!FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute ())
+  if (!PCLBase<PointInT>::initCompute ())
   {
     PCL_ERROR ("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
     return (false);
@@ -117,13 +117,24 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     PCL_ERROR ("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
     return (false);
   }
+  
+  fake_indices_ = false;
+  indices_.reset (new std::vector<int> (*grf_estimator->getIndices ()));
+
+  search_radius_ = grf_estimator->getRadiusSearch ();
+
+  if (!FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute ())
+  {
+    PCL_ERROR ("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
+    return (false);
+  }
 
   return (true);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 template <typename PointInT, typename PointNT, typename PointOutT, typename PointRFT> void
-pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::createBinDistanceShape (/*int index, */const std::vector<int> &indices,
+pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::createBinDistanceShape (const std::vector<int> &indices,
                                                                                           std::vector<double> &bin_distance_shape)
 {
   bin_distance_shape.resize (indices.size ());
@@ -146,7 +157,8 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::createBinDista
     {
       bin_distance_shape[i_idx] = std::numeric_limits<double>::quiet_NaN ();
       ++nan_counter;
-    } else
+    }
+    else
     {
       //double cosineDesc = feat[i].rf[6]*normal[0] + feat[i].rf[7]*normal[1] + feat[i].rf[8]*normal[2];
       double cosineDesc = normal_vec.dot (current_frame_z);
@@ -159,9 +171,9 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::createBinDista
       bin_distance_shape[i_idx] = ((1.0 + cosineDesc) * nr_shape_bins_) / 2;
     }
   }
-  if (nan_counter > 0)
-    PCL_WARN ("[pcl::%s::createBinDistanceShape] Point %d has %d (%f%%) NaN normals in its neighbourhood\n",
-      getClassName ().c_str (), index, nan_counter, (static_cast<float>(nan_counter)*100.f/static_cast<float>(indices.size ())));
+  // if (nan_counter > 0)
+  //   PCL_WARN ("[pcl::%s::createBinDistanceShape] Point %d has %d (%f%%) NaN normals in its neighbourhood\n",
+  //     getClassName ().c_str (), index, nan_counter, (static_cast<float>(nan_counter)*100.f/static_cast<float>(indices.size ())));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -368,18 +380,18 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computePointSHOT (
     PCL_WARN ("[pcl::%s::computePointSHOT] Warning! Neighborhood has less than 5 vertexes. Aborting description of point with index %d\n",
                   getClassName ().c_str (), (*indices_)[0]);
 
-    shot.setConstant(descLength_, 1, std::numeric_limits<float>::quiet_NaN () );
+    shot.setConstant (descLength_, 1, std::numeric_limits<float>::quiet_NaN ());
 
     return;
   }
 
   // Clear the resultant shot
   std::vector<double> binDistanceShape;
-  this->createBinDistanceShape (/*index, */indices, binDistanceShape);
+  this->createBinDistanceShape (indices, binDistanceShape);
 
   // Interpolate
   shot.setZero ();
-  interpolateSingleChannel (indices, sqr_dists, /*index, */binDistanceShape, nr_shape_bins_, shot);
+  interpolateSingleChannel (indices, sqr_dists, binDistanceShape, nr_shape_bins_, shot);
 
   // Normalize the final histogram
   this->normalizeHistogram (shot, descLength_);
@@ -431,11 +443,10 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computeFeature (pc
       output.points[0].rf[d] = std::numeric_limits<float>::quiet_NaN ();
 
     output.is_dense = false;
-    //continue;
   }
 
   // Estimate the SHOT descriptor at each patch
-  computePointSHOT (/*static_cast<int> (0), */nn_indices, nn_dists, shot_);
+  computePointSHOT (nn_indices, nn_dists, shot_);
 
   // Copy into the resultant cloud
   for (int d = 0; d < descLength_; ++d)

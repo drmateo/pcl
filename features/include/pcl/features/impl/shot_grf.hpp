@@ -72,9 +72,8 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
   if (tree_->getInputCloud () != surface_) // Make sure the tree searches the surface
     tree_->setInputCloud (surface_);
 
-  // *****************************************************************************************************
+  // ***************************************************************************************************** //
   fake_indices_ = false;
-
   tree_->setSortedResults (true);
   
   PointInT query_point;
@@ -86,7 +85,11 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
   std::vector<float> sqr_distances (surface_->size ());
   int k = tree_->nearestKSearch (query_point, surface_->size (), *indices_, sqr_distances);
 
-  setRadiusSearch (sqrt (sqr_distances[k - 1]));
+  float radius = sqrt (sqr_distances[k-1]);
+  if (search_parameter_)
+    search_radius_ = std::min (radius, float(search_radius_));
+
+  search_radius_ = radius;
   indices_->resize (1, *indices_->begin ());
 
   return Feature<PointInT, PointOutT>::initCompute ();
