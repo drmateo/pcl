@@ -82,6 +82,8 @@ namespace pcl
       using Feature<PointInT, PointOutT>::search_radius_;
       using Feature<PointInT, PointOutT>::surface_;
       using Feature<PointInT, PointOutT>::fake_surface_;
+      using Feature<PointInT, PointOutT>::tree_;
+      using Feature<PointInT, PointOutT>::deinitCompute;
       using FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute;
       using FeatureFromNormals<PointInT, PointNT, PointOutT>::normals_;
       using FeatureWithGlobalReferenceFrame<PointInT, PointRFT>::frames_;

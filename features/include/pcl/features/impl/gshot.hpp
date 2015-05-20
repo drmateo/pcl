@@ -94,6 +94,25 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     return (false);
   }
 
+  // If no search surface has been defined, use the input dataset as the search surface itself
+  if (!surface_)
+  {
+    fake_surface_ = true;
+    surface_ = input_;
+  }
+
+  // Check if a space search locator was given
+  if (!tree_)
+  {
+    if (surface_->isOrganized () && input_->isOrganized ())
+      tree_.reset (new pcl::search::OrganizedNeighbor<PointInT> ());
+    else
+      tree_.reset (new pcl::search::KdTree<PointInT> (false));
+  }
+  
+  if (tree_->getInputCloud () != surface_) // Make sure the tree searches the surface
+    tree_->setInputCloud (surface_);
+
   // SHOT cannot work with k-search
   if (this->getKSearch () != 0)
   {
@@ -102,8 +121,16 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
       getClassName().c_str ());
     return (false);
   }
+
+  fake_surface_ = true;
+  input_ = surface_;
+
+  fake_indices_ = true;
+  size_t indices_size = indices_->size ();
+  indices_->resize (input_->points.size ());
+  for (size_t i = indices_size; i < indices_->size (); ++i) { (*indices_)[i] = static_cast<int>(i); }
   
-  // Default LRF estimation alg: SHOTLocalReferenceFrameEstimation
+  // Default GRF estimation alg: SHOTGlobalReferenceFrameEstimation
   typename SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>::Ptr grf_estimator(new SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>());
   grf_estimator->setRadiusSearch ((grf_radius_ > 0 ? grf_radius_ : search_radius_));
   grf_estimator->setInputCloud (input_);
@@ -117,11 +144,14 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     PCL_ERROR ("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
     return (false);
   }
-  
-  fake_indices_ = false;
-  indices_.reset (new std::vector<int> (*grf_estimator->getIndices ()));
 
-  search_radius_ = grf_estimator->getRadiusSearch ();
+  fake_indices_ = false;
+  float radius = grf_estimator->getRadiusSearch ();
+  if (search_parameter_)
+    search_radius_ = std::min (radius, float(search_radius_));
+  
+  search_radius_ = radius;
+  indices_->resize (1, *grf_estimator->getIndices ()->begin ());
 
   if (!FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute ())
   {
