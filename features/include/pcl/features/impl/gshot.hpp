@@ -94,8 +94,29 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     return (false);
   }
 
-  // If no search surface has been defined, use the input dataset as the search surface itself
-  if (!surface_)
+  // If the dataset is empty, just return
+  if (input_->points.empty ())
+  {
+    PCL_ERROR ("[pcl::%s::initCompute] input_ is empty!\n", getClassName ().c_str ());
+    // Cleanup
+    deinitCompute ();
+    return false;
+  }
+  
+  // Global RF cannot work with k-search or radius-search specific
+  if (this->getKSearch () != 0 || this->getRadiusSearch () != 0)
+  {
+    PCL_ERROR("[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) and setRadiusSearch(0) to use this class.\n", getClassName().c_str ());
+    return false;
+  }
+
+  // Search surface hasn't been defined, use the input dataset as the search surface itself
+  if (surface_)
+  {
+    // PCL_ERROR ("[pcl::%s::initCompute] Error! Search surface haven't set up. This class just works with the InputCloud.", getClassName ().c_str ());
+    // return false;
+  }
+  else
   {
     fake_surface_ = true;
     surface_ = input_;
@@ -107,51 +128,60 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     if (surface_->isOrganized () && input_->isOrganized ())
       tree_.reset (new pcl::search::OrganizedNeighbor<PointInT> ());
     else
-      tree_.reset (new pcl::search::KdTree<PointInT> (false));
+      tree_.reset (new pcl::search::KdTree<PointInT> (true));
   }
   
   if (tree_->getInputCloud () != surface_) // Make sure the tree searches the surface
     tree_->setInputCloud (surface_);
-
-  // SHOT cannot work with k-search
-  if (this->getKSearch () != 0)
-  {
-    PCL_ERROR(
-      "[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) and setRadiusSearch( radius ) to use this class.\n",
-      getClassName().c_str ());
-    return (false);
-  }
-
-  fake_surface_ = true;
-  input_ = surface_;
-
-  fake_indices_ = true;
-  size_t indices_size = indices_->size ();
-  indices_->resize (input_->points.size ());
-  for (size_t i = indices_size; i < indices_->size (); ++i) { (*indices_)[i] = static_cast<int>(i); }
   
   // Default GRF estimation alg: SHOTGlobalReferenceFrameEstimation
   typename SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>::Ptr grf_estimator(new SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>());
-  grf_estimator->setRadiusSearch ((grf_radius_ > 0 ? grf_radius_ : search_radius_));
   grf_estimator->setInputCloud (input_);
-  // The size of indices_ must be 1, otherwise it is only take the first one.
   grf_estimator->setIndices (indices_);
+  grf_estimator->setSearchMethod (tree_);
   if (!fake_surface_)
     grf_estimator->setSearchSurface(surface_);
 
   if (!FeatureWithGlobalReferenceFrame<PointInT, PointRFT>::initGlobalReferenceFrame (grf_estimator))
   {
     PCL_ERROR ("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
-    return (false);
+    return false;
   }
 
-  fake_indices_ = false;
-  float radius = grf_estimator->getRadiusSearch ();
-  if (search_parameter_)
-    search_radius_ = std::min (radius, float(search_radius_));
-  
-  search_radius_ = radius;
-  indices_->resize (1, *grf_estimator->getIndices ()->begin ());
+  // Check if the global reference frames is set
+  if (frames_never_defined_)
+  {
+    search_radius_ = grf_estimator->getRadiusSearch ();
+    search_parameter_ = search_radius_;
+
+    fake_indices_ = false;
+    indices_ = grf_estimator->getIndices ();
+  }
+  else
+  {
+    // Find cloud centroid
+    PointInT query_point;
+    Eigen::VectorXf centroid;
+    computeNDCentroid<PointInT> (*surface_, *indices_, centroid);
+    query_point.getVector4fMap () = centroid;
+
+    tree_->setSortedResults (true);
+    indices_.reset (new std::vector<int> (surface_->size ()));
+    std::vector<float> sqr_distances (surface_->size ());
+    int k = tree_->nearestKSearch (query_point, surface_->size (), *indices_, sqr_distances);
+
+    // Search radius set up to the distances between centroid and farthest point
+    search_radius_ = sqrt (sqr_distances[k-1]);
+    search_parameter_ = search_radius_;
+
+    // Index set up to the centroid index of the surface (Not input cloud)
+    fake_indices_ = false;
+    int centroid_idx = (*indices_)[0];
+    indices_->resize (1);
+    (*indices_)[0] = centroid_idx;
+  }
+  // grf_radius_ = search_parameter_;
+
 
   if (!FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute ())
   {
@@ -399,19 +429,15 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::interpolateSin
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 template <typename PointInT, typename PointNT, typename PointOutT, typename PointRFT> void
-pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computePointSHOT (//const int index,
-                                                                                const std::vector<int> &indices,
+pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computePointSHOT (const std::vector<int> &indices,
                                                                                 const std::vector<float> &sqr_dists,
                                                                                 Eigen::VectorXf &shot)
 {
   //Skip the current feature if the number of its neighbors is not sufficient for its description
   if (indices.size () < 5)
   {
-    PCL_WARN ("[pcl::%s::computePointSHOT] Warning! Neighborhood has less than 5 vertexes. Aborting description of point with index %d\n",
-                  getClassName ().c_str (), (*indices_)[0]);
-
+    PCL_WARN ("[pcl::%s::computePointSHOT] Warning! Neighborhood has less than 5 vertexes. Aborting description of point with index %d\n", getClassName ().c_str (), (*indices_)[0]);
     shot.setConstant (descLength_, 1, std::numeric_limits<float>::quiet_NaN ());
-
     return;
   }
 
@@ -457,14 +483,11 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computeFeature (pc
       !pcl_isfinite (current_frame.y_axis[0]) ||
       !pcl_isfinite (current_frame.z_axis[0]))
   {
-    PCL_WARN ("[pcl::%s::computeFeature] The local reference frame is not valid! Aborting description of point with index %d\n",
-              getClassName ().c_str (), (*indices_)[0]);
+    PCL_WARN ("[pcl::%s::computeFeature] The local reference frame is not valid! Aborting description of point with index %d\n", getClassName ().c_str (), (*indices_)[0]);
     grf_is_nan = true;
   }
 
-  if (!isFinite ((*input_)[(*indices_)[0]]) ||
-      grf_is_nan ||
-      this->searchForNeighbors ((*indices_)[0], search_parameter_, nn_indices, nn_dists) == 0)
+  if (!isFinite ((*input_)[(*indices_)[0]]) || grf_is_nan || this->searchForNeighbors ((*indices_)[0], search_parameter_, nn_indices, nn_dists) == 0)
   {
     // Copy into the resultant cloud
     for (int d = 0; d < descLength_; ++d)

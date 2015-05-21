@@ -37,24 +37,35 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::computeFeature (Po
 template <typename PointInT, typename PointOutT> bool
 pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
 {
-  // Check if input was set
-  if (!input_)
+  if (!PCLBase<PointInT>::initCompute ())
   {
     PCL_ERROR ("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
-    return (false);
+    return false;
   }
 
   // If the dataset is empty, just return
   if (input_->points.empty ())
   {
-    PCL_ERROR ("[pcl::%s::compute] input_ is empty!\n", getClassName ().c_str ());
+    PCL_ERROR ("[pcl::%s::initCompute] input_ is empty!\n", getClassName ().c_str ());
     // Cleanup
     deinitCompute ();
-    return (false);
+    return false;
+  }
+  
+  // Global RF cannot work with k-search or radius-search specific
+  if (this->getKSearch () != 0 || this->getRadiusSearch () != 0)
+  {
+    PCL_ERROR("[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) and setRadiusSearch(0) to use this class.\n", getClassName().c_str ());
+    return false;
   }
 
-  // If no search surface has been defined, use the input dataset as the search surface itself
-  if (!surface_)
+  // Search surface hasn't been defined, use the input dataset as the search surface itself
+  if (surface_)
+  {
+    // PCL_ERROR ("[pcl::%s::initCompute] Error! Search surface haven't set up. This class just works with the InputCloud.", getClassName ().c_str ());
+    // return false;
+  }
+  else
   {
     fake_surface_ = true;
     surface_ = input_;
@@ -71,30 +82,27 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
   
   if (tree_->getInputCloud () != surface_) // Make sure the tree searches the surface
     tree_->setInputCloud (surface_);
-
-  // ***************************************************************************************************** //
-
-  fake_surface_ = false;
-  input_ = surface_;
   
-  fake_indices_ = false;
-  tree_->setSortedResults (true);
-  
+  // Find cloud centroid
   PointInT query_point;
   Eigen::VectorXf centroid;
-  computeNDCentroid<PointInT> (*surface_, centroid);
+  computeNDCentroid<PointInT> (*surface_, *indices_, centroid);
   query_point.getVector4fMap () = centroid;
-  
+
+  tree_->setSortedResults (true);
   indices_.reset (new std::vector<int> (surface_->size ()));
   std::vector<float> sqr_distances (surface_->size ());
   int k = tree_->nearestKSearch (query_point, surface_->size (), *indices_, sqr_distances);
-  
-  float radius = sqrt (sqr_distances[k-1]);
-  if (search_parameter_)
-    search_radius_ = std::min (radius, float(search_radius_));
-  
-  search_radius_ = radius;
-  indices_->resize (1, *indices_->begin ());
+
+  // Search radius set up to the distances between centroid and farthest point
+  search_radius_ = sqrt (sqr_distances[k-1]);
+  search_parameter_ = search_radius_;
+
+  // Index set up to the centroid index of the surface (Not input cloud)
+  fake_indices_ = false;
+  int centroid_idx = (*indices_)[0];
+  indices_->resize (1);
+  (*indices_)[0] = centroid_idx;
   
   return Feature<PointInT, PointOutT>::initCompute ();
 }

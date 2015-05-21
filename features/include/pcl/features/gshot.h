@@ -87,6 +87,7 @@ namespace pcl
       using FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute;
       using FeatureFromNormals<PointInT, PointNT, PointOutT>::normals_;
       using FeatureWithGlobalReferenceFrame<PointInT, PointRFT>::frames_;
+      using FeatureWithGlobalReferenceFrame<PointInT, PointRFT>::frames_never_defined_;
 
       typedef typename Feature<PointInT, PointOutT>::PointCloudIn PointCloudIn;
 
@@ -123,11 +124,11 @@ namespace pcl
                         const std::vector<float> &sqr_dists,
                         Eigen::VectorXf &shot) = 0;
 
-        /** \brief Set the radius used for local reference frame estimation if the frames are not set by the user */
-      virtual void
-      setGRFRadius (float radius) { grf_radius_ = radius; }
+      // /** \brief Set the radius used for local reference frame estimation if the frames are not set by the user */
+      // virtual void
+      // setGRFRadius (float radius) { grf_radius_ = radius; }
 
-        /** \brief Get the radius used for local reference frame estimation */
+      /** \brief Get the radius used for local reference frame estimation */
       virtual float
       getGRFRadius () const { return grf_radius_; }
 

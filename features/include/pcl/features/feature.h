@@ -50,6 +50,7 @@
 // PCL includes
 #include <pcl/pcl_base.h>
 #include <pcl/search/search.h>
+#include <pcl/common/centroid.h>
 
 namespace pcl
 {
