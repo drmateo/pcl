@@ -10,26 +10,26 @@ namespace pcl
   template<typename PointInT, typename PointOutT = ReferenceFrame>
   class SHOTGlobalReferenceFrameEstimation : public SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>
   {
+    typedef pcl::PointCloud<PointInT> PointCloudIn;
+    typedef typename PointCloudIn::Ptr PointCloudInPtr;
+    typedef typename PointCloudIn::ConstPtr PointCloudInConstPtr;
+
+    typedef boost::shared_ptr<std::vector<int> > IndicesPtr;
+    
     public:
       typedef boost::shared_ptr<SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT> > Ptr;
       typedef boost::shared_ptr<const SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT> > ConstPtr;
 
       SHOTGlobalReferenceFrameEstimation ()
-        : fake_radius_ (true)
       {
         feature_name_ = "SHOTGlobalReferenceFrameEstimation";
       }
 
       virtual ~SHOTGlobalReferenceFrameEstimation ()
-      {
-      }
+      {}
 
       void
-      setRadiusSearch (const float& radius)
-      {
-        search_radius_ = radius;
-        fake_radius_ = false;
-      }
+      getRFCenterAndRadius (const PointCloudInConstPtr& input, const IndicesPtr& indices, const PointCloudInConstPtr& surface, int& rf_center, float& rf_radius);
 
     protected:
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::feature_name_;
@@ -45,7 +45,6 @@ namespace pcl
       using Feature<PointInT, PointOutT>::deinitCompute;
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getClassName;
       
-      typedef typename SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::PointCloudIn PointCloudIn;
       typedef typename SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::PointCloudOut PointCloudOut;
       
       float
@@ -53,18 +52,15 @@ namespace pcl
       {
         return SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF ((*indices_)[0], rf);
       }
+
+      virtual void
+      computeFeature (PointCloudOut& output);
       
       virtual bool
       initCompute ();
 
-      virtual void
-      computeFeature (PointCloudOut& output);
-
-      bool fake_radius_;
-
     private:
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF;
-      using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::setKSearch;
   };
 }
 

@@ -119,18 +119,9 @@ namespace pcl
          * \param[out] shot the resultant SHOT descriptor representing the feature at the query point
          */
       virtual void
-      computePointSHOT (/*const int index,*/
-                        const std::vector<int> &indices,
+      computePointSHOT (const std::vector<int> &indices,
                         const std::vector<float> &sqr_dists,
                         Eigen::VectorXf &shot) = 0;
-
-      // /** \brief Set the radius used for local reference frame estimation if the frames are not set by the user */
-      // virtual void
-      // setGRFRadius (float radius) { grf_radius_ = radius; }
-
-      /** \brief Get the radius used for local reference frame estimation */
-      virtual float
-      getGRFRadius () const { return grf_radius_; }
 
     protected:
 
@@ -169,7 +160,7 @@ namespace pcl
         * \param[out] bin_distance_shape the resultant histogram
         */
       void
-      createBinDistanceShape (/*int index, */const std::vector<int> &indices,
+      createBinDistanceShape (const std::vector<int> &indices,
                               std::vector<double> &bin_distance_shape);
 
       /** \brief The number of bins in each shape histogram. */
@@ -267,8 +258,7 @@ namespace pcl
         * \param[out] shot the resultant SHOT descriptor representing the feature at the query point
         */
       virtual void
-      computePointSHOT (//const int index,
-                        const std::vector<int> &indices,
+      computePointSHOT (const std::vector<int> &indices,
                         const std::vector<float> &sqr_dists,
                         Eigen::VectorXf &shot);
     protected:

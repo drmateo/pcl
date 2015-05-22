@@ -104,19 +104,14 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
   }
   
   // Global RF cannot work with k-search or radius-search specific
-  if (this->getKSearch () != 0 || this->getRadiusSearch () != 0)
+  if (this->getKSearch () != 0)
   {
-    PCL_ERROR("[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) and setRadiusSearch(0) to use this class.\n", getClassName().c_str ());
+    PCL_ERROR("[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) to use this class.\n", getClassName().c_str ());
     return false;
   }
 
-  // Search surface hasn't been defined, use the input dataset as the search surface itself
-  if (surface_)
-  {
-    // PCL_ERROR ("[pcl::%s::initCompute] Error! Search surface haven't set up. This class just works with the InputCloud.", getClassName ().c_str ());
-    // return false;
-  }
-  else
+  // Use the input dataset as the search surface itself
+  if (!surface_)
   {
     fake_surface_ = true;
     surface_ = input_;
@@ -128,7 +123,7 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     if (surface_->isOrganized () && input_->isOrganized ())
       tree_.reset (new pcl::search::OrganizedNeighbor<PointInT> ());
     else
-      tree_.reset (new pcl::search::KdTree<PointInT> (true));
+      tree_.reset (new pcl::search::KdTree<PointInT> (false));
   }
   
   if (tree_->getInputCloud () != surface_) // Make sure the tree searches the surface
@@ -136,6 +131,7 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
   
   // Default GRF estimation alg: SHOTGlobalReferenceFrameEstimation
   typename SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>::Ptr grf_estimator(new SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>());
+  grf_estimator->setRadiusSearch (search_radius_);
   grf_estimator->setInputCloud (input_);
   grf_estimator->setIndices (indices_);
   grf_estimator->setSearchMethod (tree_);
@@ -159,29 +155,26 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
   }
   else
   {
-    // Find cloud centroid
-    PointInT query_point;
-    Eigen::VectorXf centroid;
-    computeNDCentroid<PointInT> (*surface_, *indices_, centroid);
-    query_point.getVector4fMap () = centroid;
+    int rf_center = 0;
+    float rf_radius = 0.0f;
+    if (search_radius_ == 0 || indices_->size () != 1)
+      grf_estimator->getRFCenterAndRadius (input_, indices_, surface_, rf_center, rf_radius);
 
-    tree_->setSortedResults (true);
-    indices_.reset (new std::vector<int> (surface_->size ()));
-    std::vector<float> sqr_distances (surface_->size ());
-    int k = tree_->nearestKSearch (query_point, surface_->size (), *indices_, sqr_distances);
+    // Set up Search radius to the distances between centroid and farthest point if that is not already set
+    if (search_radius_ == 0)
+    {
+      search_radius_ = rf_radius;
+      search_parameter_ = search_radius_;
+    }
 
-    // Search radius set up to the distances between centroid and farthest point
-    search_radius_ = sqrt (sqr_distances[k-1]);
-    search_parameter_ = search_radius_;
-
-    // Index set up to the centroid index of the surface (Not input cloud)
-    fake_indices_ = false;
-    int centroid_idx = (*indices_)[0];
-    indices_->resize (1);
-    (*indices_)[0] = centroid_idx;
+    // Index set up to the centroid index of the input
+    if (indices_->size () != 1)
+    {
+      fake_indices_ = false;
+      indices_->resize (1);
+      (*indices_)[0] = rf_center;
+    }
   }
-  // grf_radius_ = search_parameter_;
-
 
   if (!FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute ())
   {

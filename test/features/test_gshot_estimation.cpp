@@ -178,9 +178,9 @@ testGSHOTIndicesAndSearchSurface (const typename PointCloud<PointT>::Ptr & point
   // All three of the above cases should produce equivalent results
   int num_reference_frames = 1;
   ASSERT_EQ (output0.size (), num_reference_frames);
-  // checkDesc<OutputT> (output0, output1);
-  // checkDesc<OutputT> (output0, output2);
-  // checkDesc<OutputT> (output1, output2);
+  checkDesc<OutputT> (output0, output1);
+  checkDesc<OutputT> (output0, output2);
+  checkDesc<OutputT> (output1, output2);
 
   //
   // Test the combination of setIndices and setSearchSurface
@@ -204,7 +204,7 @@ testGSHOTIndicesAndSearchSurface (const typename PointCloud<PointT>::Ptr & point
   copyPointCloud<OutputT> (output0, output4); // (Re-using "output0" from above)
 
   // The two cases above should produce equivalent results
-  //checkDesc<OutputT> (output3, output4);
+  checkDesc<OutputT> (output3, output4);
 
   std::vector<float> d0, d1, d2, d3, d4;
   for(int i = 0; i < 352; ++i)
