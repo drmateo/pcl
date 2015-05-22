@@ -331,36 +331,5 @@ pcl::FeatureWithLocalReferenceFrames<PointInT, PointRFT>::initLocalReferenceFram
   return (true);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointInT, typename PointRFT> bool
-pcl::FeatureWithGlobalReferenceFrame<PointInT, PointRFT>::initGlobalReferenceFrame (const GRFEstimationPtr& grf_estimation)
-{
-  // return initLocalReferenceFrames (0, grf_estimation);
-
-  if (frames_never_defined_)
-    frames_.reset ();
-
-  // Check if input frames are set
-  if (!frames_)
-  {
-    if (grf_estimation)
-    {
-      //PCL_WARN ("[initLocalReferenceFrames] No input dataset containing reference frames was given! Proceed using default\n");
-      PointCloudGRFPtr default_frames (new PointCloudGRF());
-      grf_estimation->compute (*default_frames);
-      frames_ = default_frames;
-    }
-    else
-    {
-      PCL_ERROR ("[initGlobalReferenceFrame] No input dataset containing reference frames was given!\n");
-      return false;
-    }
-  }
-
-  return true;
-}
-
 #endif  //#ifndef PCL_FEATURES_IMPL_FEATURE_H_
 
