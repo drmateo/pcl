@@ -38,6 +38,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <pcl/point_cloud.h>
 #include <pcl/features/normal_3d_omp.h>
 #include <pcl/io/pcd_io.h>
@@ -47,6 +48,11 @@
 #include <pcl/features/shot_grf.h>
 #include <pcl/common/centroid.h>
 #include <pcl/common/norms.h>
+#include <pcl/common/transforms.h>
+
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/variate_generator.hpp>
 
 using namespace pcl;
 using namespace pcl::io;
@@ -188,35 +194,6 @@ testGSHOTIndicesAndSearchSurface (const typename PointCloud<PointT>::Ptr & point
   checkDesc<OutputT> (output3, output4);
 }
 
-
-
-  // // Compute for all points and then subsample the results
-  // FeatureEstimation est00 = createSHOTDesc<FeatureEstimation, PointT, NormalT, OutputT>()(normals2, nr_shape_bins,nr_color_bins, describe_shape, describe_color);
-  // est00.setSearchMethod (typename search::KdTree<PointT>::Ptr (new search::KdTree<PointT>));
-  // // est0.setRadiusSearch (radius);
-  // est00.setInputCloud (points2);
-  // est00.compute (full_output2);
-
-  // std::vector<float> d0, d1, d2, d3, d4;
-  // for(int i = 0; i < 352; ++i)
-  // {
-  //   d0.push_back(full_output.points[0].descriptor[i]);
-  //   d1.push_back(full_output2.points[0].descriptor[i]);
-  //   d2.push_back(output1.points[0].descriptor[i]);
-  //   d3.push_back(output2.points[0].descriptor[i]);
-  //   d4.push_back(output3.points[0].descriptor[i]);
-  // }
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d1, 352, pcl::CS) << std::endl;
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d2, 352, pcl::CS) << std::endl;
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d3, 352, pcl::CS) << std::endl;
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d4, 352, pcl::CS) << std::endl;
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d1, 352, pcl::L2) << std::endl;
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d1, 352, pcl::L1) << std::endl;
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d1, 352, pcl::PF) << std::endl;
-  // std::cout << pcl::selectNorm< std::vector<float> > (d0, d1, 352, pcl::JM) << std::endl;
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////
 template <typename FeatureEstimation, typename PointT, typename NormalT, typename OutputT> void
 testGSHOTGlobalReferenceFrame (const typename PointCloud<PointT>::Ptr & points,
@@ -282,6 +259,28 @@ testGSHOTGlobalReferenceFrame (const typename PointCloud<PointT>::Ptr & points,
 
   // The two cases above should produce equivalent results
   checkDesc<OutputT> (output, output2);
+}
+
+void
+add_gaussian_noise (const PointCloud<PointXYZ>::ConstPtr& cloud_in, PointCloud<PointXYZ>::Ptr& cloud_out)
+{
+  double standard_deviation = 0.0009;
+
+  boost::mt19937 rng; rng.seed (static_cast<unsigned int> (time (0)));
+  boost::normal_distribution<> nd (0, standard_deviation);
+  boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor (rng, nd);
+
+  
+  cloud_out->resize (cloud_in->size ());
+  for (size_t point_i = 0; point_i < cloud_in->points.size (); ++ point_i)
+  {
+    cloud_out->points[point_i].x = cloud_in->points[point_i].x + static_cast<float> (var_nor ());
+    cloud_out->points[point_i].y = cloud_in->points[point_i].y + static_cast<float> (var_nor ());
+    cloud_out->points[point_i].z = cloud_in->points[point_i].z + static_cast<float> (var_nor ());
+  }
+  cloud_out->header = cloud_in->header;
+  cloud_out->width = cloud_in->width;
+  cloud_out->height = cloud_in->height;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -417,6 +416,181 @@ TEST (PCL, SHOTGlobalReferenceFrame)
   testGSHOTGlobalReferenceFrame<GSHOTEstimation<PointXYZ, Normal, SHOT352>, PointXYZ, Normal, SHOT352> (cloud.makeShared (), normals, test_indices);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TEST (PCL, GSHOTRadius)
+{
+  float radius = radius_local_shot / 4.0f;
+  
+  // Estimate normals first
+  double mr = 0.002;
+  NormalEstimation<PointXYZ, Normal> n;
+  PointCloud<Normal>::Ptr normals (new PointCloud<Normal> ());
+  // set parameters
+  n.setInputCloud (cloud.makeShared ());
+  boost::shared_ptr<vector<int> > indicesptr (new vector<int> (indices));
+  boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
+  n.setIndices (indicesptr);
+  n.setSearchMethod (tree);
+  n.setRadiusSearch (20 * mr);
+  n.compute (*normals);
+
+  // Objects
+  PointCloud<SHOT352>::Ptr gshots352 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr shots352 (new PointCloud<SHOT352> ());
+  
+  // SHOT352 (local)
+  SHOTEstimation<PointXYZ, Normal, SHOT352> shot352;
+  shot352.setInputNormals (normals);
+  shot352.setRadiusSearch (radius);
+  shot352.setInputCloud (cloud.makeShared ());
+  shot352.setIndices (indices_local_shot_ptr);
+  shot352.setSearchMethod (tree);
+  shot352.compute (*shots352);
+
+  // SHOT352 (global)
+  GSHOTEstimation<PointXYZ, Normal, SHOT352> gshot352;
+  gshot352.setInputNormals (normals);
+  // set parameters
+  gshot352.setInputCloud (cloud.makeShared ());
+  gshot352.setIndices (indicesptr);
+  gshot352.setSearchMethod (tree);
+  gshot352.setRadiusSearch (radius);
+  EXPECT_EQ (gshot352.getRadiusSearch (), shot352.getRadiusSearch ());
+  // estimate
+  gshot352.compute (*gshots352);
+
+  checkDesc (*gshots352, *shots352);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TEST (PCL, GSHOTWithRTransNoised)
+{
+  PointCloud<PointXYZ>::Ptr cloud_rot (new PointCloud<PointXYZ> ());
+  PointCloud<PointXYZ>::Ptr cloud_trans (new PointCloud<PointXYZ> ());
+  PointCloud<PointXYZ>::Ptr cloud_noise (new PointCloud<PointXYZ> ());
+
+  Eigen::Affine3f rot = Eigen::Affine3f::Identity ();
+  rot.prerotate (Eigen::AngleAxisf (0.25 * M_PI, Eigen::Vector3f::UnitX ()));
+  rot.prerotate (Eigen::AngleAxisf (0.5 * M_PI, Eigen::Vector3f::UnitZ ()));
+  pcl::transformPointCloud<PointXYZ> (cloud, *cloud_rot, rot);
+
+  Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
+  trans.translate (Eigen::Vector3f (0, 1, 0));
+  pcl::transformPointCloud<PointXYZ> (cloud, *cloud_trans, trans);
+
+  add_gaussian_noise (cloud.makeShared (), cloud_noise);
+
+  // Estimate normals first
+  double mr = 0.002;
+  NormalEstimation<PointXYZ, Normal> n;
+  PointCloud<Normal>::Ptr normals1 (new PointCloud<Normal> ());
+  n.setInputCloud (cloud.makeShared ());
+  n.setRadiusSearch (20 * mr);
+  n.compute (*normals1);
+
+  PointCloud<Normal>::Ptr normals2 (new PointCloud<Normal> ());
+  n.setInputCloud (cloud_rot);
+  n.compute (*normals2);
+
+  PointCloud<Normal>::Ptr normals3 (new PointCloud<Normal> ());
+  n.setInputCloud (cloud_trans);
+  n.compute (*normals3);
+
+  PointCloud<Normal>::Ptr normals4 (new PointCloud<Normal> ());
+  n.setInputCloud (cloud_noise);
+  n.compute (*normals4);
+
+  PointCloud<Normal>::Ptr normals5 (new PointCloud<Normal> ());
+  n.setInputCloud (cloud2.makeShared ());
+  n.compute (*normals5);
+
+  PointCloud<Normal>::Ptr normals6 (new PointCloud<Normal> ());
+  n.setInputCloud (cloud3.makeShared ());
+  n.compute (*normals6);
+
+  // Objects
+  PointCloud<SHOT352>::Ptr desc0 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc1 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc2 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc3 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc4 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc5 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc6 (new PointCloud<SHOT352> ());
+
+  // SHOT352 (global)
+  GSHOTEstimation<PointXYZ, Normal, SHOT352> gshot;
+  gshot.setInputNormals (normals1);
+  gshot.setInputCloud (cloud.makeShared ());
+  gshot.compute (*desc1);
+
+  gshot.setInputNormals (normals2);
+  gshot.setInputCloud (cloud_rot);
+  gshot.compute (*desc2);
+
+  gshot.setInputNormals (normals3);
+  gshot.setInputCloud (cloud_trans);
+  gshot.compute (*desc3);
+
+  gshot.setInputNormals (normals4);
+  gshot.setInputCloud (cloud_noise);
+  gshot.compute (*desc4);
+
+  gshot.setInputNormals (normals5);
+  gshot.setInputCloud (cloud2.makeShared ());
+  gshot.compute (*desc5);
+
+  gshot.setInputNormals (normals6);
+  gshot.setInputCloud (cloud3.makeShared ());
+  gshot.compute (*desc6);
+
+  // SHOT352 (local)
+  GSHOTEstimation<PointXYZ, Normal, SHOT352> shot;
+  shot.setInputNormals (normals3);
+  boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
+  shot.setIndices (indices_local_shot_ptr);
+  shot.setInputCloud (cloud_trans);
+  shot.setRadiusSearch (radius_local_shot);
+  shot.compute (*desc0);
+
+  // CHECK match the gshot of cloud rotated with the shot of the cloud rotated too. 
+  checkDesc(*desc0, *desc3);
+
+  std::vector<float> d0, d1, d2, d3, d4,d5;
+  for(int i = 0; i < 352; ++i)
+  {
+    d0.push_back(desc1->points[0].descriptor[i]);
+    d1.push_back(desc2->points[0].descriptor[i]);
+    d2.push_back(desc3->points[0].descriptor[i]);
+    d3.push_back(desc4->points[0].descriptor[i]);
+    d4.push_back(desc5->points[0].descriptor[i]);
+    d5.push_back(desc6->points[0].descriptor[i]);
+  }
+
+  float dist_0 = pcl::selectNorm< std::vector<float> > (d0, d0, 352, pcl::HIK) ;
+  float dist_1 = pcl::selectNorm< std::vector<float> > (d0, d1, 352, pcl::HIK) ;
+  float dist_2 = pcl::selectNorm< std::vector<float> > (d0, d2, 352, pcl::HIK) ;
+  float dist_3 = pcl::selectNorm< std::vector<float> > (d0, d3, 352, pcl::HIK) ;
+  float dist_4 = pcl::selectNorm< std::vector<float> > (d0, d4, 352, pcl::HIK) ;
+  float dist_5 = pcl::selectNorm< std::vector<float> > (d0, d5, 352, pcl::HIK) ;
+  
+  std::cout << ">> Itself[HIK]:      " << dist_0 << std::endl
+            << ">> Rotation[HIK]:    " << dist_1 << std::endl
+            << ">> Translate[HIK]:   " << dist_2 << std::endl
+            << ">> GaussNoise[HIK]:  " << dist_3 << std::endl
+            << ">> bun03[HIK]:       " << dist_4 << std::endl
+            << ">> milk[HIK]:        " << dist_5 << std::endl;
+
+  float high_barrier = dist_0 * 0.666f;
+  float low_barrier = dist_0 * 0.25f;
+
+
+  EXPECT_GT (dist_1, high_barrier);
+  EXPECT_GT (dist_2, high_barrier);
+  EXPECT_GT (dist_3, high_barrier);
+  EXPECT_LT (dist_4, low_barrier);
+  EXPECT_LT (dist_5, low_barrier);
+}
+
 /* ---[ */
 int
 main (int argc, char** argv)
@@ -458,17 +632,39 @@ main (int argc, char** argv)
   indices_local_shot.resize (1);
   indices_local_shot[0] = centroid_idx;
 
+  //
+  // Load second cloud and prepare objets to test 
+  //
   if (loadPCDFile<PointXYZ> (argv[2], cloud2) < 0)
   {
     std::cerr << "Failed to read test file. Please download `bun03.pcd` and pass its path to the test." << std::endl;
     return (-1);
   }
 
+  indices2.resize (cloud2.size (), 0);
+  for (size_t i = 0; i < indices2.size (); ++i)
+    indices2[i] = static_cast<int> (i);
+
+  tree2.reset (new search::KdTree<PointXYZ> ());
+  tree2->setInputCloud (cloud2.makeShared ());
+  tree2->setSortedResults (true);
+
+  //
+  // Load third cloud and prepare objets to test 
+  //
   if (loadPCDFile<PointXYZ> (argv[3], cloud3) < 0)
   {
     std::cerr << "Failed to read test file. Please download `milk.pcd` and pass its path to the test." << std::endl;
     return (-1);
   }
+
+  indices3.resize (cloud3.size (), 0);
+  for (size_t i = 0; i < indices3.size (); ++i)
+    indices3[i] = static_cast<int> (i);
+
+  tree3.reset (new search::KdTree<PointXYZ> ());
+  tree3->setInputCloud (cloud3.makeShared ());
+  tree3->setSortedResults (true);
 
   testing::InitGoogleTest (&argc, argv);
   return (RUN_ALL_TESTS ());
