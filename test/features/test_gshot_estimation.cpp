@@ -475,7 +475,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   pcl::transformPointCloud<PointXYZ> (cloud, *cloud_rot, rot);
 
   Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
-  trans.translate (Eigen::Vector3f (0, 1, 0));
+  trans.translate (Eigen::Vector3f (0, 0.4, 0));
   pcl::transformPointCloud<PointXYZ> (cloud, *cloud_trans, trans);
 
   add_gaussian_noise (cloud.makeShared (), cloud_noise);
@@ -580,7 +580,7 @@ TEST (PCL, GSHOTWithRTransNoised)
             << ">> bun03[HIK]:       " << dist_4 << std::endl
             << ">> milk[HIK]:        " << dist_5 << std::endl;
 
-  float high_barrier = dist_0 * 0.666f;
+  float high_barrier = dist_0 * 0.75f;
   float low_barrier = dist_0 * 0.25f;
 
 
