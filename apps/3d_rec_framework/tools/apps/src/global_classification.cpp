@@ -11,6 +11,7 @@
 #include <pcl/apps/3d_rec_framework/feature_wrapper/global/vfh_estimator.h>
 #include <pcl/apps/3d_rec_framework/feature_wrapper/global/esf_estimator.h>
 #include <pcl/apps/3d_rec_framework/feature_wrapper/global/cvfh_estimator.h>
+#include <pcl/apps/3d_rec_framework/feature_wrapper/global/gshot_estimator.h>
 #include <pcl/apps/3d_rec_framework/tools/openni_frame_source.h>
 #include <pcl/apps/3d_rec_framework/utils/metrics.h>
 #include <pcl/visualization/pcl_visualizer.h>
@@ -228,4 +229,22 @@ main (int argc, char ** argv)
     segmentAndClassify<flann::L1, pcl::PointXYZ, pcl::ESFSignature640> (global);
   }
 
+  if (desc_name.compare ("gshot") == 0)
+  {
+    boost::shared_ptr<pcl::rec_3d_framework::GSHOTEstimation<pcl::PointXYZ, pcl::Histogram<352> > > estimator;
+    estimator.reset (new pcl::rec_3d_framework::GSHOTEstimation<pcl::PointXYZ, pcl::Histogram<352> >);
+    
+    boost::shared_ptr<pcl::rec_3d_framework::GlobalEstimator<pcl::PointXYZ, pcl::Histogram<352> > > cast_estimator;
+    cast_estimator = boost::dynamic_pointer_cast<pcl::rec_3d_framework::GSHOTEstimation<pcl::PointXYZ, pcl::Histogram<352> > > (estimator);
+    
+    pcl::rec_3d_framework::GlobalNNPipeline<flann::L1, pcl::PointXYZ, pcl::Histogram<352> > global;
+    global.setDataSource (cast_source);
+    global.setTrainingDir (training_dir);
+    global.setDescriptorName (desc_name);
+    global.setFeatureEstimator (cast_estimator);
+    global.setNN (NN);
+    global.initialize (false);
+    
+    segmentAndClassify<flann::L1, pcl::PointXYZ, pcl::Histogram<352> > (global);
+  }
 }
