@@ -42,6 +42,8 @@
 
 #include <pcl/features/gshot.h>
 #include <pcl/features/shot_grf.h>
+#include <pcl/common/common.h>
+#include <pcl/common/centroid.h>
 #include <utility>
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +71,13 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
   if (this->getKSearch () != 0)
   {
     PCL_ERROR("[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) to use this class.\n", getClassName().c_str ());
+    return false;
+  }
+
+  // Check if the radius for compute normals is specified
+  if (this->radius_for_normal_ == 0)
+  {
+    PCL_ERROR ("[pcl::%s::initCompute] Error! Call setRadiusNormal(r) to use this clss.\n", getClassName ().c_str ());
     return false;
   }
 
@@ -111,31 +120,39 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
   {
     search_radius_ = grf_estimator->getRadiusSearch ();
     search_parameter_ = search_radius_;
+    
+    central_point_ = grf_estimator->getCentralPoint ();
 
-    fake_indices_ = false;
-    indices_ = grf_estimator->getIndices ();
+    // fake_indices_ = false;
+    // indices_ = grf_estimator->getIndices ();
   }
   else
-  {
-    int rf_center = 0;
-    float rf_radius = 0.0f;
-    if (search_radius_ == 0 || indices_->size () != 1)
-      grf_estimator->getRFCenterAndRadius (input_, indices_, surface_, rf_center, rf_radius);
-
-    // Set up Search radius to the distances between centroid and farthest point if that is not already set
+  { 
+    compute3DCentroid<PointInT, float> (*surface_, central_point_);
+    Eigen::Vector4f max_pt;
+    getMaxDistance<PointInT> (*surface_, central_point_, max_pt);
     if (search_radius_ == 0)
-    {
-      search_radius_ = rf_radius;
-      search_parameter_ = search_radius_;
-    }
+      search_radius_ = (max_pt - central_point_).squaredNorm ();
+    search_parameter_ = search_radius_;
+    // int rf_center = 0;
+    // float rf_radius = 0.0f;
+    // if (search_radius_ == 0 || indices_->size () != 1)
+    //   grf_estimator->getRFCenterAndRadius (input_, indices_, surface_, rf_center, rf_radius);
 
-    // Index set up to the centroid index of the input
-    if (indices_->size () != 1)
-    {
-      fake_indices_ = false;
-      indices_->resize (1);
-      (*indices_)[0] = rf_center;
-    }
+    // // Set up Search radius to the distances between centroid and farthest point if that is not already set
+    // if (search_radius_ == 0)
+    // {
+    //   search_radius_ = rf_radius;
+    //   search_parameter_ = search_radius_;
+    // }
+
+    // // Index set up to the centroid index of the input
+    // if (indices_->size () != 1)
+    // {
+    //   fake_indices_ = false;
+    //   indices_->resize (1);
+    //   (*indices_)[0] = rf_center;
+    // }
   }
 
   if (!FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute ())

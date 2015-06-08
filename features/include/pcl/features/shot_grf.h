@@ -75,6 +75,12 @@ namespace pcl
       virtual ~SHOTGlobalReferenceFrameEstimation ()
       {}
 
+      virtual Eigen::Vector4f
+      getCentralPoint ()
+      {
+        return central_point_;
+      }
+
       void
       getRFCenterAndRadius (const PointCloudInConstPtr& input,
                             const IndicesPtr& indices,
@@ -96,6 +102,13 @@ namespace pcl
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::deinitCompute;
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getClassName;
       
+      /** \brief Computes disambiguated local RF for a point index
+        * \param[in] index the index
+        * \param[out] rf reference frame to compute
+        */
+      float
+      getLocalRF (const Eigen::Vector4f& central_point, Eigen::Matrix3f &rf);
+
       /** \brief Computes disambiguated Global RF for the center point
         * \param[out] rf reference frame to compute
         */
@@ -108,12 +121,14 @@ namespace pcl
       /** \brief This method should get called before starting the actual computation. */
       virtual bool
       initCompute ();
- 
+
       /** \brief Feature estimation method.
         * \param[out] output the resultant features
         */
       virtual void
       computeFeature (PointCloudOut& output);
+
+      Eigen::Vector4f central_point_;
 
     private:
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF;

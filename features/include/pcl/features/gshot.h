@@ -68,6 +68,7 @@ namespace pcl
     protected:
       /** \brief Empty constructor */
       GSHOTEstimationBase ()
+        : radius_for_normal_ (0.0)
       {
         feature_name_ = "GSHOTEstimationBase";
       }
@@ -75,6 +76,12 @@ namespace pcl
     public:
       /** \brief Empty destructor */
       virtual ~GSHOTEstimationBase () {}
+
+      void
+      setRadiusNormal (float radius)
+      {
+        radius_for_normal_ = radius;
+      }
 
       /** \brief Estimate the SHOT descriptor for a given point based on its spatial neighborhood of 3D points with normals
          * \param[in] indices the k-neighborhood point indices in surface_
@@ -115,6 +122,11 @@ namespace pcl
       {
         return initLocalReferenceFrames (0, grf_estimation);
       }
+
+      /* Point center of the cloud */
+      Eigen::Vector4f central_point_;
+      Eigen::Vector4f central_normal_;
+      float radius_for_normal_;
 
     private:
       using FeatureWithLocalReferenceFrames<PointInT, PointRFT>::initLocalReferenceFrames;
