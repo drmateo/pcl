@@ -68,7 +68,6 @@ namespace pcl
     protected:
       /** \brief Empty constructor */
       GSHOTEstimationBase ()
-        : radius_for_normal_ (0.0)
       {
         feature_name_ = "GSHOTEstimationBase";
       }
@@ -77,21 +76,23 @@ namespace pcl
       /** \brief Empty destructor */
       virtual ~GSHOTEstimationBase () {}
 
-      void
-      setRadiusNormal (float radius)
-      {
-        radius_for_normal_ = radius;
-      }
-
       /** \brief Estimate the SHOT descriptor for a given point based on its spatial neighborhood of 3D points with normals
          * \param[in] indices the k-neighborhood point indices in surface_
          * \param[in] sqr_dists the k-neighborhood point distances in surface_
          * \param[out] shot the resultant SHOT descriptor representing the feature at the query point
          */
       virtual void
-      computePointSHOT (const std::vector<int> &indices,
+      computePointSHOT (const Eigen::Vector4f& central_point,
+                        const int& index,
+                        const std::vector<int> &indices,
                         const std::vector<float> &sqr_dists,
                         Eigen::VectorXf &shot) = 0;
+
+      virtual Eigen::Vector4f
+      getCentralPoint ()
+      {
+        return central_point_;
+      }
 
     protected:
       using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::feature_name_;
@@ -108,6 +109,29 @@ namespace pcl
       using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::frames_never_defined_;
       using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::getClassName;
       using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::deinitCompute;
+      using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::radius1_2_;
+      using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::radius1_4_;
+      using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::radius3_4_;
+      using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::maxAngularSectors_;
+
+      // FIXME: Add this method to the SHOTEstimationBase class
+      /** \brief Quadrilinear interpolation used when color and shape descriptions are NOT activated simultaneously
+        *
+        * \param[in] indices the neighborhood point indices
+        * \param[in] sqr_dists the neighborhood point distances
+        * \param[in] point the central point of the signature
+        * \param[out] binDistance the resultant distance shape histogram
+        * \param[in] nr_bins the number of bins in the shape histogram
+        * \param[out] shot the resultant SHOT histogram
+        */
+      void
+      interpolateSingleChannel (const std::vector<int> &indices,
+                                const std::vector<float> &sqr_dists,
+                                const Eigen::Vector4f& central_point,
+                                const int& index,
+                                std::vector<double> &binDistance,
+                                const int nr_bins,
+                                Eigen::VectorXf &shot);
 
       /** \brief This method should get called before starting the actual computation. */
       virtual bool
@@ -123,18 +147,18 @@ namespace pcl
         return initLocalReferenceFrames (0, grf_estimation);
       }
 
-      /* Point center of the cloud */
+      /* Virtual point center of the cloud */
       Eigen::Vector4f central_point_;
-      Eigen::Vector4f central_normal_;
-      float radius_for_normal_;
 
     private:
       using FeatureWithLocalReferenceFrames<PointInT, PointRFT>::initLocalReferenceFrames;
 
       inline void
-      computePointSHOT (const int /*index*/, const std::vector<int> &/*indices*/, const std::vector<float> &/*sqr_dists*/,Eigen::VectorXf &/*shot*/) 
-      { PCL_ERROR ("[pcl::%s::computePointSHOT] Error! Call computePointSHOT(indices, sqr_dists, shot) to use this class.\n", getClassName().c_str ()); }
-      
+      computePointSHOT (const int /*index*/, const std::vector<int> &/*indices*/, const std::vector<float> &/*sqr_dists*/,Eigen::VectorXf &/*shot*/)
+      {
+          PCL_ERROR ("[pcl::%s::computePointSHOT] Error! Call computePointSHOT(indices, sqr_dists, shot) to use this class.\n", getClassName().c_str ());
+      }
+//
   };
 
   /** \brief SHOTEstimation estimates the Signature of Histograms of OrienTations (SHOT) descriptor for
@@ -178,11 +202,13 @@ namespace pcl
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::search_parameter_;
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::search_radius_;
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::input_;
+      using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::tree_;
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::frames_;
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::getClassName;
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::createBinDistanceShape;
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::interpolateSingleChannel;  
       using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::normalizeHistogram;
+      using GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::central_point_;
 
       /** \brief Estimate the GSHOT descriptor for the ceneter point based on its spatial neighborhood of 3D points with normals
         * \param[in] indices the k-neighborhood point indices in surface_
@@ -190,7 +216,9 @@ namespace pcl
         * \param[out] shot the resultant SHOT descriptor representing the feature at the query point
         */
       virtual void
-      computePointSHOT (const std::vector<int> &indices,
+      computePointSHOT (const Eigen::Vector4f& central_point,
+                        const int& index,
+                        const std::vector<int> &indices,
                         const std::vector<float> &sqr_dists,
                         Eigen::VectorXf &shot);
 

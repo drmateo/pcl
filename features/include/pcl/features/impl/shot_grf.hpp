@@ -45,46 +45,46 @@
 #include <pcl/common/centroid.h>
 #include <utility>
 
-//////////////////////////////////////////////////////////////////////////////////////////////
-template <typename PointInT, typename PointOutT> void
-pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getRFCenterAndRadius (const PointCloudInConstPtr& input,
-                                                                                    const IndicesPtr& indices,
-                                                                                    const PointCloudInConstPtr& surface,
-                                                                                    int& rf_center,
-                                                                                    float& rf_radius)
-{
-  PointInT query_point;
-  Eigen::VectorXf centroid;
-  computeNDCentroid<PointInT> (*surface, centroid);
-  query_point.getVector4fMap () = centroid;
-
-  typename pcl::search::Search<PointInT>::Ptr tree (new pcl::search::KdTree<PointInT> (true));
-
-  tree->setInputCloud (surface);
-  std::vector<int> _indices (surface->size ());
-  std::vector<float> sqr_distances (surface->size ());
-  int k = tree->nearestKSearch (query_point, surface->size (), _indices, sqr_distances);
-  float surface_radius = sqrt (sqr_distances[k-1]);
-  int surface_centroid = _indices[0];
-
-  size_t size = 0;
-  if (indices->size () > 0)
-  {
-    tree->setInputCloud (input, indices);
-    size = indices->size ();
-  }
-  else
-  {
-    tree->setInputCloud (input);
-    size = input->size ();
-  }
-  _indices.resize (size, 0);
-  sqr_distances.resize (size, 0.0f);
-  k = tree->nearestKSearch (surface->points[surface_centroid], size, _indices, sqr_distances);
-
-  rf_radius = surface_radius + sqrt(sqr_distances[0]);
-  rf_center = _indices[0];
-}
+////////////////////////////////////////////////////////////////////////////////////////////////
+//template <typename PointInT, typename PointOutT> void
+//pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getRFCenterAndRadius (const PointCloudInConstPtr& input,
+//                                                                                    const IndicesPtr& indices,
+//                                                                                    const PointCloudInConstPtr& surface,
+//                                                                                    int& rf_center,
+//                                                                                    float& rf_radius)
+//{
+//  PointInT query_point;
+//  Eigen::VectorXf centroid;
+//  computeNDCentroid<PointInT> (*surface, centroid);
+//  query_point.getVector4fMap () = centroid;
+//
+//  typename pcl::search::Search<PointInT>::Ptr tree (new pcl::search::KdTree<PointInT> (true));
+//
+//  tree->setInputCloud (surface);
+//  std::vector<int> _indices (surface->size ());
+//  std::vector<float> sqr_distances (surface->size ());
+//  int k = tree->nearestKSearch (query_point, surface->size (), _indices, sqr_distances);
+//  float surface_radius = sqrt (sqr_distances[k-1]);
+//  int surface_centroid = _indices[0];
+//
+//  size_t size = 0;
+//  if (indices->size () > 0)
+//  {
+//    tree->setInputCloud (input, indices);
+//    size = indices->size ();
+//  }
+//  else
+//  {
+//    tree->setInputCloud (input);
+//    size = input->size ();
+//  }
+//  _indices.resize (size, 0);
+//  sqr_distances.resize (size, 0.0f);
+//  k = tree->nearestKSearch (surface->points[surface_centroid], size, _indices, sqr_distances);
+//
+//  rf_radius = surface_radius + sqrt(sqr_distances[0]);
+//  rf_center = _indices[0];
+//}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////

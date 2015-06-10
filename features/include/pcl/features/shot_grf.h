@@ -80,13 +80,13 @@ namespace pcl
       {
         return central_point_;
       }
-
-      void
-      getRFCenterAndRadius (const PointCloudInConstPtr& input,
-                            const IndicesPtr& indices,
-                            const PointCloudInConstPtr& surface,
-                            int& rf_center,
-                            float& rf_radius);
+//
+//      void
+//      getRFCenterAndRadius (const PointCloudInConstPtr& input,
+//                            const IndicesPtr& indices,
+//                            const PointCloudInConstPtr& surface,
+//                            int& rf_center,
+//                            float& rf_radius);
 
     protected:
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::feature_name_;

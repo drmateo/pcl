@@ -311,25 +311,23 @@ TEST (PCL, GSHOTShapeEstimation)
   // Estimate normals first
   double mr = 0.002;
   NormalEstimation<PointXYZ, Normal> n;
-  PointCloud<Normal>::Ptr normals_for_lrf (new PointCloud<Normal> ());
-  // set parameters
-  n.setInputCloud (cloud_for_lrf.makeShared ());
-  boost::shared_ptr<vector<int> > indices_for_lrf_ptr (new vector<int> (indices_for_lrf));
-  boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
-  n.setIndices (indices_for_lrf_ptr);
+  boost::shared_ptr<vector<int> > indicesptr (new vector<int> (indices));
+  n.setInputCloud (cloud.makeShared ());
+  n.setIndices (indicesptr);
+  n.setSearchMethod (tree);
   n.setRadiusSearch (20 * mr);
-  n.compute (*normals_for_lrf);
+  PointCloud<Normal>::Ptr normals (new PointCloud<Normal> ());
+  n.compute (*normals);
 
-  EXPECT_NEAR (normals_for_lrf->points[103].normal_x, 0.36683175, 1e-4);
-  EXPECT_NEAR (normals_for_lrf->points[103].normal_y, -0.44696972, 1e-4);
-  EXPECT_NEAR (normals_for_lrf->points[103].normal_z, -0.81587529, 1e-4);
-  EXPECT_NEAR (normals_for_lrf->points[200].normal_x, -0.71414840, 1e-4);
-  EXPECT_NEAR (normals_for_lrf->points[200].normal_y, -0.06002361, 1e-4);
-  EXPECT_NEAR (normals_for_lrf->points[200].normal_z, -0.69741613, 1e-4);
-
-  EXPECT_NEAR (normals_for_lrf->points[140].normal_x, -0.45109111, 1e-4);
-  EXPECT_NEAR (normals_for_lrf->points[140].normal_y, -0.19499126, 1e-4);
-  EXPECT_NEAR (normals_for_lrf->points[140].normal_z, -0.87091631, 1e-4);
+  EXPECT_NEAR (normals->points[103].normal_x, 0.36683175, 1e-4);
+  EXPECT_NEAR (normals->points[103].normal_y, -0.44696972, 1e-4);
+  EXPECT_NEAR (normals->points[103].normal_z, -0.81587529, 1e-4);
+  EXPECT_NEAR (normals->points[200].normal_x, -0.71414840, 1e-4);
+  EXPECT_NEAR (normals->points[200].normal_y, -0.06002361, 1e-4);
+  EXPECT_NEAR (normals->points[200].normal_z, -0.69741613, 1e-4);
+  EXPECT_NEAR (normals->points[140].normal_x, -0.45109111, 1e-4);
+  EXPECT_NEAR (normals->points[140].normal_y, -0.19499126, 1e-4);
+  EXPECT_NEAR (normals->points[140].normal_z, -0.87091631, 1e-4);
 
   // Objects
   PointCloud<SHOT352>::Ptr gshots352 (new PointCloud<SHOT352> ());
@@ -337,20 +335,24 @@ TEST (PCL, GSHOTShapeEstimation)
   
   // SHOT352 (local)
   SHOTEstimation<PointXYZ, Normal, SHOT352> shot352;
-  shot352.setInputNormals (normals_for_lrf);
+  shot352.setInputNormals (normals);
   shot352.setRadiusSearch (radius_local_shot);
   shot352.setInputCloud (cloud_for_lrf.makeShared ());
+  boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
   shot352.setIndices (indices_local_shot_ptr);
-  shot352.setSearchMethod (tree);
+  shot352.setSearchSurface (cloud.makeShared());
   shot352.compute (*shots352);
 
-  n.setInputCloud (cloud.makeShared ());
-  boost::shared_ptr<vector<int> > indicesptr (new vector<int> (indices));
-  n.setIndices (indicesptr);
-  n.setSearchMethod (tree);
-  n.setRadiusSearch (20 * mr);
-  PointCloud<Normal>::Ptr normals (new PointCloud<Normal> ());
-  n.compute (*normals);
+  EXPECT_NEAR (shots352->points[0].descriptor[9 ], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[10], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[11], 0.317935f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[19], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[20], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[21], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[42], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[53], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[54], 0.0f, 1E-4);
+  EXPECT_NEAR (shots352->points[0].descriptor[55], 0.089004f, 1E-4);
 
   // SHOT352 (global)
   GSHOTEstimation<PointXYZ, Normal, SHOT352> gshot352;
@@ -360,7 +362,6 @@ TEST (PCL, GSHOTShapeEstimation)
   EXPECT_EQ (gshot352.getInputNormals (), normals);
 
   // set parameters
-  gshot352.setRadiusNormal(20 * mr);
   gshot352.setInputCloud (cloud.makeShared ());
   gshot352.setIndices (indicesptr);
 
@@ -369,18 +370,7 @@ TEST (PCL, GSHOTShapeEstimation)
   gshot352.compute (*gshots352);
   EXPECT_EQ (gshots352->points.size (), gshot_size);
 
-  EXPECT_NEAR (shots352->points[0].descriptor[9 ], 0.116438, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[10], 0.00907089, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[11], 0.0108631, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[19], 0.0166472, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[20], 0.198635, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[21], 0.0705247, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[42], 0.13321, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[53], 0.00434722, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[54], 0.0182399, 1e-4);
-  EXPECT_NEAR (shots352->points[0].descriptor[55], 0.00329447, 1e-4);
-
-  checkDesc (*gshots352, *shots352);
+  checkDescNear (*gshots352, *shots352, 1E-7);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -461,7 +451,6 @@ TEST (PCL, GSHOTRadius)
   // set parameters
   n.setInputCloud (cloud.makeShared ());
   boost::shared_ptr<vector<int> > indicesptr (new vector<int> (indices));
-  boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
   n.setIndices (indicesptr);
   n.setSearchMethod (tree);
   n.setRadiusSearch (20 * mr);
@@ -475,9 +464,10 @@ TEST (PCL, GSHOTRadius)
   SHOTEstimation<PointXYZ, Normal, SHOT352> shot352;
   shot352.setInputNormals (normals);
   shot352.setRadiusSearch (radius);
-  shot352.setInputCloud (cloud.makeShared ());
+  shot352.setInputCloud (cloud_for_lrf.makeShared ());
+  boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
   shot352.setIndices (indices_local_shot_ptr);
-  shot352.setSearchMethod (tree);
+  shot352.setSearchSurface (cloud.makeShared());
   shot352.compute (*shots352);
 
   // SHOT352 (global)
@@ -492,7 +482,7 @@ TEST (PCL, GSHOTRadius)
   // estimate
   gshot352.compute (*gshots352);
 
-  checkDesc (*gshots352, *shots352);
+  checkDescNear (*gshots352, *shots352, 1E-7);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -522,7 +512,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   trans.translate (Eigen::Vector3f (trans_x, trans_y, trans_z));
   pcl::transformPointCloud<PointXYZ> (cloud, *cloud_trans, trans);
 
-  add_gaussian_noise (cloud.makeShared (), cloud_noise);
+  add_gaussian_noise (cloud.makeShared (), cloud_noise, 0.001);
 
   // Estimate normals first
   double mr = 0.002;
@@ -569,6 +559,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   gshot.setInputNormals (normals1);
   gshot.setInputCloud (cloud.makeShared ());
   gshot.compute (*desc1);
+  Eigen::Vector4f center_desc1 = gshot.getCentralPoint ();
 
   gshot.setInputNormals (normals2);
   gshot.setInputCloud (cloud_rot);
@@ -577,6 +568,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   gshot.setInputNormals (normals3);
   gshot.setInputCloud (cloud_trans);
   gshot.compute (*desc3);
+  Eigen::Vector4f center_desc3 = gshot.getCentralPoint ();
 
   gshot.setInputNormals (normals4);
   gshot.setInputCloud (cloud_noise);
@@ -589,6 +581,8 @@ TEST (PCL, GSHOTWithRTransNoised)
   gshot.setInputNormals (normals6);
   gshot.setInputCloud (cloud3.makeShared ());
   gshot.compute (*desc6);
+
+  std::cout << (center_desc3.head<3> () - center_desc1.head<3> ()) << std::endl;
 
   // SHOT352 (local)
   GSHOTEstimation<PointXYZ, PointNormal, SHOT352> shot;
@@ -627,47 +621,15 @@ TEST (PCL, GSHOTWithRTransNoised)
             << ">> bun03[HIK]:       " << dist_4 << std::endl
             << ">> milk[HIK]:        " << dist_5 << std::endl;
 
-  float high_barrier = dist_0 * 0.85f;
+  float high_barrier = dist_0 * 0.90f;
   float mean_barrier = dist_0 * 0.20f;
-  float low_barrier = dist_0 * 0.25f;
+  float low_barrier = dist_0 * 0.02f;
 
   EXPECT_GT (dist_1, high_barrier);
   EXPECT_GT (dist_2, high_barrier);
   EXPECT_GT (dist_3, high_barrier);
   EXPECT_GT (dist_4, mean_barrier);
   EXPECT_LT (dist_5, low_barrier);
-
-  // std::cout << ">>> Comparing translation for shot descriptor" << std::endl;
-
-  PointCloud<SHOT352>::Ptr desc7 (new PointCloud<SHOT352> ());
-  // SHOTEstimation<PointXYZ, PointNormal, SHOT352> shot1;
-  // shot1.setInputNormals (normals1);
-  // shot1.setInputCloud (cloud.makeShared ());
-  // shot1.setIndices (indices_local_shot_ptr);
-  // shot1.setRadiusSearch (radius_local_shot);
-  // shot1.setRadiusSearch (n.getRadiusSearch () * 2.0);
-  // shot1.compute (*desc7);
-
-  // std::cout << "shot1. Input Cloud (size) --> " << shot1.getInputCloud ()->size () << std::endl;
-  // std::cout << "shot1. Indices (size) --> " << shot1.getIndices ()->size () << std::endl;
-  // std::cout << "shot1. Indices[0] -->" << (*shot1.getIndices ())[0] << std::endl;
-  // std::cout << "shot1. Radius search --> " << shot1.getRadiusSearch () << std::endl;
-
-  // PointCloud<SHOT352>::Ptr desc8 (new PointCloud<SHOT352> ());
-  // SHOTEstimation<PointXYZ, PointNormal, SHOT352> shot2;
-  // shot2.setInputNormals (normals3);
-  // shot2.setInputCloud (cloud_trans);
-  // shot2.setIndices (indices_local_shot_ptr);
-  // shot2.setRadiusSearch (radius_local_shot);
-  // shot2.setRadiusSearch (n.getRadiusSearch () * 2.0);
-  // shot2.compute (*desc8);
-
-  // std::cout << "shot2. Input Cloud (size) --> " << shot2.getInputCloud ()->size () << std::endl;
-  // std::cout << "shot2. Indices (size) --> " << shot2.getIndices ()->size () << std::endl;
-  // std::cout << "shot2. Indices[0] -->" << (*shot2.getIndices ())[0] << std::endl;
-  // std::cout << "shot2. Radius search --> " << shot2.getRadiusSearch () << std::endl;
-
-  // checkDescNear (*desc7, *desc8, 1e-4);
 }
 
 /* ---[ */
@@ -716,8 +678,8 @@ main (int argc, char** argv)
   cloud_for_lrf.height = 1;
   cloud_for_lrf.width = cloud_for_lrf.size ();
 
-  indices_local_shot.resize (1);
   indices_for_lrf.push_back (cloud_for_lrf.width - 1);
+  indices_local_shot.resize (1);
   indices_local_shot[0] = cloud_for_lrf.width - 1;
 
   //

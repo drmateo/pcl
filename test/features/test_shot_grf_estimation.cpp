@@ -48,8 +48,7 @@
 #include <pcl/common/common.h>
 #include <pcl/common/centroid.h>
 
-//#include <pcl/surface/mls.h>
-//#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
@@ -170,11 +169,12 @@ main (int argc, char** argv)
   Eigen::Vector4f central_point (0, 0, 0, 0);
   init_data (cloud, central_point, radius);
 
-//  pcl::visualization::PCLVisualizer viz;
-//  viz.addPointCloud (cloud_noise);
-//  Point center;
-//  center.getVector4fMap() = central_point;
-//  viz.addSphere(center, radius);
+  pcl::visualization::PCLVisualizer viz;
+  viz.addPointCloud (cloud);
+  Point center;
+  center.getVector4fMap() = central_point;
+  viz.addSphere (center, radius);
+  viz.addCoordinateSystem (0.2f, "world ref");
 
   // Compute SHOT LRF
   pcl::SHOTLocalReferenceFrameEstimation<Point, RFrame> lrf_estimator;
@@ -192,19 +192,21 @@ main (int argc, char** argv)
   lrf_estimator.setInputCloud (cloud_tmp);
   lrf_estimator.setIndices (indices);
   lrf_estimator.compute (bunny_LRF);
+  viz.addSphere (cloud_tmp->points[(*indices)[0]], radius * 0.05, 1, 0, 1, "central_point");
 
-//  Eigen::Affine3f ref = Eigen::Affine3f::Identity();
-//  ref(0,0) = bunny_LRF.points[0].x_axis[0];
-//  ref(1,0) = bunny_LRF.points[0].x_axis[1];
-//  ref(2,0) = bunny_LRF.points[0].x_axis[2];
-//  ref(0,1) = bunny_LRF.points[0].y_axis[0];
-//  ref(1,1) = bunny_LRF.points[0].y_axis[1];
-//  ref(2,1) = bunny_LRF.points[0].y_axis[2];
-//  ref(0,2) = bunny_LRF.points[0].z_axis[0];
-//  ref(1,2) = bunny_LRF.points[0].z_axis[1];
-//  ref(2,2) = bunny_LRF.points[0].z_axis[2];
-//  viz.addCoordinateSystem(radius, ref, "Ref");
-//  viz.spin ();
+  Eigen::Affine3f ref = Eigen::Affine3f::Identity();
+  ref(0,0) = bunny_LRF.points[0].x_axis[0];
+  ref(0,1) = bunny_LRF.points[0].x_axis[1];
+  ref(0,2) = bunny_LRF.points[0].x_axis[2];
+  ref(1,0) = bunny_LRF.points[0].y_axis[0];
+  ref(1,1) = bunny_LRF.points[0].y_axis[1];
+  ref(1,2) = bunny_LRF.points[0].y_axis[2];
+  ref(2,0) = bunny_LRF.points[0].z_axis[0];
+  ref(2,1) = bunny_LRF.points[0].z_axis[1];
+  ref(2,2) = bunny_LRF.points[0].z_axis[2];
+  ref.pretranslate(Eigen::Vector3f (central_point[0], central_point[1], central_point[2]));
+  viz.addCoordinateSystem(radius, ref, "Ref");
+  // viz.spin ();
 
   Cloud::Ptr cloud_noise_without_mls (new Cloud);
   add_gaussian_noise (cloud, cloud_noise, 0.0001);

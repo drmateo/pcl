@@ -46,6 +46,46 @@
 #include <pcl/common/centroid.h>
 #include <utility>
 
+// Useful constants.
+#define PST_PI 3.1415926535897932384626433832795
+#define PST_RAD_45 0.78539816339744830961566084581988
+#define PST_RAD_90 1.5707963267948966192313216916398
+#define PST_RAD_135 2.3561944901923449288469825374596
+#define PST_RAD_180 PST_PI
+#define PST_RAD_360 6.283185307179586476925286766558
+#define PST_RAD_PI_7_8 2.7488935718910690836548129603691
+
+const double zeroDoubleEps15 = 1E-15;
+const float zeroFloatEps8 = 1E-8f;
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+/** \brief Check if val1 and val2 are equals.
+  *
+  * \param[in] val1 first number to check.
+  * \param[in] val2 second number to check.
+  * \param[in] zeroDoubleEps epsilon
+  * \return true if val1 is equal to val2, false otherwise.
+  */
+inline bool
+areEquals (double val1, double val2, double zeroDoubleEps = zeroDoubleEps15)
+{
+  return (fabs (val1 - val2)<zeroDoubleEps);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+/** \brief Check if val1 and val2 are equals.
+  *
+  * \param[in] val1 first number to check.
+  * \param[in] val2 second number to check.
+  * \param[in] zeroFloatEps epsilon
+  * \return true if val1 is equal to val2, false otherwise.
+  */
+inline bool
+areEquals (float val1, float val2, float zeroFloatEps = zeroFloatEps8)
+{
+  return (fabs (val1 - val2)<zeroFloatEps);
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,12 +114,12 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     return false;
   }
 
-  // Check if the radius for compute normals is specified
-  if (this->radius_for_normal_ == 0)
-  {
-    PCL_ERROR ("[pcl::%s::initCompute] Error! Call setRadiusNormal(r) to use this clss.\n", getClassName ().c_str ());
-    return false;
-  }
+//  // Check if the radius for compute normals is specified
+//  if (this->radius_for_normal_ == 0)
+//  {
+//    PCL_ERROR ("[pcl::%s::initCompute] Error! Call setRadiusNormal(r) to use this clss.\n", getClassName ().c_str ());
+//    return false;
+//  }
 
   // Use the input dataset as the search surface itself
   if (!surface_)
@@ -122,9 +162,6 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     search_parameter_ = search_radius_;
     
     central_point_ = grf_estimator->getCentralPoint ();
-
-    // fake_indices_ = false;
-    // indices_ = grf_estimator->getIndices ();
   }
   else
   { 
@@ -132,27 +169,8 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     Eigen::Vector4f max_pt;
     getMaxDistance<PointInT> (*surface_, central_point_, max_pt);
     if (search_radius_ == 0)
-      search_radius_ = (max_pt - central_point_).squaredNorm ();
+      search_radius_ = (max_pt - central_point_).norm ();
     search_parameter_ = search_radius_;
-    // int rf_center = 0;
-    // float rf_radius = 0.0f;
-    // if (search_radius_ == 0 || indices_->size () != 1)
-    //   grf_estimator->getRFCenterAndRadius (input_, indices_, surface_, rf_center, rf_radius);
-
-    // // Set up Search radius to the distances between centroid and farthest point if that is not already set
-    // if (search_radius_ == 0)
-    // {
-    //   search_radius_ = rf_radius;
-    //   search_parameter_ = search_radius_;
-    // }
-
-    // // Index set up to the centroid index of the input
-    // if (indices_->size () != 1)
-    // {
-    //   fake_indices_ = false;
-    //   indices_->resize (1);
-    //   (*indices_)[0] = rf_center;
-    // }
   }
 
   if (!FeatureFromNormals<PointInT, PointNT, PointOutT>::initCompute ())
@@ -166,7 +184,186 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 template <typename PointInT, typename PointNT, typename PointOutT, typename PointRFT> void
-pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computePointSHOT (const std::vector<int> &indices, const std::vector<float> &sqr_dists, Eigen::VectorXf &shot)
+pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::interpolateSingleChannel (const std::vector<int> &indices,
+                                                                                            const std::vector<float> &sqr_dists,
+                                                                                            const Eigen::Vector4f& central_point,
+                                                                                            const int& index,
+                                                                                            std::vector<double> &binDistance,
+                                                                                            const int nr_bins,
+                                                                                            Eigen::VectorXf &shot)
+{
+  //const Eigen::Vector4f& central_point = (*input_)[(*indices_)[index]].getVector4fMap ();
+  const PointRFT& current_frame = (*frames_)[index];
+
+  Eigen::Vector4f current_frame_x (current_frame.x_axis[0], current_frame.x_axis[1], current_frame.x_axis[2], 0);
+  Eigen::Vector4f current_frame_y (current_frame.y_axis[0], current_frame.y_axis[1], current_frame.y_axis[2], 0);
+  Eigen::Vector4f current_frame_z (current_frame.z_axis[0], current_frame.z_axis[1], current_frame.z_axis[2], 0);
+
+  for (size_t i_idx = 0; i_idx < indices.size (); ++i_idx)
+  {
+    if (!pcl_isfinite(binDistance[i_idx]))
+      continue;
+
+    Eigen::Vector4f delta = surface_->points[indices[i_idx]].getVector4fMap () - central_point;
+    delta[3] = 0;
+
+    // Compute the Euclidean norm
+   double distance = sqrt (sqr_dists[i_idx]);
+
+    if (areEquals (distance, 0.0))
+      continue;
+
+    double xInFeatRef = delta.dot (current_frame_x);
+    double yInFeatRef = delta.dot (current_frame_y);
+    double zInFeatRef = delta.dot (current_frame_z);
+
+    // To avoid numerical problems afterwards
+    if (fabs (yInFeatRef) < 1E-30)
+      yInFeatRef  = 0;
+    if (fabs (xInFeatRef) < 1E-30)
+      xInFeatRef  = 0;
+    if (fabs (zInFeatRef) < 1E-30)
+      zInFeatRef  = 0;
+
+
+    unsigned char bit4 = ((yInFeatRef > 0) || ((yInFeatRef == 0.0) && (xInFeatRef < 0))) ? 1 : 0;
+    unsigned char bit3 = static_cast<unsigned char> (((xInFeatRef > 0) || ((xInFeatRef == 0.0) && (yInFeatRef > 0))) ? !bit4 : bit4);
+
+    assert (bit3 == 0 || bit3 == 1);
+
+    int desc_index = (bit4<<3) + (bit3<<2);
+
+    desc_index = desc_index << 1;
+
+    if ((xInFeatRef * yInFeatRef > 0) || (xInFeatRef == 0.0))
+      desc_index += (fabs (xInFeatRef) >= fabs (yInFeatRef)) ? 0 : 4;
+    else
+      desc_index += (fabs (xInFeatRef) > fabs (yInFeatRef)) ? 4 : 0;
+
+    desc_index += zInFeatRef > 0 ? 1 : 0;
+
+    // 2 RADII
+    desc_index += (distance > radius1_2_) ? 2 : 0;
+
+    int step_index = static_cast<int>(floor (binDistance[i_idx] +0.5));
+    int volume_index = desc_index * (nr_bins+1);
+
+    //Interpolation on the cosine (adjacent bins in the histogram)
+    binDistance[i_idx] -= step_index;
+    double intWeight = (1- fabs (binDistance[i_idx]));
+
+    if (binDistance[i_idx] > 0)
+      shot[volume_index + ((step_index+1) % nr_bins)] += static_cast<float> (binDistance[i_idx]);
+    else
+      shot[volume_index + ((step_index - 1 + nr_bins) % nr_bins)] += - static_cast<float> (binDistance[i_idx]);
+
+    //Interpolation on the distance (adjacent husks)
+
+    if (distance > radius1_2_)   //external sphere
+    {
+      double radiusDistance = (distance - radius3_4_) / radius1_2_;
+
+      if (distance > radius3_4_) //most external sector, votes only for itself
+        intWeight += 1 - radiusDistance;  //peso=1-d
+      else  //3/4 of radius, votes also for the internal sphere
+      {
+        intWeight += 1 + radiusDistance;
+        shot[(desc_index - 2) * (nr_bins+1) + step_index] -= static_cast<float> (radiusDistance);
+      }
+    }
+    else    //internal sphere
+    {
+      double radiusDistance = (distance - radius1_4_) / radius1_2_;
+
+      if (distance < radius1_4_) //most internal sector, votes only for itself
+        intWeight += 1 + radiusDistance;  //weight=1-d
+      else  //3/4 of radius, votes also for the external sphere
+      {
+        intWeight += 1 - radiusDistance;
+        shot[(desc_index + 2) * (nr_bins+1) + step_index] += static_cast<float> (radiusDistance);
+      }
+    }
+
+    //Interpolation on the inclination (adjacent vertical volumes)
+    double inclinationCos = zInFeatRef / distance;
+    if (inclinationCos < - 1.0)
+      inclinationCos = - 1.0;
+    if (inclinationCos > 1.0)
+      inclinationCos = 1.0;
+
+    double inclination = acos (inclinationCos);
+
+    assert (inclination >= 0.0 && inclination <= PST_RAD_180);
+
+    if (inclination > PST_RAD_90 || (fabs (inclination - PST_RAD_90) < 1e-30 && zInFeatRef <= 0))
+    {
+      double inclinationDistance = (inclination - PST_RAD_135) / PST_RAD_90;
+      if (inclination > PST_RAD_135)
+        intWeight += 1 - inclinationDistance;
+      else
+      {
+        intWeight += 1 + inclinationDistance;
+        assert ((desc_index + 1) * (nr_bins+1) + step_index >= 0 && (desc_index + 1) * (nr_bins+1) + step_index < descLength_);
+        shot[(desc_index + 1) * (nr_bins+1) + step_index] -= static_cast<float> (inclinationDistance);
+      }
+    }
+    else
+    {
+      double inclinationDistance = (inclination - PST_RAD_45) / PST_RAD_90;
+      if (inclination < PST_RAD_45)
+        intWeight += 1 + inclinationDistance;
+      else
+      {
+        intWeight += 1 - inclinationDistance;
+        assert ((desc_index - 1) * (nr_bins+1) + step_index >= 0 && (desc_index - 1) * (nr_bins+1) + step_index < descLength_);
+        shot[(desc_index - 1) * (nr_bins+1) + step_index] += static_cast<float> (inclinationDistance);
+      }
+    }
+
+    if (yInFeatRef != 0.0 || xInFeatRef != 0.0)
+    {
+      //Interpolation on the azimuth (adjacent horizontal volumes)
+      double azimuth = atan2 (yInFeatRef, xInFeatRef);
+
+      int sel = desc_index >> 2;
+      double angularSectorSpan = PST_RAD_45;
+      double angularSectorStart = - PST_RAD_PI_7_8;
+
+      double azimuthDistance = (azimuth - (angularSectorStart + angularSectorSpan*sel)) / angularSectorSpan;
+
+      assert ((azimuthDistance < 0.5 || areEquals (azimuthDistance, 0.5)) && (azimuthDistance > - 0.5 || areEquals (azimuthDistance, - 0.5)));
+
+      azimuthDistance = (std::max)(- 0.5, std::min (azimuthDistance, 0.5));
+
+      if (azimuthDistance > 0)
+      {
+        intWeight += 1 - azimuthDistance;
+        int interp_index = (desc_index + 4) % maxAngularSectors_;
+        assert (interp_index * (nr_bins+1) + step_index >= 0 && interp_index * (nr_bins+1) + step_index < descLength_);
+        shot[interp_index * (nr_bins+1) + step_index] += static_cast<float> (azimuthDistance);
+      }
+      else
+      {
+        int interp_index = (desc_index - 4 + maxAngularSectors_) % maxAngularSectors_;
+        assert (interp_index * (nr_bins+1) + step_index >= 0 && interp_index * (nr_bins+1) + step_index < descLength_);
+        intWeight += 1 + azimuthDistance;
+        shot[interp_index * (nr_bins+1) + step_index] -= static_cast<float> (azimuthDistance);
+      }
+
+    }
+
+    assert (volume_index + step_index >= 0 &&  volume_index + step_index < descLength_);
+    shot[volume_index + step_index] += static_cast<float> (intWeight);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+template <typename PointInT, typename PointNT, typename PointOutT, typename PointRFT> void
+pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computePointSHOT (const Eigen::Vector4f& central_point,
+                                                                                const int& index,
+                                                                                const std::vector<int> &indices,
+                                                                                const std::vector<float> &sqr_dists,
+                                                                                Eigen::VectorXf &shot)
 {
   //Skip the current feature if the number of its neighbors is not sufficient for its description
   if (indices.size () < 5)
@@ -183,7 +380,7 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computePointSHOT (
 
   // Interpolate
   shot.setZero ();
-  interpolateSingleChannel (indices, sqr_dists, 0, binDistanceShape, nr_shape_bins_, shot);
+  interpolateSingleChannel (indices, sqr_dists, central_point, index, binDistanceShape, nr_shape_bins_, shot);
 
   // Normalize the final histogram
   this->normalizeHistogram (shot, descLength_);
@@ -225,7 +422,11 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computeFeature (pc
     grf_is_nan = true;
   }
 
-  if (!isFinite ((*input_)[(*indices_)[0]]) || grf_is_nan || this->searchForNeighbors ((*indices_)[0], search_parameter_, nn_indices, nn_dists) == 0)
+  //if (!isFinite ((*input_)[(*indices_)[0]]) || grf_is_nan || this->searchForNeighbors ((*indices_)[0], search_parameter_, nn_indices, nn_dists) == 0)
+
+  PointInT central_pt;
+  central_pt.getVector4fMap () = central_point_;
+  if (!isFinite (central_pt) || grf_is_nan || tree_->radiusSearch (central_pt, search_radius_, nn_indices, nn_dists) == 0)
   {
     // Copy into the resultant cloud
     for (int d = 0; d < descLength_; ++d)
@@ -237,7 +438,7 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computeFeature (pc
   }
 
   // Estimate the SHOT descriptor at each patch
-  computePointSHOT (nn_indices, nn_dists, shot_);
+  computePointSHOT (central_point_, 0, nn_indices, nn_dists, shot_);
 
   // Copy into the resultant cloud
   for (int d = 0; d < descLength_; ++d)
