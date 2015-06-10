@@ -352,7 +352,6 @@ TEST (PCL, GSHOTShapeEstimation)
   PointCloud<Normal>::Ptr normals (new PointCloud<Normal> ());
   n.compute (*normals);
 
-
   // SHOT352 (global)
   GSHOTEstimation<PointXYZ, Normal, SHOT352> gshot352;
   gshot352.setSearchMethod (tree);
