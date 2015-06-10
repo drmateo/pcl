@@ -222,6 +222,9 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::computeFeature (Po
     return;
   }
   
+  output.resize (1);
+  output.width = 1;
+
   Eigen::Matrix3f rf;
   PointOutT& output_rf = output[0];
   
@@ -286,26 +289,12 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
 
   tree_->setSortedResults (true);
 
-  // float rf_radius = 0.0f;
-  // int rf_center = 0;
-  // if (search_radius_ == 0 || indices_->size () != 1)
-  //   getRFCenterAndRadius (input_, indices_, surface_, rf_center, rf_radius);
-
   compute3DCentroid<PointInT, float> (*surface_, central_point_);
   Eigen::Vector4f max_pt;
   getMaxDistance<PointInT> (*surface_, central_point_, max_pt);
   if (search_radius_ == 0)
-    search_radius_ = (max_pt - central_point_).squaredNorm ();
+    search_radius_ = (max_pt - central_point_).norm ();
   search_parameter_ = search_radius_;
-    
-
-  // // Index set up to the centroid index of the input
-  // if (indices_->size () != 1)
-  // {
-  //   fake_indices_ = false;
-  //   indices_->resize (1);
-  //   (*indices_)[0] = rf_center;
-  // }
   
   return Feature<PointInT, PointOutT>::initCompute ();
 }

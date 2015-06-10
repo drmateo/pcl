@@ -212,6 +212,8 @@ pcl::GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT>::computeFeature (pc
   std::vector<float> nn_dists (k_);
 
   output.is_dense = true;
+  output.resize(1);
+  output.width = 1;
 
   bool grf_is_nan = false;
   const PointRFT& current_frame = (*frames_)[0];

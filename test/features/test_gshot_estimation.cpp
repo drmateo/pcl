@@ -46,6 +46,7 @@
 #include <pcl/features/gshot.h>
 #include <pcl/features/shot_lrf.h>
 #include <pcl/features/shot_grf.h>
+#include <pcl/common/common.h>
 #include <pcl/common/centroid.h>
 #include <pcl/common/norms.h>
 #include <pcl/common/transforms.h>
@@ -60,9 +61,11 @@ using namespace std;
 
 typedef search::KdTree<PointXYZ>::Ptr KdTreePtr;
 
+PointCloud<PointXYZ> cloud_for_lrf;
 PointCloud<PointXYZ> cloud;
 PointCloud<PointXYZ> cloud2;
 PointCloud<PointXYZ> cloud3;
+vector<int> indices_for_lrf;
 vector<int> indices;
 vector<int> indices2;
 vector<int> indices3;
@@ -283,10 +286,8 @@ testGSHOTGlobalReferenceFrame (const typename PointCloud<PointT>::Ptr & points,
 }
 
 void
-add_gaussian_noise (const PointCloud<PointXYZ>::ConstPtr& cloud_in, PointCloud<PointXYZ>::Ptr& cloud_out)
+add_gaussian_noise (const PointCloud<PointXYZ>::ConstPtr& cloud_in, PointCloud<PointXYZ>::Ptr& cloud_out, double standard_deviation = 0.001)
 {
-  double standard_deviation = 0.0009;
-
   boost::mt19937 rng; rng.seed (static_cast<unsigned int> (time (0)));
   boost::normal_distribution<> nd (0, standard_deviation);
   boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor (rng, nd);
@@ -310,26 +311,25 @@ TEST (PCL, GSHOTShapeEstimation)
   // Estimate normals first
   double mr = 0.002;
   NormalEstimation<PointXYZ, Normal> n;
-  PointCloud<Normal>::Ptr normals (new PointCloud<Normal> ());
+  PointCloud<Normal>::Ptr normals_for_lrf (new PointCloud<Normal> ());
   // set parameters
-  n.setInputCloud (cloud.makeShared ());
-  boost::shared_ptr<vector<int> > indicesptr (new vector<int> (indices));
+  n.setInputCloud (cloud_for_lrf.makeShared ());
+  boost::shared_ptr<vector<int> > indices_for_lrf_ptr (new vector<int> (indices_for_lrf));
   boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
-  n.setIndices (indicesptr);
-  n.setSearchMethod (tree);
+  n.setIndices (indices_for_lrf_ptr);
   n.setRadiusSearch (20 * mr);
-  n.compute (*normals);
+  n.compute (*normals_for_lrf);
 
-  EXPECT_NEAR (normals->points[103].normal_x, 0.36683175, 1e-4);
-  EXPECT_NEAR (normals->points[103].normal_y, -0.44696972, 1e-4);
-  EXPECT_NEAR (normals->points[103].normal_z, -0.81587529, 1e-4);
-  EXPECT_NEAR (normals->points[200].normal_x, -0.71414840, 1e-4);
-  EXPECT_NEAR (normals->points[200].normal_y, -0.06002361, 1e-4);
-  EXPECT_NEAR (normals->points[200].normal_z, -0.69741613, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[103].normal_x, 0.36683175, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[103].normal_y, -0.44696972, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[103].normal_z, -0.81587529, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[200].normal_x, -0.71414840, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[200].normal_y, -0.06002361, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[200].normal_z, -0.69741613, 1e-4);
 
-  EXPECT_NEAR (normals->points[140].normal_x, -0.45109111, 1e-4);
-  EXPECT_NEAR (normals->points[140].normal_y, -0.19499126, 1e-4);
-  EXPECT_NEAR (normals->points[140].normal_z, -0.87091631, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[140].normal_x, -0.45109111, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[140].normal_y, -0.19499126, 1e-4);
+  EXPECT_NEAR (normals_for_lrf->points[140].normal_z, -0.87091631, 1e-4);
 
   // Objects
   PointCloud<SHOT352>::Ptr gshots352 (new PointCloud<SHOT352> ());
@@ -337,21 +337,34 @@ TEST (PCL, GSHOTShapeEstimation)
   
   // SHOT352 (local)
   SHOTEstimation<PointXYZ, Normal, SHOT352> shot352;
-  shot352.setInputNormals (normals);
+  shot352.setInputNormals (normals_for_lrf);
   shot352.setRadiusSearch (radius_local_shot);
-  shot352.setInputCloud (cloud.makeShared ());
+  shot352.setInputCloud (cloud_for_lrf.makeShared ());
   shot352.setIndices (indices_local_shot_ptr);
   shot352.setSearchMethod (tree);
   shot352.compute (*shots352);
 
+  n.setInputCloud (cloud.makeShared ());
+  boost::shared_ptr<vector<int> > indicesptr (new vector<int> (indices));
+  n.setIndices (indicesptr);
+  n.setSearchMethod (tree);
+  n.setRadiusSearch (20 * mr);
+  PointCloud<Normal>::Ptr normals (new PointCloud<Normal> ());
+  n.compute (*normals);
+
+
   // SHOT352 (global)
   GSHOTEstimation<PointXYZ, Normal, SHOT352> gshot352;
+  gshot352.setSearchMethod (tree);
+
   gshot352.setInputNormals (normals);
   EXPECT_EQ (gshot352.getInputNormals (), normals);
+
   // set parameters
+  gshot352.setRadiusNormal(20 * mr);
   gshot352.setInputCloud (cloud.makeShared ());
   gshot352.setIndices (indicesptr);
-  gshot352.setSearchMethod (tree);
+
   // estimate
   int gshot_size = 1;
   gshot352.compute (*gshots352);
@@ -677,27 +690,36 @@ main (int argc, char** argv)
     return (-1);
   }
 
+  cloud_for_lrf = cloud;
+
   indices.resize (cloud.size (), 0);
+  indices_for_lrf.resize (cloud.size (), 0);
   for (size_t i = 0; i < indices.size (); ++i)
+  {
     indices[i] = static_cast<int> (i);
+    indices_for_lrf[i] = static_cast<int> (i);
+  }
 
   tree.reset (new search::KdTree<PointXYZ> ());
   tree->setInputCloud (cloud.makeShared ());
   tree->setSortedResults (true);
 
-  Eigen::VectorXf centroid;
-  pcl::computeNDCentroid<PointXYZ> (cloud, centroid);
+  Eigen::Vector4f centroid;
+  pcl::compute3DCentroid<PointXYZ, float> (cloud_for_lrf, centroid);
+
+  Eigen::Vector4f max_pt;
+  pcl::getMaxDistance<PointXYZ> (cloud_for_lrf, centroid, max_pt);
+  radius_local_shot = (max_pt - centroid).norm();
+
   PointXYZ p_centroid;
   p_centroid.getVector4fMap () = centroid;
+  cloud_for_lrf.push_back (p_centroid);
+  cloud_for_lrf.height = 1;
+  cloud_for_lrf.width = cloud_for_lrf.size ();
 
-  indices_local_shot.resize (cloud.size (), 0);
-  std::vector<float> sqr_dist (cloud.size ());
-  int k = tree->nearestKSearch (p_centroid, cloud.size (), indices_local_shot, sqr_dist);
-
-  radius_local_shot = sqrt (sqr_dist[k - 1]);
-  int centroid_idx = indices_local_shot[0];
   indices_local_shot.resize (1);
-  indices_local_shot[0] = centroid_idx;
+  indices_for_lrf.push_back (cloud_for_lrf.width - 1);
+  indices_local_shot[0] = cloud_for_lrf.width - 1;
 
   //
   // Load second cloud and prepare objets to test 
