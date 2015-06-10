@@ -582,19 +582,23 @@ TEST (PCL, GSHOTWithRTransNoised)
   gshot.setInputCloud (cloud3.makeShared ());
   gshot.compute (*desc6);
 
-  std::cout << (center_desc3.head<3> () - center_desc1.head<3> ()) << std::endl;
+  Eigen::Vector3f distance_desc = center_desc3.head<3> () - center_desc1.head<3> ();
+  std::cout << distance_desc << std::endl;
 
   // SHOT352 (local)
   GSHOTEstimation<PointXYZ, PointNormal, SHOT352> shot;
-  shot.setInputNormals (normals3);
+  shot.setInputNormals (normals1);
   boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
   shot.setIndices (indices_local_shot_ptr);
-  shot.setInputCloud (cloud_trans);
+  shot.setInputCloud (cloud_for_lrf.makeShared ());
+  shot.setSearchSurface (cloud.makeShared());
   shot.setRadiusSearch (radius_local_shot);
   shot.compute (*desc0);
 
   // CHECK match the gshot of cloud rotated with the shot of the cloud rotated too. 
-  checkDesc(*desc0, *desc3);
+  checkDescNear(*desc0, *desc1, 1E-5);
+  checkDescNear(*desc0, *desc2, 1E-5);
+  checkDescNear(*desc0, *desc3, 1E-5);
 
   std::vector<float> d0, d1, d2, d3, d4,d5;
   for(int i = 0; i < 352; ++i)
