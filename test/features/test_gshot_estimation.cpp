@@ -499,7 +499,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   rot.prerotate (Eigen::AngleAxisf (rot_x * M_PI, Eigen::Vector3f::UnitX ()));
   rot.prerotate (Eigen::AngleAxisf (rot_y * M_PI, Eigen::Vector3f::UnitY ()));
   rot.prerotate (Eigen::AngleAxisf (rot_z * M_PI, Eigen::Vector3f::UnitZ ()));
-  std::cout << "rot = (" << (rot_x * M_PI) << ", " << (rot_y * M_PI) << ", " << (rot_z * M_PI) << ")" << std::endl;
+//  std::cout << "rot = (" << (rot_x * M_PI) << ", " << (rot_y * M_PI) << ", " << (rot_z * M_PI) << ")" << std::endl;
   pcl::transformPointCloud<PointXYZ> (cloud, *cloud_rot, rot);
 
   Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
@@ -508,11 +508,11 @@ TEST (PCL, GSHOTWithRTransNoised)
   float trans_x = LO + static_cast<float> (rand ()) / (static_cast<float> (RAND_MAX / (HI - LO)));
   float trans_y = LO + static_cast<float> (rand ()) / (static_cast<float> (RAND_MAX / (HI - LO)));
   float trans_z = LO + static_cast<float> (rand ()) / (static_cast<float> (RAND_MAX / (HI - LO)));
-  std::cout << "trans = (" << trans_x << ", " << trans_y << ", " << trans_z << ")" << std::endl;
+//  std::cout << "trans = (" << trans_x << ", " << trans_y << ", " << trans_z << ")" << std::endl;
   trans.translate (Eigen::Vector3f (trans_x, trans_y, trans_z));
   pcl::transformPointCloud<PointXYZ> (cloud, *cloud_trans, trans);
 
-  add_gaussian_noise (cloud.makeShared (), cloud_noise, 0.001);
+  add_gaussian_noise (cloud.makeShared (), cloud_noise, 0.005);
 
   // Estimate normals first
   double mr = 0.002;
@@ -559,7 +559,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   gshot.setInputNormals (normals1);
   gshot.setInputCloud (cloud.makeShared ());
   gshot.compute (*desc1);
-  Eigen::Vector4f center_desc1 = gshot.getCentralPoint ();
+//  Eigen::Vector4f center_desc1 = gshot.getCentralPoint ();
 
   gshot.setInputNormals (normals2);
   gshot.setInputCloud (cloud_rot);
@@ -568,7 +568,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   gshot.setInputNormals (normals3);
   gshot.setInputCloud (cloud_trans);
   gshot.compute (*desc3);
-  Eigen::Vector4f center_desc3 = gshot.getCentralPoint ();
+//  Eigen::Vector4f center_desc3 = gshot.getCentralPoint ();
 
   gshot.setInputNormals (normals4);
   gshot.setInputCloud (cloud_noise);
@@ -582,8 +582,8 @@ TEST (PCL, GSHOTWithRTransNoised)
   gshot.setInputCloud (cloud3.makeShared ());
   gshot.compute (*desc6);
 
-  Eigen::Vector3f distance_desc = center_desc3.head<3> () - center_desc1.head<3> ();
-  std::cout << distance_desc << std::endl;
+//  Eigen::Vector3f distance_desc = (center_desc3.head<3> () - center_desc1.head<3> ());
+//  std::cout << "dist of desc0 and desc3 -> (" << distance_desc[0] << ", " << distance_desc[1] << ", " << distance_desc[2] << ")\n";
 
   // SHOT352 (local)
   GSHOTEstimation<PointXYZ, PointNormal, SHOT352> shot;
@@ -618,21 +618,22 @@ TEST (PCL, GSHOTWithRTransNoised)
   float dist_4 = pcl::selectNorm< std::vector<float> > (d0, d4, 352, pcl::HIK) ;
   float dist_5 = pcl::selectNorm< std::vector<float> > (d0, d5, 352, pcl::HIK) ;
   
-  std::cout << ">> Itself[HIK]:      " << dist_0 << std::endl
-            << ">> Rotation[HIK]:    " << dist_1 << std::endl
-            << ">> Translate[HIK]:   " << dist_2 << std::endl
-            << ">> GaussNoise[HIK]:  " << dist_3 << std::endl
-            << ">> bun03[HIK]:       " << dist_4 << std::endl
-            << ">> milk[HIK]:        " << dist_5 << std::endl;
+//  std::cout << ">> Itself[HIK]:      " << dist_0 << std::endl
+//            << ">> Rotation[HIK]:    " << dist_1 << std::endl
+//            << ">> Translate[HIK]:   " << dist_2 << std::endl
+//            << ">> GaussNoise[HIK]:  " << dist_3 << std::endl
+//            << ">> bun03[HIK]:       " << dist_4 << std::endl
+//            << ">> milk[HIK]:        " << dist_5 << std::endl;
 
-  float high_barrier = dist_0 * 0.90f;
-  float mean_barrier = dist_0 * 0.20f;
+  float high_barrier = dist_0 * 0.99f;
+  float noise_barrier = dist_0 * 0.75f;
+  float cut_barrier = dist_0 * 0.20f;
   float low_barrier = dist_0 * 0.02f;
 
   EXPECT_GT (dist_1, high_barrier);
   EXPECT_GT (dist_2, high_barrier);
-  EXPECT_GT (dist_3, high_barrier);
-  EXPECT_GT (dist_4, mean_barrier);
+  EXPECT_GT (dist_3, noise_barrier);
+  EXPECT_GT (dist_4, cut_barrier);
   EXPECT_LT (dist_5, low_barrier);
 }
 
