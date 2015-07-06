@@ -136,10 +136,10 @@ pcl::GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::initCompute ()
     else
       tree_.reset (new pcl::search::KdTree<PointInT> (false));
   }
-  
+
   if (tree_->getInputCloud () != surface_) // Make sure the tree searches the surface
     tree_->setInputCloud (surface_);
-  
+
   // Default GRF estimation alg: SHOTGlobalReferenceFrameEstimation
   typename SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>::Ptr grf_estimator(new SHOTGlobalReferenceFrameEstimation<PointInT, PointRFT>());
   grf_estimator->setRadiusSearch (search_radius_);
