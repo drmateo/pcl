@@ -263,6 +263,23 @@ pcl::SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::interpolateSing
   const Eigen::Vector4f& central_point = (*input_)[(*indices_)[index]].getVector4fMap ();
   const PointRFT& current_frame = (*frames_)[index];
 
+  interpolateSingleChannel (indices, sqr_dists, central_point, current_frame, binDistance, nr_bins, shot);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+template <typename PointInT, typename PointNT, typename PointOutT, typename PointRFT> void
+pcl::SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::interpolateSingleChannel (
+    const std::vector<int> &indices,
+    const std::vector<float> &sqr_dists,
+    const Eigen::Vector4f& central_point,
+    const PointRFT& current_frame,
+    std::vector<double> &binDistance,
+    const int nr_bins,
+    Eigen::VectorXf &shot)
+{
+//  const Eigen::Vector4f& central_point = (*input_)[(*indices_)[index]].getVector4fMap ();
+//  const PointRFT& current_frame = (*frames_)[index];
+
   Eigen::Vector4f current_frame_x (current_frame.x_axis[0], current_frame.x_axis[1], current_frame.x_axis[2], 0);
   Eigen::Vector4f current_frame_y (current_frame.y_axis[0], current_frame.y_axis[1], current_frame.y_axis[2], 0);
   Eigen::Vector4f current_frame_z (current_frame.z_axis[0], current_frame.z_axis[1], current_frame.z_axis[2], 0);
