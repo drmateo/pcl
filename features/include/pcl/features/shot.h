@@ -133,7 +133,6 @@ namespace pcl
       initCompute ();
 
       /** \brief Quadrilinear interpolation used when color and shape descriptions are NOT activated simultaneously
-        *
         * \param[in] indices the neighborhood point indices
         * \param[in] sqr_dists the neighborhood point distances
         * \param[in] index the index of the point in indices_
@@ -145,6 +144,24 @@ namespace pcl
       interpolateSingleChannel (const std::vector<int> &indices,
                                 const std::vector<float> &sqr_dists,
                                 const int index,
+                                std::vector<double> &binDistance,
+                                const int nr_bins,
+                                Eigen::VectorXf &shot);
+
+      /** \brief Quadrilinear interpolation used when color and shape descriptions are NOT activated simultaneously
+        * \param[in] indices the neighborhood point indices
+        * \param[in] sqr_dists the neighborhood point distances
+        * \param[in] central_point the point where is fixed the current_frame param
+        * \param[in] current_frame the reference frame
+        * \param[out] binDistance the resultant distance shape histogram
+        * \param[in] nr_bins the number of bins in the shape histogram
+        * \param[out] shot the resultant SHOT histogram
+        */
+      void
+      interpolateSingleChannel (const std::vector<int> &indices,
+                                const std::vector<float> &sqr_dists,
+                                const Eigen::Vector4f& central_point,
+                                const PointRFT& current_frame,
                                 std::vector<double> &binDistance,
                                 const int nr_bins,
                                 Eigen::VectorXf &shot);
