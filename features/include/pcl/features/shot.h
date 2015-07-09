@@ -133,6 +133,7 @@ namespace pcl
       initCompute ();
 
       /** \brief Quadrilinear interpolation used when color and shape descriptions are NOT activated simultaneously
+        *
         * \param[in] indices the neighborhood point indices
         * \param[in] sqr_dists the neighborhood point distances
         * \param[in] index the index of the point in indices_

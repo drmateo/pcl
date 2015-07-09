@@ -233,10 +233,10 @@ main (int argc, char ** argv)
   {
 //    boost::shared_ptr<pcl::rec_3d_framework::GSHOTEstimation<pcl::PointXYZ, pcl::Histogram<352> > > estimator;
 //    estimator.reset (new pcl::rec_3d_framework::GSHOTEstimation<pcl::PointXYZ, pcl::Histogram<352> >);
-//    
+//
 //    boost::shared_ptr<pcl::rec_3d_framework::GlobalEstimator<pcl::PointXYZ, pcl::Histogram<352> > > cast_estimator;
 //    cast_estimator = boost::dynamic_pointer_cast<pcl::rec_3d_framework::GSHOTEstimation<pcl::PointXYZ, pcl::Histogram<352> > > (estimator);
-//    
+//
 //    pcl::rec_3d_framework::GlobalNNPipeline<flann::L1, pcl::PointXYZ, pcl::Histogram<352> > global;
 //    global.setDataSource (cast_source);
 //    global.setTrainingDir (training_dir);
@@ -244,7 +244,7 @@ main (int argc, char ** argv)
 //    global.setFeatureEstimator (cast_estimator);
 //    global.setNN (NN);
 //    global.initialize (false);
-//    
+//
 //    segmentAndClassify<flann::L1, pcl::PointXYZ, pcl::Histogram<352> > (global);
   }
 }

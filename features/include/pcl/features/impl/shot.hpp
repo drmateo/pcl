@@ -209,9 +209,9 @@ pcl::SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::createBinDistan
   {
     // check NaN normal
     const Eigen::Vector4f& normal_vec = normals_->points[indices[i_idx]].getNormalVector4fMap ();
-    if (!pcl_isfinite ((float)normal_vec[0]) ||
-        !pcl_isfinite ((float)normal_vec[1]) ||
-        !pcl_isfinite ((float)normal_vec[2]))
+    if (!pcl_isfinite (normal_vec[0]) ||
+        !pcl_isfinite (normal_vec[1]) ||
+        !pcl_isfinite (normal_vec[2]))
     {
       bin_distance_shape[i_idx] = std::numeric_limits<double>::quiet_NaN ();
       ++nan_counter;

@@ -30,50 +30,49 @@ PCL_SUBSUBSYS_OPTION(build "${SUBSYS_NAME}" "${SUBSUBSYS_NAME}" "${SUBSUBSYS_DES
 PCL_SUBSUBSYS_DEPEND(build "${SUBSYS_NAME}" "${SUBSUBSYS_NAME}" DEPS ${SUBSUBSYS_DEPS} EXT_DEPS vtk openni)
 
 if(build)
+
   include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
   set(incs_fw "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/normal_estimator.h")
-
   set(incs_fw_global "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/cvfh_estimator.h"
                      "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/vfh_estimator.h"
                      "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/esf_estimator.h"
                      "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/crh_estimator.h"
-		     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/gshot_estimator.h"
+                     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/gshot_estimator.h"
                      "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/global_estimator.h"
                      "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/global/ourcvfh_estimator.h")
-
+                     
   set(incs_fw_local "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/local/local_estimator.h"
                     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/local/fpfh_local_estimator.h"
                     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/local/fpfh_local_estimator_omp.h"
                     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/local/shot_local_estimator.h"
                     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/local/colorshot_local_estimator.h"
                     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper/local/shot_local_estimator_omp.h")
-
   set(incs_pc_source "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pc_source/source.h"
                      "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pc_source/mesh_source.h"
                      "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pc_source/registered_views_source.h")
-
+                     
   set(incs_pipelines "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/global_nn_classifier.h"
-                     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/global_nn_recognizer_crh.h"
-		     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/global_nn_recognizer_cvfh.h"
-		     "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/local_recognizer.h")
+           "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/global_nn_recognizer_crh.h"
+           "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/global_nn_recognizer_cvfh.h"
+           "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/local_recognizer.h")
            
   set(incc_tools_framework "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/tools/openni_frame_source.h")
   
   set(incs_utils "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/utils/metrics.h"
-                 "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/utils/persistence_utils.h"
-		 "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/utils/vtk_model_sampling.h")
-           
-  set(impl_incs_pipeline "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/global_nn_classifier.hpp"
-                         "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/global_nn_recognizer_crh.hpp"
-			 "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/global_nn_recognizer_cvfh.hpp"
-			 "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/local_recognizer.hpp")
+           "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/utils/persistence_utils.h"
+           "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/utils/vtk_model_sampling.h")
            
   set(srcs src/pipeline/global_nn_classifier.cpp
            src/pipeline/global_nn_recognizer_crh.cpp
            src/pipeline/global_nn_recognizer_cvfh.cpp
            src/pipeline/local_recognizer.cpp 
            src/tools/openni_frame_source.cpp)
+           
+  set(impl_incs_pipeline "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/global_nn_classifier.hpp"
+                "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/global_nn_recognizer_crh.hpp"
+                "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/global_nn_recognizer_cvfh.hpp"
+                "include/pcl/${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl/local_recognizer.hpp")
       
   # Install include files
   PCL_ADD_INCLUDES("${SUBSUBSYS_NAME}" "${SUBSYS_NAME}/${SUBSUBSYS_NAME}/feature_wrapper" ${incs_fw})
@@ -83,6 +82,7 @@ if(build)
   PCL_ADD_INCLUDES("${SUBSUBSYS_NAME}" "${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline" ${incs_pipelines})
   PCL_ADD_INCLUDES("${SUBSUBSYS_NAME}" "${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pc_source" ${incs_pc_source})
   PCL_ADD_INCLUDES("${SUBSUBSYS_NAME}" "${SUBSYS_NAME}/${SUBSUBSYS_NAME}/utils" ${incs_utils})
+  
   PCL_ADD_INCLUDES("${SUBSUBSYS_NAME}" "${SUBSYS_NAME}/${SUBSUBSYS_NAME}/pipeline/impl" ${impl_incs_pipeline})
        
   set(LIB_NAME "pcl_${SUBSUBSYS_NAME}")
@@ -100,4 +100,5 @@ if(build)
   PCL_MAKE_PKGCONFIG("${LIB_NAME}" "${SUBSUBSYS_NAME}" "${SUBSUBSYS_DESC}" "" "" "" "" "")
   
   add_subdirectory(tools)
+
 endif(build)

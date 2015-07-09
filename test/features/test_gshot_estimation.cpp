@@ -62,6 +62,7 @@ using namespace std;
 typedef search::KdTree<PointXYZ>::Ptr KdTreePtr;
 
 PointCloud<PointXYZ> cloud_for_lrf;
+PointCloud<PointNormal> ground_truth;
 PointCloud<PointXYZ> cloud;
 PointCloud<PointXYZ> cloud2;
 PointCloud<PointXYZ> cloud3;
@@ -504,7 +505,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   //std::cout << "rot = (" << (rot_x * M_PI) << ", " << (rot_y * M_PI) << ", " << (rot_z * M_PI) << ")" << std::endl;
 
   Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
-  float HI = 1.0f;
+  float HI = 5.0f;
   float LO = -HI;
   float trans_x = LO + static_cast<float> (rand ()) / (static_cast<float> (RAND_MAX / (HI - LO)));
   float trans_y = LO + static_cast<float> (rand ()) / (static_cast<float> (RAND_MAX / (HI - LO)));
@@ -541,7 +542,12 @@ TEST (PCL, GSHOTWithRTransNoised)
   n.compute (*normals3);
 
   // Objects
-  PointCloud<SHOT352>::Ptr desc0 (new PointCloud<SHOT352> ());
+  // Descriptors for ground truth (using SHOT)
+  PointCloud<SHOT352>::Ptr desc01 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc02 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc03 (new PointCloud<SHOT352> ());
+  PointCloud<SHOT352>::Ptr desc04 (new PointCloud<SHOT352> ());
+  // Descriptors for test GSHOT
   PointCloud<SHOT352>::Ptr desc1 (new PointCloud<SHOT352> ());
   PointCloud<SHOT352>::Ptr desc2 (new PointCloud<SHOT352> ());
   PointCloud<SHOT352>::Ptr desc3 (new PointCloud<SHOT352> ());
@@ -589,20 +595,36 @@ TEST (PCL, GSHOTWithRTransNoised)
   // std::cout << "dist of desc0 and desc3 -> (" << distance_desc[0] << ", " << distance_desc[1] << ", " << distance_desc[2] << ")\n";
 
   // SHOT352 (local)
-  GSHOTEstimation<PointXYZ, Normal, SHOT352> shot;
-  shot.setInputNormals (normals1);
-  boost::shared_ptr<vector<int> > indices_local_shot_ptr (new vector<int> (indices_local_shot));
-  shot.setIndices (indices_local_shot_ptr);
-  shot.setInputCloud (cloud_for_lrf.makeShared ());
-  shot.setSearchSurface (cloud.makeShared());
+  GSHOTEstimation<PointNormal, PointNormal, SHOT352> shot;
+  shot.setInputNormals (cloud_nr);
+  shot.setInputCloud (ground_truth.makeShared());
+  shot.setSearchSurface (cloud_nr);
   shot.setRadiusSearch (radius_local_shot);
-  shot.compute (*desc0);
+  shot.compute (*desc01);
 
-  // CHECK match the gshot of cloud rotated with the shot of the cloud rotated too. 
-  checkDescNear(*desc0, *desc1, 1E-4);
-  checkDescNear(*desc0, *desc2, 1E-4);
-  checkDescNear(*desc0, *desc3, 1E-4);
-  checkDescNear(*desc0, *desc4, 1E-4);
+  shot.setInputNormals (cloud_rot);
+  shot.setInputCloud (ground_truth.makeShared());
+  shot.setSearchSurface (cloud_rot);
+  shot.setRadiusSearch (radius_local_shot);
+  shot.compute (*desc02);
+
+  shot.setInputNormals (cloud_trans);
+  shot.setInputCloud (ground_truth.makeShared());
+  shot.setSearchSurface (cloud_trans);
+  shot.setRadiusSearch (radius_local_shot);
+  shot.compute (*desc03);
+
+  shot.setInputNormals (cloud_rot_trans);
+  shot.setInputCloud (ground_truth.makeShared());
+  shot.setSearchSurface (cloud_rot_trans);
+  shot.setRadiusSearch (radius_local_shot);
+  shot.compute (*desc04);
+
+  // CHECK GSHOT
+  checkDesc(*desc01, *desc1);
+  checkDesc(*desc02, *desc2);
+  checkDesc(*desc03, *desc3);
+  checkDesc(*desc04, *desc4);
 
   std::vector<float> d0, d1, d2, d3, d4, d5, d6;
   for(int i = 0; i < 352; ++i)
@@ -688,6 +710,9 @@ main (int argc, char** argv)
   PointXYZ p_centroid;
   p_centroid.getVector4fMap () = centroid;
   cloud_for_lrf.push_back (p_centroid);
+  PointNormal p_centroid_nr;
+  p_centroid_nr.getVector4fMap() = centroid;
+  ground_truth.push_back(p_centroid_nr);
   cloud_for_lrf.height = 1;
   cloud_for_lrf.width = cloud_for_lrf.size ();
 

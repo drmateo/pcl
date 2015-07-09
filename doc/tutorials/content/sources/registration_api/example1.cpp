@@ -37,7 +37,7 @@ CloudPtr src, tgt;
 bool rejection = true;
 bool visualize = false;
 
-boost::shared_ptr<PCLVisualizer> vis_;
+boost::shared_ptr<PCLVisualizer> vis;
 
 ////////////////////////////////////////////////////////////////////////////////
 void
@@ -103,25 +103,25 @@ findTransformation (const CloudPtr &src,
 void
 view (const CloudConstPtr &src, const CloudConstPtr &tgt, const CorrespondencesPtr &correspondences)
 {
-  if (!visualize || !vis_) return;
+  if (!visualize || !vis) return;
   PointCloudColorHandlerCustom<PointT> green (tgt, 0, 255, 0);
-  if (!vis_->updatePointCloud<PointT> (src, "source"))
+  if (!vis->updatePointCloud<PointT> (src, "source"))
   {
-    vis_->addPointCloud<PointT> (src, "source");
-    vis_->resetCameraViewpoint ("source");
+    vis->addPointCloud<PointT> (src, "source");
+    vis->resetCameraViewpoint ("source");
   }
-  if (!vis_->updatePointCloud<PointT> (tgt, green, "target")) vis_->addPointCloud<PointT> (tgt, green, "target");
-  vis_->setPointCloudRenderingProperties (PCL_VISUALIZER_OPACITY, 0.5, "source");
-  vis_->setPointCloudRenderingProperties (PCL_VISUALIZER_OPACITY, 0.7, "target");
-  vis_->setPointCloudRenderingProperties (PCL_VISUALIZER_POINT_SIZE, 6, "source");
+  if (!vis->updatePointCloud<PointT> (tgt, green, "target")) vis->addPointCloud<PointT> (tgt, green, "target");
+  vis->setPointCloudRenderingProperties (PCL_VISUALIZER_OPACITY, 0.5, "source");
+  vis->setPointCloudRenderingProperties (PCL_VISUALIZER_OPACITY, 0.7, "target");
+  vis->setPointCloudRenderingProperties (PCL_VISUALIZER_POINT_SIZE, 6, "source");
   pcl::console::TicToc tt;
   tt.tic ();
-  if (!vis_->updateCorrespondences<PointT> (src, tgt, *correspondences, 1)) 
-    vis_->addCorrespondences<PointT> (src, tgt, *correspondences, 1, "correspondences");
+  if (!vis->updateCorrespondences<PointT> (src, tgt, *correspondences, 1)) 
+    vis->addCorrespondences<PointT> (src, tgt, *correspondences, 1, "correspondences");
   tt.toc_print ();
-  vis_->setShapeRenderingProperties (PCL_VISUALIZER_LINE_WIDTH, 5, "correspondences");
+  vis->setShapeRenderingProperties (PCL_VISUALIZER_LINE_WIDTH, 5, "correspondences");
   //vis->setShapeRenderingProperties (PCL_VISUALIZER_COLOR, 1.0, 0.0, 0.0, "correspondences");
-  vis_->spin ();
+  vis->spin ();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -201,7 +201,7 @@ main (int argc, char** argv)
   parse_argument (argc, argv, "-rejection", rejection);
   parse_argument (argc, argv, "-visualization", visualize);
   if (visualize)
-    vis_.reset (new PCLVisualizer ("Registration example"));
+    vis.reset (new PCLVisualizer ("Registration example"));
 
   // Parse the command line arguments for .pcd and .transform files
   std::vector<int> p_pcd_file_indices, p_tr_file_indices;

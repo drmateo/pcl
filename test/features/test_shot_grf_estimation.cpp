@@ -91,7 +91,7 @@ TEST (PCL, SHOTGlobalReferenceFrameEstimation)
   EXPECT_EQ (indices->size (), 1);
   EXPECT_EQ (indices->size (), bunny_GRF.size ());
   EXPECT_EQ (bunny_LRF.size (), bunny_GRF.size ());
-  
+
   // Check central point of the global reference frame
   Eigen::Vector4f central_pt = grf_estimator.getCentralPoint();
   EXPECT_NEAR ((float)central_pt[0], -0.0290809f, 1E-4);
@@ -137,7 +137,7 @@ add_gaussian_noise (const Cloud::ConstPtr& cloud_in, Cloud::Ptr& cloud_out, cons
   boost::mt19937 rng; rng.seed (static_cast<unsigned int> (time (0)));
   boost::normal_distribution<> nd (0, standard_deviation);
   boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > var_nor (rng, nd);
-  
+
   cloud_out->resize (cloud_in->size ());
   for (size_t point_i = 0; point_i < cloud_in->points.size (); ++ point_i)
   {

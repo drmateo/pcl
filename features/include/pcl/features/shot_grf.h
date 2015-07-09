@@ -47,19 +47,19 @@
 namespace pcl
 {
   /** \brief SHOTGlobalReferenceFrameEstimation estimates the Global Reference Frame used in the calculation
-    * of the (GSHOT) descriptor.
-    *
-    * \author Carlos M. Mateo
-    * \ingroup features
-    */
-  template<typename PointInT, typename PointOutT = ReferenceFrame>
+   * of the (GSHOT) descriptor.
+   *
+   * \author Carlos M. Mateo
+   * \ingroup features
+   */
+  template <typename PointInT, typename PointOutT = ReferenceFrame>
   class SHOTGlobalReferenceFrameEstimation : public SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>
   {
-    typedef pcl::PointCloud<PointInT> PointCloudIn;
-    typedef typename PointCloudIn::Ptr PointCloudInPtr;
-    typedef typename PointCloudIn::ConstPtr PointCloudInConstPtr;
-    typedef boost::shared_ptr<std::vector<int> > IndicesPtr;
-    typedef typename SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::PointCloudOut PointCloudOut;
+      typedef pcl::PointCloud<PointInT> PointCloudIn;
+      typedef typename PointCloudIn::Ptr PointCloudInPtr;
+      typedef typename PointCloudIn::ConstPtr PointCloudInConstPtr;
+      typedef boost::shared_ptr<std::vector<int> > IndicesPtr;
+      typedef typename SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::PointCloudOut PointCloudOut;
 
     public:
       typedef boost::shared_ptr<SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT> > Ptr;
@@ -72,8 +72,10 @@ namespace pcl
       }
 
       /** \brief Empty destructor */
-      virtual ~SHOTGlobalReferenceFrameEstimation ()
-      {}
+      virtual
+      ~SHOTGlobalReferenceFrameEstimation ()
+      {
+      }
 
       virtual Eigen::Vector4f
       getCentralPoint ()
@@ -101,21 +103,22 @@ namespace pcl
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::initCompute;
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::deinitCompute;
       using SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getClassName;
-      
+
       /** \brief Computes disambiguated local RF for a point index
-        * \param[in] index the index
-        * \param[out] rf reference frame to compute
-        */
+       * \param[in] index the index
+       * \param[out] rf reference frame to compute
+       */
       float
-      getLocalRF (const Eigen::Vector4f& central_point, Eigen::Matrix3f &rf);
+      getLocalRF (const Eigen::Vector4f& central_point,
+                  Eigen::Matrix3f &rf);
 
       /** \brief Computes disambiguated Global RF for the center point
-        * \param[out] rf reference frame to compute
-        */
+       * \param[out] rf reference frame to compute
+       */
       float
       getGlobalRF (Eigen::Matrix3f& rf)
       {
-        return SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF ((*indices_)[0], rf);
+        return SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF ( (*indices_)[0], rf);
       }
 
       /** \brief This method should get called before starting the actual computation. */
@@ -123,8 +126,8 @@ namespace pcl
       initCompute ();
 
       /** \brief Feature estimation method.
-        * \param[out] output the resultant features
-        */
+       * \param[out] output the resultant features
+       */
       virtual void
       computeFeature (PointCloudOut& output);
 

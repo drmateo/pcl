@@ -86,11 +86,11 @@
 //  rf_center = _indices[0];
 //}
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Compute a local Reference Frame for a 3D feature; the output is stored in the "rf" matrix
-template<typename PointInT, typename PointOutT> float
-pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF (const Eigen::Vector4f& central_point, Eigen::Matrix3f &rf)
+template <typename PointInT, typename PointOutT> float
+pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF (const Eigen::Vector4f& central_point,
+                                                                          Eigen::Matrix3f &rf)
 {
   //const Eigen::Vector4f& central_point = (*input_)[current_point_idx].getVector4fMap ();
   PointInT query_point;
@@ -114,7 +114,7 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF (const 
   {
     Eigen::Vector4f pt = surface_->points[n_indices[i_idx]].getVector4fMap ();
     if (pt.head<3> () == central_point.head<3> ())
-		  continue;
+      continue;
 
     // Difference between current point and origin
     vij.row (valid_nn_points).matrix () = (pt - central_point).cast<double> ();
@@ -145,7 +145,7 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF (const 
   const double& e2c = solver.eigenvalues ()[1];
   const double& e3c = solver.eigenvalues ()[2];
 
-  if (!pcl_isfinite (e1c) || !pcl_isfinite (e2c) || !pcl_isfinite (e3c))
+  if (!pcl_isfinite(e1c) || !pcl_isfinite(e2c) || !pcl_isfinite(e3c))
   {
     //PCL_ERROR ("[pcl::%s::getLocalRF] Warning! Eigenvectors are NaN. Aborting Local RF computation of feature point (%lf, %lf, %lf)\n", "SHOTLocalReferenceFrameEstimation", central_point[0], central_point[1], central_point[2]);
     rf.setConstant (std::numeric_limits<float>::quiet_NaN ());
@@ -159,7 +159,7 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF (const 
   v1.head<3> ().matrix () = solver.eigenvectors ().col (2);
   v3.head<3> ().matrix () = solver.eigenvectors ().col (0);
 
-  int plusNormal = 0, plusTangentDirection1=0;
+  int plusNormal = 0, plusTangentDirection1 = 0;
   for (int ne = 0; ne < valid_nn_points; ne++)
   {
     double dp = vij.row (ne).dot (v1);
@@ -172,37 +172,38 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF (const 
   }
 
   //TANGENT
-  plusTangentDirection1 = 2*plusTangentDirection1 - valid_nn_points;
+  plusTangentDirection1 = 2 * plusTangentDirection1 - valid_nn_points;
   if (plusTangentDirection1 == 0)
   {
-		int points = 5; //std::min(valid_nn_points*2/2+1, 11);
-		int medianIndex = valid_nn_points/2;
+    int points = 5;  //std::min(valid_nn_points*2/2+1, 11);
+    int medianIndex = valid_nn_points / 2;
 
-		for (int i = -points/2; i <= points/2; i++)
-			if ( vij.row (medianIndex - i).dot (v1) > 0)
-				plusTangentDirection1 ++;
+    for (int i = -points / 2; i <= points / 2; i++)
+      if (vij.row (medianIndex - i).dot (v1) > 0)
+        plusTangentDirection1++;
 
-		if (plusTangentDirection1 < points/2+1)
-			v1 *= - 1;
-	} 
+    if (plusTangentDirection1 < points / 2 + 1)
+      v1 *= -1;
+  }
   else if (plusTangentDirection1 < 0)
-    v1 *= - 1;
+    v1 *= -1;
 
   //Normal
-  plusNormal = 2*plusNormal - valid_nn_points;
+  plusNormal = 2 * plusNormal - valid_nn_points;
   if (plusNormal == 0)
   {
-		int points = 5; //std::min(valid_nn_points*2/2+1, 11);
-		int medianIndex = valid_nn_points/2;
+    int points = 5;  //std::min(valid_nn_points*2/2+1, 11);
+    int medianIndex = valid_nn_points / 2;
 
-		for (int i = -points/2; i <= points/2; i++)
-			if ( vij.row (medianIndex - i).dot (v3) > 0)
-				plusNormal ++;
+    for (int i = -points / 2; i <= points / 2; i++)
+      if (vij.row (medianIndex - i).dot (v3) > 0)
+        plusNormal++;
 
-		if (plusNormal < points/2+1)
-			v3 *= - 1;
-	} else if (plusNormal < 0)
-    v3 *= - 1;
+    if (plusNormal < points / 2 + 1)
+      v3 *= -1;
+  }
+  else if (plusNormal < 0)
+    v3 *= -1;
 
   rf.row (0).matrix () = v1.head<3> ().cast<float> ();
   rf.row (2).matrix () = v3.head<3> ().cast<float> ();
@@ -218,19 +219,20 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::computeFeature (Po
   // check whether used with search radius or search k-neighbors
   if (this->getKSearch () != 0)
   {
-    PCL_ERROR ("[pcl::%s::computeFeature] Error! Search method set to k-neighborhood. Call setKSearch(0) and setRadiusSearch(radius) to use this class.\n", getClassName ().c_str ());
+    PCL_ERROR("[pcl::%s::computeFeature] Error! Search method set to k-neighborhood. Call setKSearch(0) and setRadiusSearch(radius) to use this class.\n",
+              getClassName ().c_str ());
     return;
   }
-  
+
   output.resize (1);
   output.width = 1;
 
   Eigen::Matrix3f rf;
   PointOutT& output_rf = output[0];
-  
+
   if (getLocalRF (central_point_, rf) == std::numeric_limits<float>::max ())
     output.is_dense = false;
-  
+
   for (int d = 0; d < 3; ++d)
   {
     output_rf.x_axis[d] = rf.row (0)[d];
@@ -238,7 +240,6 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::computeFeature (Po
     output_rf.z_axis[d] = rf.row (2)[d];
   }
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,23 +249,23 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
 {
   if (!PCLBase<PointInT>::initCompute ())
   {
-    PCL_ERROR ("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
+    PCL_ERROR("[pcl::%s::initCompute] Init failed.\n", getClassName ().c_str ());
     return false;
   }
 
   // If the dataset is empty, just return
   if (input_->points.empty ())
   {
-    PCL_ERROR ("[pcl::%s::initCompute] input_ is empty!\n", getClassName ().c_str ());
+    PCL_ERROR("[pcl::%s::initCompute] input_ is empty!\n", getClassName ().c_str ());
     // Cleanup
     deinitCompute ();
     return false;
   }
-  
+
   // Global RF cannot work with k-search specific
-  if (this->getKSearch () != 0 )
+  if (this->getKSearch () != 0)
   {
-    PCL_ERROR("[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) to use this class.\n", getClassName().c_str ());
+    PCL_ERROR("[pcl::%s::initCompute] Error! Search method set to k-neighborhood. Call setKSearch(0) to use this class.\n", getClassName ().c_str ());
     return false;
   }
 
@@ -283,8 +284,8 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
     else
       tree_.reset (new pcl::search::KdTree<PointInT> (false));
   }
-  
-  if (tree_->getInputCloud () != surface_) // Make sure the tree searches the surface
+
+  if (tree_->getInputCloud () != surface_)  // Make sure the tree searches the surface
     tree_->setInputCloud (surface_);
 
   tree_->setSortedResults (true);
@@ -295,7 +296,7 @@ pcl::SHOTGlobalReferenceFrameEstimation<PointInT, PointOutT>::initCompute ()
   if (search_radius_ == 0)
     search_radius_ = (max_pt - central_point_).norm ();
   search_parameter_ = search_radius_;
-  
+
   return Feature<PointInT, PointOutT>::initCompute ();
 }
 

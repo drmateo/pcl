@@ -154,8 +154,7 @@ pcl::SHOTLocalReferenceFrameEstimation<PointInT, PointOutT>::getLocalRF (const i
 
 		if (plusNormal < points/2+1)
 			v3 *= - 1;
-	}
-  else if (plusNormal < 0)
+	} else if (plusNormal < 0)
     v3 *= - 1;
 
   rf.row (0).matrix () = v1.head<3> ().cast<float> ();

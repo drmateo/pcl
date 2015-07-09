@@ -110,21 +110,21 @@ TEST (PCL, SHOTLocalReferenceFrameEstimation)
   //EXPECT_NEAR (point_15_conf,bunny_LRF.at (15).confidence, 1E-3);
   for (int d = 0; d < 3; ++d)
   {
-    EXPECT_NEAR ((float)point_15_x[d], bunny_LRF.at (15).x_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_15_y[d], bunny_LRF.at (15).y_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_15_z[d], bunny_LRF.at (15).z_axis[d], 1E-3);
+    EXPECT_NEAR (point_15_x[d], bunny_LRF.at (15).x_axis[d], 1E-3);
+    EXPECT_NEAR (point_15_y[d], bunny_LRF.at (15).y_axis[d], 1E-3);
+    EXPECT_NEAR (point_15_z[d], bunny_LRF.at (15).z_axis[d], 1E-3);
 
-    EXPECT_NEAR ((float)point_45_x[d], bunny_LRF.at (45).x_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_45_y[d], bunny_LRF.at (45).y_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_45_z[d], bunny_LRF.at (45).z_axis[d], 1E-3);
+    EXPECT_NEAR (point_45_x[d], bunny_LRF.at (45).x_axis[d], 1E-3);
+    EXPECT_NEAR (point_45_y[d], bunny_LRF.at (45).y_axis[d], 1E-3);
+    EXPECT_NEAR (point_45_z[d], bunny_LRF.at (45).z_axis[d], 1E-3);
 
-    EXPECT_NEAR ((float)point_163_x[d], bunny_LRF.at (163).x_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_163_y[d], bunny_LRF.at (163).y_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_163_z[d], bunny_LRF.at (163).z_axis[d], 1E-3);
+    EXPECT_NEAR (point_163_x[d], bunny_LRF.at (163).x_axis[d], 1E-3);
+    EXPECT_NEAR (point_163_y[d], bunny_LRF.at (163).y_axis[d], 1E-3);
+    EXPECT_NEAR (point_163_z[d], bunny_LRF.at (163).z_axis[d], 1E-3);
 
-    EXPECT_NEAR ((float)point_311_x[d], bunny_LRF.at (311).x_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_311_y[d], bunny_LRF.at (311).y_axis[d], 1E-3);
-    EXPECT_NEAR ((float)point_311_z[d], bunny_LRF.at (311).z_axis[d], 1E-3);
+    EXPECT_NEAR (point_311_x[d], bunny_LRF.at (311).x_axis[d], 1E-3);
+    EXPECT_NEAR (point_311_y[d], bunny_LRF.at (311).y_axis[d], 1E-3);
+    EXPECT_NEAR (point_311_z[d], bunny_LRF.at (311).z_axis[d], 1E-3);
   }
 }
 
