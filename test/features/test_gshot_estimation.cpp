@@ -504,7 +504,7 @@ TEST (PCL, GSHOTWithRTransNoised)
   //std::cout << "rot = (" << (rot_x * M_PI) << ", " << (rot_y * M_PI) << ", " << (rot_z * M_PI) << ")" << std::endl;
 
   Eigen::Affine3f trans = Eigen::Affine3f::Identity ();
-  float HI = 5;
+  float HI = 1.0f;
   float LO = -HI;
   float trans_x = LO + static_cast<float> (rand ()) / (static_cast<float> (RAND_MAX / (HI - LO)));
   float trans_y = LO + static_cast<float> (rand ()) / (static_cast<float> (RAND_MAX / (HI - LO)));
@@ -599,10 +599,10 @@ TEST (PCL, GSHOTWithRTransNoised)
   shot.compute (*desc0);
 
   // CHECK match the gshot of cloud rotated with the shot of the cloud rotated too. 
-  checkDescNear(*desc0, *desc1, 1E-5);
-  checkDescNear(*desc0, *desc2, 1E-5);
-  checkDescNear(*desc0, *desc3, 1E-5);
-  checkDescNear(*desc0, *desc4, 1E-5);
+  checkDescNear(*desc0, *desc1, 1E-4);
+  checkDescNear(*desc0, *desc2, 1E-4);
+  checkDescNear(*desc0, *desc3, 1E-4);
+  checkDescNear(*desc0, *desc4, 1E-4);
 
   std::vector<float> d0, d1, d2, d3, d4, d5, d6;
   for(int i = 0; i < 352; ++i)
