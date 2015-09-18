@@ -43,11 +43,11 @@
 #include <pcl/impl/instantiate.hpp>
 // Instantiations of specific point types
 #ifdef PCL_ONLY_CORE_POINT_TYPES
-  PCL_INSTANTIATE_PRODUCT(GSHOTEstimationBase, ((pcl::PointXYZ)(pcl::PointXYZI)(pcl::PointXYZRGB)(pcl::PointXYZRGBA))((pcl::Normal))((pcl::SHOT352)(pcl::SHOT1344))((pcl::ReferenceFrame)))
-  PCL_INSTANTIATE_PRODUCT(GSHOTEstimation, ((pcl::PointXYZ)(pcl::PointXYZI)(pcl::PointXYZRGB)(pcl::PointXYZRGBA))((pcl::Normal))((pcl::SHOT352))((pcl::ReferenceFrame)))
+PCL_INSTANTIATE_PRODUCT(GSHOTEstimationBase, ((pcl::PointXYZ)(pcl::PointXYZI)(pcl::PointXYZRGB)(pcl::PointXYZRGBA))((pcl::Normal))((pcl::SHOT32)(pcl::SHOT96)(pcl::SHOT160)(pcl::SHOT224)(pcl::SHOT288)(pcl::SHOT352)(pcl::SHOT416)(pcl::SHOT480)(pcl::SHOT544)(pcl::SHOT608)(pcl::SHOT672)(pcl::SHOT1344))((pcl::ReferenceFrame)))
+  PCL_INSTANTIATE_PRODUCT(GSHOTEstimation, ((pcl::PointXYZ)(pcl::PointXYZI)(pcl::PointXYZRGB)(pcl::PointXYZRGBA))((pcl::Normal))((pcl::SHOT32)(pcl::SHOT96)(pcl::SHOT160)(pcl::SHOT224)(pcl::SHOT288)(pcl::SHOT352)(pcl::SHOT416)(pcl::SHOT480)(pcl::SHOT544)(pcl::SHOT608)(pcl::SHOT672))((pcl::ReferenceFrame)))
 #else
-  PCL_INSTANTIATE_PRODUCT(GSHOTEstimationBase, (PCL_XYZ_POINT_TYPES)(PCL_NORMAL_POINT_TYPES)((pcl::SHOT352)(pcl::SHOT1344))((pcl::ReferenceFrame)))
-  PCL_INSTANTIATE_PRODUCT(GSHOTEstimation, (PCL_XYZ_POINT_TYPES)(PCL_NORMAL_POINT_TYPES)((pcl::SHOT352))((pcl::ReferenceFrame)))
+  PCL_INSTANTIATE_PRODUCT(GSHOTEstimationBase, (PCL_XYZ_POINT_TYPES)(PCL_NORMAL_POINT_TYPES)((pcl::SHOT32)(pcl::SHOT96)(pcl::SHOT160)(pcl::SHOT224)(pcl::SHOT288)(pcl::SHOT352)(pcl::SHOT416)(pcl::SHOT480)(pcl::SHOT544)(pcl::SHOT608)(pcl::SHOT672)(pcl::SHOT1344))((pcl::ReferenceFrame)))
+  PCL_INSTANTIATE_PRODUCT(GSHOTEstimation, (PCL_XYZ_POINT_TYPES)(PCL_NORMAL_POINT_TYPES)((pcl::SHOT32)(pcl::SHOT96)(pcl::SHOT160)(pcl::SHOT224)(pcl::SHOT288)(pcl::SHOT352)(pcl::SHOT416)(pcl::SHOT480)(pcl::SHOT544)(pcl::SHOT608)(pcl::SHOT672))((pcl::ReferenceFrame)))
 #endif
 #endif    // PCL_NO_PRECOMPILE
 

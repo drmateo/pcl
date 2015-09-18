@@ -82,7 +82,8 @@ namespace pcl
       using SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT>::deinitCompute;
 
       /** \brief Empty constructor */
-      GSHOTEstimationBase ()
+      GSHOTEstimationBase (int nr_shape_bins = 10)
+      : SHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT> (nr_shape_bins)
       {
         feature_name_ = "GSHOTEstimationBase";
       }
@@ -179,7 +180,8 @@ namespace pcl
       typedef boost::shared_ptr<const GSHOTEstimation<PointInT, PointNT, PointOutT, PointRFT> > ConstPtr;
 
       /** \brief Empty constructor. */
-      GSHOTEstimation ()
+      GSHOTEstimation (int nr_shape_bins = 10)
+      : GSHOTEstimationBase<PointInT, PointNT, PointOutT, PointRFT> (nr_shape_bins)
       {
         feature_name_ = "GSHOTEstimation";
       }

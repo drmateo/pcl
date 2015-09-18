@@ -87,7 +87,17 @@
   (pcl::PointSurfel)            \
   (pcl::ShapeContext1980)       \
   (pcl::UniqueShapeContext1960) \
-  (pcl::SHOT352)                \
+(pcl::SHOT32)                 \
+(pcl::SHOT96)                 \
+(pcl::SHOT160)                 \
+(pcl::SHOT224)                 \
+(pcl::SHOT288)                 \
+(pcl::SHOT352)                \
+(pcl::SHOT416)                 \
+(pcl::SHOT480)                 \
+(pcl::SHOT544)                 \
+(pcl::SHOT608)                 \
+(pcl::SHOT672)                 \
   (pcl::SHOT1344)               \
   (pcl::PointUV)                \
   (pcl::ReferenceFrame)         \
@@ -1266,6 +1276,71 @@ namespace pcl
 
     friend std::ostream& operator << (std::ostream& os, const UniqueShapeContext1960& p);
   };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT32& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT32
+  {
+    float descriptor[32];
+    float rf[9];
+    static int descriptorSize () { return 32; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT32& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT96& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT96
+  {
+    float descriptor[96];
+    float rf[9];
+    static int descriptorSize () { return 96; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT96& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT160& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT160
+  {
+    float descriptor[160];
+    float rf[9];
+    static int descriptorSize () { return 160; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT160& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT224& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT224
+  {
+    float descriptor[224];
+    float rf[9];
+    static int descriptorSize () { return 224; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT224& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT288& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT288
+  {
+    float descriptor[288];
+    float rf[9];
+    static int descriptorSize () { return 288; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT288& p);
+  };
 
   PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT352& p);
   /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
@@ -1280,6 +1355,70 @@ namespace pcl
     friend std::ostream& operator << (std::ostream& os, const SHOT352& p);
   };
 
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT416& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT416
+  {
+    float descriptor[416];
+    float rf[9];
+    static int descriptorSize () { return 416; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT416& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT480& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT480
+  {
+    float descriptor[480];
+    float rf[9];
+    static int descriptorSize () { return 480; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT480& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT544& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT544
+  {
+    float descriptor[544];
+    float rf[9];
+    static int descriptorSize () { return 544; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT544& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT608& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT608
+  {
+    float descriptor[608];
+    float rf[9];
+    static int descriptorSize () { return 608; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT608& p);
+  };
+  
+  PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT672& p);
+  /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape only.
+   * \ingroup common
+   */
+  struct SHOT672
+  {
+    float descriptor[672];
+    float rf[9];
+    static int descriptorSize () { return 672; }
+    
+    friend std::ostream& operator << (std::ostream& os, const SHOT672& p);
+  };
 
   PCL_EXPORTS std::ostream& operator << (std::ostream& os, const SHOT1344& p);
   /** \brief A point structure representing the generic Signature of Histograms of OrienTations (SHOT) - shape+color.
@@ -1293,7 +1432,6 @@ namespace pcl
 
     friend std::ostream& operator << (std::ostream& os, const SHOT1344& p);
   };
-
 
   /** \brief A structure representing the Local Reference Frame of a point.
     *  \ingroup common

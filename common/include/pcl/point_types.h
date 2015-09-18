@@ -200,10 +200,22 @@ namespace pcl
     */
   struct PrincipalCurvatures;
 
+  struct SHOT32;
+  struct SHOT96;
+  struct SHOT160;
+  struct SHOT224;
+  struct SHOT288;
+  
   /** \brief Members: float descriptor[352], rf[9]
     * \ingroup common
     */
   struct SHOT352;
+  
+  struct SHOT416;
+  struct SHOT480;
+  struct SHOT544;
+  struct SHOT608;
+  struct SHOT672;
 
   /** \brief Members: float descriptor[1344], rf[9]
     * \ingroup common
@@ -593,12 +605,70 @@ POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::ShapeContext1980,
 POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::UniqueShapeContext1960,
     (float[1960], descriptor, shape_context)
     (float[9], rf, rf)
-)
+                                   )
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT32,
+                                   (float[32], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT96,
+                                   (float[96], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT160,
+                                   (float[160], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT224,
+                                   (float[224], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT288,
+                                   (float[288], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
 
 POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT352,
     (float[352], descriptor, shot)
     (float[9], rf, rf)
 )
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT416,
+                                   (float[416], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT480,
+                                   (float[480], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT544,
+                                   (float[544], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT608,
+                                   (float[608], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
+
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT672,
+                                   (float[672], descriptor, shot)
+                                   (float[9], rf, rf)
+                                   )
 
 POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::SHOT1344,
     (float[1344], descriptor, shot)

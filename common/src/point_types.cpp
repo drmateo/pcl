@@ -304,6 +304,56 @@ namespace pcl
     return (os);
   }
 
+  std::ostream&
+  operator << (std::ostream& os, const SHOT32& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 32; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 31 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT96& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 96; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 95 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT160& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 160; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 159 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT224& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 224; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 223 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT288& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 288; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 287 ? ", " : ")");
+    return (os);
+  }
+  
   std::ostream& 
   operator << (std::ostream& os, const SHOT352& p)
   {
@@ -311,6 +361,56 @@ namespace pcl
     os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
     for (size_t i = 0; i < 352; ++i)
     os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 351 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT416& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 416; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 415 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT480& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 480; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 479 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT544& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 544; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 543 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT608& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 608; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 607 ? ", " : ")");
+    return (os);
+  }
+  
+  std::ostream&
+  operator << (std::ostream& os, const SHOT672& p)
+  {
+    for (int i = 0; i < 9; ++i)
+      os << (i == 0 ? "(" : "") << p.rf[i] << (i < 8 ? ", " : ")");
+    for (size_t i = 0; i < 672; ++i)
+      os << (i == 0 ? "(" : "") << p.descriptor[i] << (i < 671 ? ", " : ")");
     return (os);
   }
 
