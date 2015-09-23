@@ -2,8 +2,7 @@
  * Software License Agreement (BSD License)
  *
  *  Point Cloud Library (PCL) - www.pointclouds.org
- *  Copyright (c) 2010-2012, Willow Garage, Inc.
- *  Copyright (c) 2012-, Open Perception, Inc.
+ *  Copyright (c) 2014-, Open Perception, Inc.
  *
  *  All rights reserved.
  *
@@ -36,18 +35,65 @@
  *
  */
 
-#include <pcl/features/impl/gshot.hpp>
+#include <pcl/io/depth_sense_grabber.h>
+#include <pcl/io/depth_sense/depth_sense_grabber_impl.h>
 
-#ifndef PCL_NO_PRECOMPILE
-#include <pcl/point_types.h>
-#include <pcl/impl/instantiate.hpp>
-// Instantiations of specific point types
-#ifdef PCL_ONLY_CORE_POINT_TYPES
-PCL_INSTANTIATE_PRODUCT(GSHOTEstimationBase, ((pcl::PointXYZ)(pcl::PointXYZI)(pcl::PointXYZRGB)(pcl::PointXYZRGBA))((pcl::Normal))((pcl::SHOT352)(pcl::SHOT1344))((pcl::ReferenceFrame)))
-  PCL_INSTANTIATE_PRODUCT(GSHOTEstimation, ((pcl::PointXYZ)(pcl::PointXYZI)(pcl::PointXYZRGB)(pcl::PointXYZRGBA))((pcl::Normal))((pcl::SHOT352))((pcl::ReferenceFrame)))
-#else
-  PCL_INSTANTIATE_PRODUCT(GSHOTEstimationBase, (PCL_XYZ_POINT_TYPES)(PCL_NORMAL_POINT_TYPES)((pcl::SHOT352)(pcl::SHOT1344))((pcl::ReferenceFrame)))
-  PCL_INSTANTIATE_PRODUCT(GSHOTEstimation, (PCL_XYZ_POINT_TYPES)(PCL_NORMAL_POINT_TYPES)((pcl::SHOT352))((pcl::ReferenceFrame)))
-#endif
-#endif    // PCL_NO_PRECOMPILE
+pcl::DepthSenseGrabber::DepthSenseGrabber (const std::string& device_id)
+: Grabber ()
+, p_ (new pcl::io::depth_sense::DepthSenseGrabberImpl (this, device_id))
+{
+}
+
+pcl::DepthSenseGrabber::~DepthSenseGrabber () throw ()
+{
+  delete p_;
+}
+
+void
+pcl::DepthSenseGrabber::start ()
+{
+  p_->start();
+}
+
+void
+pcl::DepthSenseGrabber::stop ()
+{
+  p_->stop();
+}
+
+bool
+pcl::DepthSenseGrabber::isRunning () const
+{
+  return (p_->is_running_);
+}
+
+float
+pcl::DepthSenseGrabber::getFramesPerSecond () const
+{
+  return (p_->getFramesPerSecond());
+}
+
+void
+pcl::DepthSenseGrabber::setConfidenceThreshold (int threshold)
+{
+  p_->setConfidenceThreshold (threshold);
+}
+
+void
+pcl::DepthSenseGrabber::enableTemporalFiltering (TemporalFilteringType type, size_t window_size)
+{
+  p_->enableTemporalFiltering (type, window_size);
+}
+
+void
+pcl::DepthSenseGrabber::disableTemporalFiltering ()
+{
+  p_->enableTemporalFiltering (DepthSense_None, 1);
+}
+
+std::string
+pcl::DepthSenseGrabber::getDeviceSerialNumber () const
+{
+  return (p_->device_id_);
+}
 
