@@ -83,14 +83,7 @@ pcl::PCDWriter::setLockingPermissions (const std::string &file_name,
     PCL_DEBUG ("[pcl::PCDWriter::setLockingPermissions] File %s could not be locked!\n", file_name.c_str ());
 
   namespace fs = boost::filesystem;
-  try
-  {
-    fs::permissions (fs::path (file_name), fs::add_perms | fs::set_gid_on_exe);
-  }
-  catch (const std::exception &e)
-  {
-    PCL_DEBUG ("[pcl::PCDWriter::setLockingPermissions] Permissions on %s could not be set!\n", file_name.c_str ());
-  }
+  fs::permissions (fs::path (file_name), fs::add_perms | fs::set_gid_on_exe);
 #endif
 #endif
 }
@@ -107,14 +100,7 @@ pcl::PCDWriter::resetLockingPermissions (const std::string &file_name,
 #if BOOST_VERSION >= 104900
   (void)file_name;
   namespace fs = boost::filesystem;
-  try
-  {
-    fs::permissions (fs::path (file_name), fs::remove_perms | fs::set_gid_on_exe);
-  }
-  catch (const std::exception &e)
-  {
-    PCL_DEBUG ("[pcl::PCDWriter::resetLockingPermissions] Permissions on %s could not be reset!\n", file_name.c_str ());
-  }
+  fs::permissions (fs::path (file_name), fs::remove_perms | fs::set_gid_on_exe);
   lock.unlock ();
 #endif
 #endif
