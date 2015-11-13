@@ -67,7 +67,6 @@ namespace pcl
   {
     public:
       using SampleConsensusModel<PointT>::model_name_;
-      using SampleConsensusModel<PointT>::isModelValid;
 
       typedef typename SampleConsensusModelPlane<PointT>::PointCloud PointCloud;
       typedef typename SampleConsensusModelPlane<PointT>::PointCloudPtr PointCloudPtr;
@@ -87,6 +86,7 @@ namespace pcl
         , sin_angle_ (-1.0)
       {
         model_name_ = "SampleConsensusModelParallelPlane";
+        sample_size_ = 3;
         model_size_ = 4;
       }
 
@@ -104,6 +104,7 @@ namespace pcl
         , sin_angle_ (-1.0)
       {
         model_name_ = "SampleConsensusModelParallelPlane";
+        sample_size_ = 3;
         model_size_ = 4;
       }
       
@@ -164,6 +165,7 @@ namespace pcl
       getModelType () const { return (SACMODEL_PARALLEL_PLANE); }
 
     protected:
+      using SampleConsensusModel<PointT>::sample_size_;
       using SampleConsensusModel<PointT>::model_size_;
 
       /** \brief Check whether a model is valid given the user constraints.

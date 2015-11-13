@@ -37,14 +37,60 @@
  *
  */
 
-#ifndef PCL_KEYPOINTS_UNIFORM_SAMPLING_H_
-#define PCL_KEYPOINTS_UNIFORM_SAMPLING_H_
+#ifndef PCL_IO_AUTO_IO_IMPL_H_
+#define PCL_IO_AUTO_IO_IMPL_H_
 
-#ifdef __DEPRECATED
-#warning UniformSampling is not a Keypoint anymore, use <pcl/filters/uniform_sampling.h> instead.
-#endif
+// #include <pcl/io/file_io.h>
+// #include <pcl/io/boost.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
+#include <pcl/io/ifs_io.h>
+// #include <pcl/io/vtk_io.h>
 
-#include <pcl/filters/uniform_sampling.h>
+namespace pcl
+{
+  namespace io
+  {
+    template<typename PointT> int
+    load (const std::string& file_name, pcl::PointCloud<PointT>& cloud)
+    {
+      boost::filesystem::path p (file_name.c_str ());
+      std::string extension = p.extension ().string ();
+      int result = -1;
+      if (extension == ".pcd")
+        result = pcl::io::loadPCDFile (file_name, cloud);
+      else if (extension == ".ply")
+        result = pcl::io::loadPLYFile (file_name, cloud);
+      else if (extension == ".ifs")
+        result = pcl::io::loadIFSFile (file_name, cloud);
+      else
+      {
+        PCL_ERROR ("[pcl::io::load] Don't know how to handle file with extension %s", extension.c_str ());
+        result = -1;
+      }
+      return (result);
+    }
 
-#endif  //#ifndef PCL_KEYPOINTS_UNIFORM_SAMPLING_H_
+    template<typename PointT> int
+    save (const std::string& file_name, const pcl::PointCloud<PointT>& cloud)
+    {
+      boost::filesystem::path p (file_name.c_str ());
+      std::string extension = p.extension ().string ();
+      int result = -1;
+      if (extension == ".pcd")
+        result = pcl::io::savePCDFile (file_name, cloud, true);
+      else if (extension == ".ply")
+        result = pcl::io::savePLYFile (file_name, cloud, true);
+      else if (extension == ".ifs")
+        result = pcl::io::saveIFSFile (file_name, cloud);
+      else
+      {
+        PCL_ERROR ("[pcl::io::save] Don't know how to handle file with extension %s", extension.c_str ());
+        result = -1;
+      }
+      return (result);
+    }
+  }
+}
 
+#endif //PCL_IO_AUTO_IO_IMPL_H_

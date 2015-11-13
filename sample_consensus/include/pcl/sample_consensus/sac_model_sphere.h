@@ -66,7 +66,6 @@ namespace pcl
       using SampleConsensusModel<PointT>::radius_min_;
       using SampleConsensusModel<PointT>::radius_max_;
       using SampleConsensusModel<PointT>::error_sqr_dists_;
-      using SampleConsensusModel<PointT>::isModelValid;
 
       typedef typename SampleConsensusModel<PointT>::PointCloud PointCloud;
       typedef typename SampleConsensusModel<PointT>::PointCloudPtr PointCloudPtr;
@@ -83,6 +82,7 @@ namespace pcl
         : SampleConsensusModel<PointT> (cloud, random), tmp_inliers_ ()
       {
         model_name_ = "SampleConsensusModelSphere";
+        sample_size_ = 4;
         model_size_ = 4;
       }
 
@@ -97,6 +97,7 @@ namespace pcl
         : SampleConsensusModel<PointT> (cloud, indices, random), tmp_inliers_ ()
       {
         model_name_ = "SampleConsensusModelSphere";
+        sample_size_ = 4;
         model_size_ = 4;
       }
       
@@ -200,6 +201,7 @@ namespace pcl
       inline pcl::SacModel getModelType () const { return (SACMODEL_SPHERE); }
 
     protected:
+      using SampleConsensusModel<PointT>::sample_size_;
       using SampleConsensusModel<PointT>::model_size_;
 
       /** \brief Check whether a model is valid given the user constraints.
