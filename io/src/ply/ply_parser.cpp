@@ -56,21 +56,11 @@ bool pcl::io::ply::ply_parser::parse (const std::string& filename)
   format_type format = pcl::io::ply::unknown;
   std::vector< boost::shared_ptr<element> > elements;
 
-  char line_delim = '\n';
-  int char_ignore_count = 0;
-
   // magic
   char magic[4];
   istream.read (magic, 4);
-
-  // Check if CR/LF, setup delim and char skip
-  if (magic[3] == '\r')
-  {
+  if (magic[3] == '\r') // Check if CR/LF
     istream.ignore (1);
-    line_delim = '\r';
-    char_ignore_count = 1;
-  }
-
   ++line_number_;
   if (!istream)
   {
@@ -89,9 +79,8 @@ bool pcl::io::ply::ply_parser::parse (const std::string& filename)
   if (magic_callback_)
     magic_callback_ ();
 
-  while (std::getline (istream, line, line_delim))
+  while (std::getline (istream, line))
   {
-    istream.ignore (char_ignore_count);
     ++line_number_;
     std::istringstream stringstream (line);
     stringstream.unsetf (std::ios_base::skipws);
@@ -533,13 +522,12 @@ bool pcl::io::ply::ply_parser::parse (const std::string& filename)
       {
         if (element.begin_element_callback) 
           element.begin_element_callback ();
-        if (!std::getline (istream, line, line_delim))
+        if (!std::getline (istream, line))
         {
           if (error_callback_)
             error_callback_ (line_number_, "parse error");
           return false;
         }
-        istream.ignore (char_ignore_count);
         ++line_number_;
         std::istringstream stringstream (line);
         stringstream.unsetf (std::ios_base::skipws);

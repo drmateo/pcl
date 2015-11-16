@@ -41,22 +41,22 @@
 #include <pcl/point_types.h>
 #include <pcl/features/feature.h>
 
-//#if defined BUILD_Maintainer && defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ > 3
-//#pragma GCC diagnostic ignored "-Weffc++"
-//#endif
+#if defined BUILD_Maintainer && defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ > 3
+#pragma GCC diagnostic ignored "-Weffc++"
+#endif
 namespace pcl
 {
-//  // FORWARD DECLARATIONS:
-//  class RangeImage;
-//  template <typename PointType>
-//  class PointCloud;
+  // FORWARD DECLARATIONS:
+  class RangeImage;
+  template <typename PointType>
+  class PointCloud;
 
   /** \brief @b Extract obstacle borders from range images, meaning positions where there is a transition from foreground
     * to background.
     * \author Bastian Steder
     * \ingroup features
     */
-  class /*PCL_EXPORTS*/ RangeImageBorderExtractor : public Feature<PointWithRange,BorderDescription>
+  class PCL_EXPORTS RangeImageBorderExtractor : public Feature<PointWithRange,BorderDescription>
   {
     public:
       typedef boost::shared_ptr<RangeImageBorderExtractor> Ptr;
@@ -350,16 +350,14 @@ namespace pcl
       blurSurfaceChanges ();
       
       /** \brief Implementation of abstract derived function */
-      void
+      virtual void
       computeFeature (PointCloudOut &output);
   };
 }  // namespace end
-//#if defined BUILD_Maintainer && defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ > 3
-//#pragma GCC diagnostic warning "-Weffc++"
-//#endif
-
-#ifdef PCL_NO_PRECOMPILE
-#include <pcl/features/impl/range_image_border_extractor.hpp>  // Definitions of templated and inline functions
+#if defined BUILD_Maintainer && defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ > 3
+#pragma GCC diagnostic warning "-Weffc++"
 #endif
+
+#include <pcl/features/impl/range_image_border_extractor.hpp>  // Definitions of templated and inline functions
 
 #endif  //#ifndef PCL_RANGE_IMAGE_BORDER_EXTRACTOR_H_
