@@ -74,7 +74,6 @@ namespace pcl
       using SampleConsensusModelFromNormals<PointT, PointNT>::normals_;
       using SampleConsensusModelFromNormals<PointT, PointNT>::normal_distance_weight_;
       using SampleConsensusModel<PointT>::error_sqr_dists_;
-      using SampleConsensusModel<PointT>::isModelValid;
 
       typedef typename SampleConsensusModel<PointT>::PointCloud PointCloud;
       typedef typename SampleConsensusModel<PointT>::PointCloudPtr PointCloudPtr;
@@ -94,6 +93,7 @@ namespace pcl
         , tmp_inliers_ ()
       {
         model_name_ = "SampleConsensusModelCylinder";
+        sample_size_ = 2;
         model_size_ = 7;
       }
 
@@ -112,6 +112,7 @@ namespace pcl
         , tmp_inliers_ ()
       {
         model_name_ = "SampleConsensusModelCylinder";
+        sample_size_ = 2;
         model_size_ = 7;
       }
 
@@ -243,6 +244,7 @@ namespace pcl
       getModelType () const { return (SACMODEL_CYLINDER); }
 
     protected:
+      using SampleConsensusModel<PointT>::sample_size_;
       using SampleConsensusModel<PointT>::model_size_;
 
       /** \brief Get the distance from a point to a line (represented by a point and a direction)

@@ -7,6 +7,10 @@ if(POLICY CMP0017)
   cmake_policy(SET CMP0017 NEW)
 endif()
 
+if(POLICY CMP0020 AND (WIN32 AND NOT MINGW))
+  cmake_policy(SET CMP0020 NEW) # Automatically link Qt executables to qtmain target on Windows
+endif()
+
 if(POLICY CMP0048)
   cmake_policy(SET CMP0048 OLD) # do not use VERSION option in project() command
 endif()
@@ -112,11 +116,16 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
   endif(NOT ANDROID)
 
+  if("${CMAKE_SHARED_LINKER_FLAGS}" STREQUAL "" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed")
+  endif()
+
   if(WIN32)
     if(PCL_SHARED_LIBS)
       SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--export-all-symbols -Wl,--enable-auto-import")
       if (MINGW)
         add_definitions("-DBOOST_THREAD_USE_LIB")
+        SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--allow-multiple-definition")
       endif()
     else(PCL_SHARED_LIBS)
       add_definitions("-DBOOST_LIB_DIAGNOSTIC -DBOOST_THREAD_USE_LIB")
@@ -133,7 +142,7 @@ if(MSVC)
     # Add extra code generation/link optimizations
     if(CMAKE_MSVC_CODE_LINK_OPTIMIZATION)
       SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
-      SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG")
+      SET(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG /OPT:REF")
       SET(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
     endif(CMAKE_MSVC_CODE_LINK_OPTIMIZATION)
     # /MANIFEST:NO") # please, don't disable manifest generation, otherwise crash at start for vs2008
@@ -153,6 +162,9 @@ if (__COMPILER_PATHSCALE)
   SET(CMAKE_COMPILER_IS_PATHSCALE 1)
   if("${CMAKE_CXX_FLAGS}" STREQUAL "")
     SET(CMAKE_CXX_FLAGS "-Wno-uninitialized -zerouv -pthread -mp")
+  endif()
+  if("${CMAKE_SHARED_LINKER_FLAGS}" STREQUAL "")
+    SET(CMAKE_SHARED_LINKER_FLAGS "-mp")
   endif()
 endif()
 
@@ -277,8 +289,8 @@ PCL_ADD_GRABBER_DEPENDENCY("OpenNI2" "OpenNI2 grabber support")
 PCL_ADD_GRABBER_DEPENDENCY("FZAPI" "Fotonic camera support")
 PCL_ADD_GRABBER_DEPENDENCY("Ensenso" "IDS-Imaging Ensenso camera support")
 PCL_ADD_GRABBER_DEPENDENCY("davidSDK" "David Vision Systems SDK support")
-PCL_ADD_GRABBER_DEPENDENCY("PXCAPI" "Intel PXC device support")
 PCL_ADD_GRABBER_DEPENDENCY("DSSDK" "DepthSense SDK support")
+PCL_ADD_GRABBER_DEPENDENCY("RSSDK" "RealSense SDK support")
 
 # metslib
 if (PKG_CONFIG_FOUND)

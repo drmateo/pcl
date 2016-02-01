@@ -35,8 +35,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PCL_REGISTRATION_INCREMENTAL_ICP_H_
-#define PCL_REGISTRATION_INCREMENTAL_ICP_H_
+#ifndef PCL_REGISTRATION_META_REGISTRATION_H_
+#define PCL_REGISTRATION_META_REGISTRATION_H_
 
 #include <pcl/point_cloud.h>
 #include <pcl/registration/registration.h>
@@ -44,25 +44,28 @@
 namespace pcl {
   namespace registration {
 
-    /** \brief Incremental @ref IterativeClosestPoint class
+    /** \brief Meta @ref Registration class
+      * \note This method accumulates all registered points and becomes more costly with each registered point cloud.
       *
-      * This class provides a way to register a stream of clouds where each cloud will be aligned to the previous cloud.
+      * This class provides a way to register a stream of clouds where each cloud
+      * will be aligned to the conglomerate of all previous clouds.
       *
       * \code
       * IterativeClosestPoint<PointXYZ,PointXYZ>::Ptr icp (new IterativeClosestPoint<PointXYZ,PointXYZ>);
       * icp->setMaxCorrespondenceDistance (0.05);
       * icp->setMaximumIterations (50);
       *
-      * IncrementalICP<PointXYZ> iicp;
-      * iicp.setICP (icp);
+      * MetaRegistration<PointXYZ> mreg;
+      * mreg.setRegistration (icp);
       *
-      * while (true){
+      * while (true)
+      * {
       *   PointCloud<PointXYZ>::Ptr cloud (new PointCloud<PointXYZ>);
       *   read_cloud (*cloud);
-      *   iicp.registerCloud (cloud);
+      *   mreg.registerCloud (cloud);
       *
       *   PointCloud<PointXYZ>::Ptr tmp (new PointCloud<PointXYZ>);
-      *   transformPointCloud (*cloud, *tmp, iicp.getAbsoluteTransform ());
+      *   transformPointCloud (*cloud, *tmp, mreg.getAbsoluteTransform ());
       *   write_cloud (*tmp);
       * }
       * \endcode
@@ -71,7 +74,7 @@ namespace pcl {
       * \ingroup registration
       */
     template <typename PointT, typename Scalar = float>
-    class IncrementalICP {
+    class MetaRegistration {
       public:
         typedef typename pcl::PointCloud<PointT>::Ptr PointCloudPtr;
         typedef typename pcl::PointCloud<PointT>::ConstPtr PointCloudConstPtr;
@@ -79,14 +82,13 @@ namespace pcl {
         typedef typename pcl::Registration<PointT,PointT,Scalar>::Ptr RegistrationPtr;
         typedef typename pcl::Registration<PointT,PointT,Scalar>::Matrix4 Matrix4;
 
-        IncrementalICP ();
+        MetaRegistration ();
 
         /** \brief Empty destructor */
-        virtual ~IncrementalICP () {}
+        virtual ~MetaRegistration () {};
 
-        /** \brief Register new point cloud incrementally
+        /** \brief Register new point cloud
           * \note You have to set a valid registration object with @ref setICP before using this
-          * \note The class doesn't copy cloud. If you afterwards change cloud, that will affect this class.
           * \param[in] cloud point cloud to register
           * \param[in] delta_estimate estimated transform between last registered cloud and this one
           * \return true if ICP converged
@@ -94,37 +96,36 @@ namespace pcl {
         bool
         registerCloud (const PointCloudConstPtr& cloud, const Matrix4& delta_estimate = Matrix4::Identity ());
 
-        /** \brief Get estimated transform between the last two registered clouds */
-        inline Matrix4
-        getDeltaTransform () const;
-
-        /** \brief Get estimated overall transform */
+        /** \brief Get estimated transform of the last registered cloud */
         inline Matrix4
         getAbsoluteTransform () const;
 
-        /** \brief Reset incremental ICP without resetting icp_ */
+        /** \brief Reset MetaICP without resetting registration_ */
         inline void
         reset ();
 
         /** \brief Set registration instance used to align clouds */
         inline void
-        setICP (RegistrationPtr);
+        setRegistration (RegistrationPtr);
+
+        /** \brief get accumulated meta point cloud */
+        inline PointCloudConstPtr
+        getMetaCloud () const;
       protected:
 
-        /** \brief last registered point cloud */
-        PointCloudConstPtr last_cloud_;
+        /** \brief registered accumulated point cloud */
+        PointCloudPtr full_cloud_;
 
         /** \brief registration instance to align clouds */
-        RegistrationPtr icp_;
+        RegistrationPtr registration_;
 
-        /** \brief estimated transforms */
-        Matrix4 delta_transform_;
+        /** \brief estimated transform */
         Matrix4 abs_transform_;
     };
 
   }
 }
 
-#include <pcl/registration/impl/incremental_icp.hpp>
+#include <pcl/registration/impl/meta_registration.hpp>
 
-#endif /*PCL_REGISTRATION_INCREMENTAL_ICP_H_*/
+#endif /*PCL_REGISTRATION_META_REGISTRATION_H_*/

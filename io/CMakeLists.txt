@@ -5,7 +5,7 @@ set(SUBSYS_DEPS common octree)
 set(build TRUE)
 PCL_SUBSYS_OPTION(build "${SUBSYS_NAME}" "${SUBSYS_DESC}" ON)
 if(WIN32)
-    PCL_SUBSYS_DEPEND(build "${SUBSYS_NAME}" DEPS ${SUBSYS_DEPS} OPT_DEPS openni openni2 ensenso davidSDK dssdk pcap png vtk)
+    PCL_SUBSYS_DEPEND(build "${SUBSYS_NAME}" DEPS ${SUBSYS_DEPS} OPT_DEPS openni openni2 ensenso davidSDK dssdk rssdk pcap png vtk)
 else(WIN32)
     PCL_SUBSYS_DEPEND(build "${SUBSYS_NAME}" DEPS ${SUBSYS_DEPS} OPT_DEPS openni openni2 ensenso davidSDK dssdk pcap png vtk libusb-1.0)
 endif(WIN32)
@@ -139,15 +139,6 @@ if(build)
             )
     endif()
 
-    if(WITH_PXCAPI)
-        set(PXC_GRABBER_INCLUDES
-            include/pcl/io/pxc_grabber.h
-            )
-        set(PXC_GRABBER_SOURCES
-            src/pxc_grabber.cpp
-            )
-    endif()
-
     if(WITH_DSSDK)
         set(DSSDK_GRABBER_INCLUDES
             include/pcl/io/depth_sense_grabber.h
@@ -156,6 +147,16 @@ if(build)
             src/depth_sense_grabber.cpp
             src/depth_sense/depth_sense_grabber_impl.cpp
             src/depth_sense/depth_sense_device_manager.cpp
+        )
+    endif()
+
+    if(WITH_RSSDK)
+        set(RSSDK_GRABBER_INCLUDES
+            include/pcl/io/real_sense_grabber.h
+        )
+        set(RSSDK_GRABBER_SOURCES
+            src/real_sense_grabber.cpp
+            src/real_sense/real_sense_device_manager.cpp
         )
     endif()
 
@@ -211,6 +212,7 @@ if(build)
         src/ifs_io.cpp
         src/image_grabber.cpp
         src/hdl_grabber.cpp
+        src/vlp_grabber.cpp
         src/robot_eye_grabber.cpp
         src/file_io.cpp
         src/auto_io.cpp
@@ -224,7 +226,7 @@ if(build)
         ${ENSENSO_GRABBER_SOURCES}
         ${DAVIDSDK_GRABBER_SOURCES}
         ${DSSDK_GRABBER_SOURCES}
-        ${PXC_GRABBER_SOURCES}
+        ${RSSDK_GRABBER_SOURCES}
         )
     if(PNG_FOUND)
       list(APPEND srcs
@@ -259,6 +261,7 @@ if(build)
         "include/pcl/${SUBSYS_NAME}/ifs_io.h"
         "include/pcl/${SUBSYS_NAME}/image_grabber.h"
         "include/pcl/${SUBSYS_NAME}/hdl_grabber.h"
+        "include/pcl/${SUBSYS_NAME}/vlp_grabber.h"
         "include/pcl/${SUBSYS_NAME}/robot_eye_grabber.h"
         "include/pcl/${SUBSYS_NAME}/point_cloud_image_extractors.h"
         "include/pcl/${SUBSYS_NAME}/io_exception.h"
@@ -271,7 +274,8 @@ if(build)
         ${ENSENSO_GRABBER_INCLUDES}
         ${DAVIDSDK_GRABBER_INCLUDES}
         ${DSSDK_GRABBER_INCLUDES}
-        ${PXC_GRABBER_INCLUDES}
+        ${RSSDK_GRABBER_INCLUDES}
+        "include/pcl/${SUBSYS_NAME}/pxc_grabber.h"  # contains only depreciation note
         )
 
     set(compression_incs
@@ -347,13 +351,12 @@ if(build)
       target_link_libraries(${LIB_NAME} ${DAVIDSDK_LIBRARIES})
     endif()
 
-    if(WITH_PXCAPI)
-      link_directories(${PXCAPI_LIB_DIRS})
-      target_link_libraries("${LIB_NAME}" ${PXCAPI_LIBS})
-    endif()
-
     if(WITH_DSSDK)
       target_link_libraries(${LIB_NAME} ${DSSDK_LIBRARIES})
+    endif()
+
+    if(WITH_RSSDK)
+      target_link_libraries(${LIB_NAME} ${RSSDK_LIBRARIES})
     endif()
 
     if (PCAP_FOUND)
