@@ -64,9 +64,7 @@
 #include <vtkPointPicker.h>
 #include <vtkAreaPicker.h>
 
-#if VTK_RENDERING_BACKEND_OPENGL_VERSION < 2
 #include <pcl/visualization/vtk/vtkVertexBufferObjectMapper.h>
-#endif
 
 #define ORIENT_MODE 0
 #define SELECT_MODE 1
@@ -662,7 +660,6 @@ pcl::visualization::PCLVisualizerInteractorStyle::OnKeyDown ()
         data->SetPoints (points);
         data->SetVerts (vertices);
         // Modify the mapper
-#if VTK_RENDERING_BACKEND_OPENGL_VERSION < 2
         if (use_vbos_)
         {
           vtkVertexBufferObjectMapper* mapper = static_cast<vtkVertexBufferObjectMapper*>(act->actor->GetMapper ());
@@ -671,7 +668,6 @@ pcl::visualization::PCLVisualizerInteractorStyle::OnKeyDown ()
           act->actor->SetMapper (mapper);
         }
         else
-#endif
         {
           vtkPolyDataMapper* mapper = static_cast<vtkPolyDataMapper*>(act->actor->GetMapper ());
 #if VTK_MAJOR_VERSION < 6
@@ -708,7 +704,6 @@ pcl::visualization::PCLVisualizerInteractorStyle::OnKeyDown ()
         vtkPolyData *data = static_cast<vtkPolyData*>(act->actor->GetMapper ()->GetInput ());
         data->GetPointData ()->SetScalars (scalars);
         // Modify the mapper
-#if VTK_RENDERING_BACKEND_OPENGL_VERSION < 2
         if (use_vbos_)
         {
           vtkVertexBufferObjectMapper* mapper = static_cast<vtkVertexBufferObjectMapper*>(act->actor->GetMapper ());
@@ -719,7 +714,6 @@ pcl::visualization::PCLVisualizerInteractorStyle::OnKeyDown ()
           act->actor->SetMapper (mapper);
         }
         else
-#endif
         {
           vtkPolyDataMapper* mapper = static_cast<vtkPolyDataMapper*>(act->actor->GetMapper ());
           mapper->SetScalarRange (minmax);
