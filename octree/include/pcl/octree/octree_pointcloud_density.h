@@ -156,7 +156,9 @@ namespace pcl
   }
 }
 
+#ifndef PCL_NO_PRECOMPILE
 #define PCL_INSTANTIATE_OctreePointCloudDensity(T) template class PCL_EXPORTS pcl::octree::OctreePointCloudDensity<T>;
+#endif
 
 #endif
 

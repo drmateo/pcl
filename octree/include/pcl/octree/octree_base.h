@@ -594,7 +594,12 @@ namespace pcl
   }
 }
 
-//#include "impl/octree_base.hpp"
+#ifdef PCL_NO_PRECOMPILE
+#include <pcl/octree/impl/octree_base.hpp>
+#else
+#define PCL_INSTANTIATE_OctreeBase(T) template class PCL_EXPORTS pcl::octree::OctreeBase<T>;
+#endif // PCL_NO_PRECOMPILE
 
-#endif
+#endif // PCL_OCTREE_BASE_H_
+
 

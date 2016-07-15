@@ -66,7 +66,7 @@ namespace pcl
       
       /** \brief Class initialization. */
       OctreePointCloudAdjacencyContainer () :
-      OctreeContainerBase ()
+      OctreeContainerBase (), num_points_ (0)
       {
         this->reset();       
       }

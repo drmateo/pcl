@@ -108,7 +108,9 @@ namespace pcl
   }
 }
 
+#ifndef PCL_NO_PRECOMPILE
 #define PCL_INSTANTIATE_OctreePointCloudChangeDetector(T) template class PCL_EXPORTS pcl::octree::OctreePointCloudChangeDetector<T>;
+#endif
 
 #endif
 
