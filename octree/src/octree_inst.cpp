@@ -43,13 +43,18 @@
 template class PCL_EXPORTS pcl::octree::OctreeBase<int>;
 template class PCL_EXPORTS pcl::octree::Octree2BufBase<int>;
 
-template class PCL_EXPORTS pcl::octree::OctreeBase<pcl::octree::OctreeContainerEmpty, pcl::octree::OctreeContainerEmpty >;
 
-template class PCL_EXPORTS pcl::octree::OctreeBase<pcl::octree::OctreeContainerPointIndices, pcl::octree::OctreeContainerEmpty>;
-template class PCL_EXPORTS pcl::octree::Octree2BufBase<pcl::octree::OctreeContainerPointIndices, pcl::octree::OctreeContainerEmpty>;
+template class PCL_EXPORTS pcl::octree::OctreeBase<
+    pcl::octree::OctreeContainerPointIndices,
+    pcl::octree::OctreeContainerEmpty >;
 
-template class PCL_EXPORTS pcl::octree::OctreeBase<pcl::octree::OctreeContainerPointIndices, pcl::octree::OctreeContainerPointIndices>;
-template class PCL_EXPORTS pcl::octree::OctreePointCloudSearch<pcl::PointSurfel, pcl::octree::OctreeContainerPointIndices, pcl::octree::OctreeContainerPointIndices>;
+template class PCL_EXPORTS pcl::octree::Octree2BufBase<
+    pcl::octree::OctreeContainerPointIndices,
+    pcl::octree::OctreeContainerEmpty >;
+    
+template class PCL_EXPORTS pcl::octree::OctreeBase<
+    pcl::octree::OctreeContainerEmpty,
+    pcl::octree::OctreeContainerEmpty >;
 
 #ifndef PCL_NO_PRECOMPILE
 #include <pcl/impl/instantiate.hpp>

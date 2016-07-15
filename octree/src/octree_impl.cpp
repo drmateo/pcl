@@ -1,3 +1,4 @@
+
 /*
  * Software License Agreement (BSD License)
  *
@@ -34,46 +35,46 @@
  * Author: Julius Kammerl (julius@kammerl.de)
  */
 
-//#include <pcl/impl/instantiate.hpp>
-//#include <pcl/point_cloud.h>
-//#include <pcl/point_types.h>
-//
-//#include <pcl/octree/octree.h>
-//#include <pcl/octree/octree_impl.h>
-//
-//// Instantiations of specific point types
-//
-//template class PCL_EXPORTS pcl::octree::OctreeBase<int>;
-//template class PCL_EXPORTS pcl::octree::Octree2BufBase<int>;
-//
-//template class PCL_EXPORTS pcl::octree::OctreeBase<int,
-//    pcl::octree::OctreeContainerDataTVector<int>,
-//    pcl::octree::OctreeContainerEmpty<int> >;
-//
-//template class PCL_EXPORTS pcl::octree::Octree2BufBase<int,
-//    pcl::octree::OctreeContainerDataTVector<int>,
-//    pcl::octree::OctreeContainerEmpty<int> >;
-//
-//PCL_INSTANTIATE(OctreePointCloudSingleBufferWithLeafDataTVector,
-//    PCL_XYZ_POINT_TYPES)
-//PCL_INSTANTIATE(OctreePointCloudDoubleBufferWithLeafDataTVector,
-//    PCL_XYZ_POINT_TYPES)
-//
-//PCL_INSTANTIATE(OctreePointCloudSearch, PCL_XYZ_POINT_TYPES)
-//
-//
-//// PCL_INSTANTIATE(OctreePointCloudSingleBufferWithLeafDataT, PCL_XYZ_POINT_TYPES)
-//
-//// PCL_INSTANTIATE(OctreePointCloudSingleBufferWithEmptyLeaf, PCL_XYZ_POINT_TYPES)
-//
-//// PCL_INSTANTIATE(OctreePointCloudDensity, PCL_XYZ_POINT_TYPES)
-//// PCL_INSTANTIATE(OctreePointCloudSingleBufferWithDensityLeaf, PCL_XYZ_POINT_TYPES)
-//// PCL_INSTANTIATE(OctreePointCloudDoubleBufferWithDensityLeaf, PCL_XYZ_POINT_TYPES)
-//
-//// PCL_INSTANTIATE(OctreePointCloudOccupancy, PCL_XYZ_POINT_TYPES)
-//// PCL_INSTANTIATE(OctreePointCloudSinglePoint, PCL_XYZ_POINT_TYPES)
-//// PCL_INSTANTIATE(OctreePointCloudPointVector, PCL_XYZ_POINT_TYPES)
-//PCL_INSTANTIATE(OctreePointCloudChangeDetector, PCL_XYZ_POINT_TYPES)
-//// PCL_INSTANTIATE(OctreePointCloudVoxelCentroid, PCL_XYZ_POINT_TYPES)
-//
-//
+#include <pcl/impl/instantiate.hpp>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+#include <pcl/octree/octree.h>
+#include <pcl/octree/octree_impl.h>
+
+// Instantiations of specific point types
+
+template class PCL_EXPORTS pcl::octree::OctreeBase<int>;
+template class PCL_EXPORTS pcl::octree::Octree2BufBase<int>;
+
+template class PCL_EXPORTS pcl::octree::OctreeBase<int,
+    pcl::octree::OctreeContainerDataTVector<int>,
+    pcl::octree::OctreeContainerEmpty<int> >;
+
+template class PCL_EXPORTS pcl::octree::Octree2BufBase<int,
+    pcl::octree::OctreeContainerDataTVector<int>,
+    pcl::octree::OctreeContainerEmpty<int> >;
+
+PCL_INSTANTIATE(OctreePointCloudSingleBufferWithLeafDataTVector,
+    PCL_XYZ_POINT_TYPES)
+PCL_INSTANTIATE(OctreePointCloudDoubleBufferWithLeafDataTVector,
+    PCL_XYZ_POINT_TYPES)
+
+PCL_INSTANTIATE(OctreePointCloudSearch, PCL_XYZ_POINT_TYPES)
+
+
+// PCL_INSTANTIATE(OctreePointCloudSingleBufferWithLeafDataT, PCL_XYZ_POINT_TYPES)
+
+// PCL_INSTANTIATE(OctreePointCloudSingleBufferWithEmptyLeaf, PCL_XYZ_POINT_TYPES)
+
+// PCL_INSTANTIATE(OctreePointCloudDensity, PCL_XYZ_POINT_TYPES)
+// PCL_INSTANTIATE(OctreePointCloudSingleBufferWithDensityLeaf, PCL_XYZ_POINT_TYPES)
+// PCL_INSTANTIATE(OctreePointCloudDoubleBufferWithDensityLeaf, PCL_XYZ_POINT_TYPES)
+
+// PCL_INSTANTIATE(OctreePointCloudOccupancy, PCL_XYZ_POINT_TYPES)
+// PCL_INSTANTIATE(OctreePointCloudSinglePoint, PCL_XYZ_POINT_TYPES)
+// PCL_INSTANTIATE(OctreePointCloudPointVector, PCL_XYZ_POINT_TYPES)
+PCL_INSTANTIATE(OctreePointCloudChangeDetector, PCL_XYZ_POINT_TYPES)
+// PCL_INSTANTIATE(OctreePointCloudVoxelCentroid, PCL_XYZ_POINT_TYPES)
+
+

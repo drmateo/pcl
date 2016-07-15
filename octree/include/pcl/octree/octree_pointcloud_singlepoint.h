@@ -55,9 +55,14 @@ namespace pcl
      *  \author Julius Kammerl (julius@kammerl.de)
      */
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    template<typename PointT, typename LeafContainerT = OctreeContainerPointIndex, typename BranchContainerT = OctreeContainerEmpty, typename OctreeT = OctreeBase<LeafContainerT, BranchContainerT> >
-    class OctreePointCloudSinglePoint : public OctreePointCloud<PointT, LeafContainerT, BranchContainerT, OctreeT>
+    template<typename PointT, typename LeafContainerT = OctreeContainerPointIndex,
+        typename BranchContainerT = OctreeContainerEmpty,
+        typename OctreeT = OctreeBase<LeafContainerT, BranchContainerT> >
+
+    class OctreePointCloudSinglePoint : public OctreePointCloud<PointT, LeafContainerT,
+        BranchContainerT, OctreeT>
     {
+
       public:
         // public typedefs for single/double buffering
         typedef OctreePointCloudSinglePoint<PointT, LeafContainerT, BranchContainerT,
@@ -83,8 +88,6 @@ namespace pcl
   }
 }
 
-#ifndef PCL_NO_PRECOMPILE
 #define PCL_INSTANTIATE_OctreePointCloudSinglePoint(T) template class PCL_EXPORTS pcl::octree::OctreePointCloudSinglePoint<T>;
-#endif
 
 #endif

@@ -70,8 +70,10 @@ namespace pcl
      *  \author Julius Kammerl (julius@kammerl.de)
      */
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    template<typename PointT, typename LeafContainerT = OctreeContainerPointIndices, typename BranchContainerT = OctreeContainerEmpty,
+    template<typename PointT, typename LeafContainerT = OctreeContainerPointIndices,
+        typename BranchContainerT = OctreeContainerEmpty,
         typename OctreeT = OctreeBase<LeafContainerT, BranchContainerT> >
+
     class OctreePointCloud : public OctreeT
     {
         // iterators are friends
@@ -573,8 +575,6 @@ namespace pcl
 
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/octree/impl/octree_pointcloud.hpp>
-#else
-#define PCL_INSTANTIATE_OctreePointCloud(T) template class PCL_EXPORTS pcl::octree::OctreePointCloud<T>;
 #endif
 
 #endif

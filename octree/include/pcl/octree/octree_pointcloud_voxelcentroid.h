@@ -59,8 +59,7 @@ namespace pcl
     {
       public:
         /** \brief Class initialization. */
-        OctreePointCloudVoxelCentroidContainer () :
-          point_counter_ (0)
+        OctreePointCloudVoxelCentroidContainer ()
         {
           this->reset();
         }

@@ -75,7 +75,8 @@ namespace pcl
      * \author Julius Kammerl (julius@kammerl.de)
      */
     template<typename OctreeT>
-      class OctreeIteratorBase : public std::iterator<std::forward_iterator_tag, const OctreeNode, void, const OctreeNode*, const OctreeNode&>
+      class OctreeIteratorBase : public std::iterator<std::forward_iterator_tag, const OctreeNode, void,
+          const OctreeNode*, const OctreeNode&>
       {
       public:
 
@@ -617,14 +618,6 @@ namespace pcl
 
   }
 }
-
-
-
-#ifdef PCL_NO_PRECOMPILE
-#include <pcl/octree/impl/octree_iterator.hpp>
-//#else
-//#define PCL_INSTANTIATE_OctreeIteratorBase(T) template class PCL_EXPORTS pcl::octree::OctreeIteratorBase<T>;
-#endif    // PCL_NO_PRECOMPILE
 
 #endif
 
