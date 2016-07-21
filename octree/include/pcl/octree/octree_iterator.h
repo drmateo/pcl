@@ -619,5 +619,7 @@ namespace pcl
   }
 }
 
+#include <pcl/octree/impl/octree_iterator.hpp>
+
 #endif
 

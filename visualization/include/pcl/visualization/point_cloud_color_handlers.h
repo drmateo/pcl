@@ -159,6 +159,9 @@ namespace pcl
           capable_ = true;
         }
 
+        /** \brief Destructor. */
+        virtual ~PointCloudColorHandlerRandom () {}
+
         /** \brief Abstract getName method. */
         virtual std::string
         getName () const { return ("PointCloudColorHandlerRandom"); }

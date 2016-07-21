@@ -59,7 +59,8 @@ namespace pcl
     {
       public:
         /** \brief Class initialization. */
-        OctreePointCloudVoxelCentroidContainer ()
+        OctreePointCloudVoxelCentroidContainer () :
+          point_counter_(0)
         {
           this->reset();
         }
@@ -146,8 +147,8 @@ namespace pcl
     class OctreePointCloudVoxelCentroid : public OctreePointCloud<PointT, LeafContainerT, BranchContainerT>
     {
       public:
-        typedef boost::shared_ptr<OctreePointCloudVoxelCentroid<PointT, LeafContainerT> > Ptr;
-        typedef boost::shared_ptr<const OctreePointCloudVoxelCentroid<PointT, LeafContainerT> > ConstPtr;
+        typedef boost::shared_ptr<OctreePointCloudVoxelCentroid<PointT, LeafContainerT, BranchContainerT> > Ptr;
+        typedef boost::shared_ptr<const OctreePointCloudVoxelCentroid<PointT, LeafContainerT, BranchContainerT> > ConstPtr;
 
         typedef OctreePointCloud<PointT, LeafContainerT, BranchContainerT> OctreeT;
         typedef typename OctreeT::LeafNode LeafNode;
