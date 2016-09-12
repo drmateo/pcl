@@ -361,9 +361,7 @@ namespace pcl
         void
         getPointIndices (std::vector<int>& data_vector_arg) const
         {
-//          data_vector_arg.insert (data_vector_arg.end (), leafDataTVector_.begin (), leafDataTVector_.end ());
-          for (std::vector<int>::const_iterator iter = leafDataTVector_.begin(); iter != leafDataTVector_.end(); ++ iter)
-            data_vector_arg.push_back(*iter);
+          data_vector_arg.insert (data_vector_arg.end (), leafDataTVector_.begin (), leafDataTVector_.end ());
         }
 
         /** \brief Retrieve reference to point indices vector. This container stores a vector of point indices.
