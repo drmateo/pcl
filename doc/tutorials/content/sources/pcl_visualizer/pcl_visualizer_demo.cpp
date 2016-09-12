@@ -173,7 +173,7 @@ boost::shared_ptr<pcl::visualization::PCLVisualizer> viewportsVis (
 }
 
 
-unsigned int text_id = 0;
+unsigned int circle_id = 0;
 void keyboardEventOccurred (const pcl::visualization::KeyboardEvent &event,
                             void* viewer_void)
 {
@@ -183,12 +183,12 @@ void keyboardEventOccurred (const pcl::visualization::KeyboardEvent &event,
     std::cout << "r was pressed => removing all text" << std::endl;
 
     char str[512];
-    for (unsigned int i = 0; i < text_id; ++i)
+    for (unsigned int i = 0; i < circle_id; ++i)
     {
       sprintf (str, "text#%03d", i);
       viewer->removeShape (str);
     }
-    text_id = 0;
+    circle_id = 0;
   }
 }
 
@@ -202,7 +202,7 @@ void mouseEventOccurred (const pcl::visualization::MouseEvent &event,
     std::cout << "Left mouse button released at position (" << event.getX () << ", " << event.getY () << ")" << std::endl;
 
     char str[512];
-    sprintf (str, "text#%03d", text_id ++);
+    sprintf (str, "text#%03d", circle_id ++);
     viewer->addText ("clicked here", event.getX (), event.getY (), str);
   }
 }
