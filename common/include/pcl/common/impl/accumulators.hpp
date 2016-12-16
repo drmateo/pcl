@@ -102,14 +102,8 @@ namespace pcl
       template <typename PointT> void
       get (PointT& t, size_t) const
       {
-#if EIGEN_VERSION_AT_LEAST (3, 3, 0)
-        t.getNormalVector4fMap () = normal.normalized ();
-#else
-        if (normal.squaredNorm() > 0)
-          t.getNormalVector4fMap () = normal.normalized ();
-        else
-          t.getNormalVector4fMap () = Eigen::Vector4f::Zero ();
-#endif
+        t.getNormalVector4fMap () = normal;
+        t.getNormalVector4fMap ().normalize ();
       }
 
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW

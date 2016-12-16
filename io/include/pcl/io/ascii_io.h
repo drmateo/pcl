@@ -101,11 +101,6 @@ namespace pcl
             Eigen::Vector4f &origin, Eigen::Quaternionf &orientation, int &file_version,
             const int offset = 0);
 
-      /** \brief Set the ascii file point fields.
-        */
-      template<typename PointT>
-      void setInputFields ();
-
       /** \brief Set the ascii file point fields using a list of fields.
         * \param[in] fields  is a list of point fields, in order, in the input ascii file
         */
@@ -117,12 +112,7 @@ namespace pcl
         * \param[in] p  a point type
         */
       template<typename PointT>
-      PCL_DEPRECATED ("Use setInputFields<PointT> () instead")
-      inline void setInputFields (const PointT p)
-      {
-        (void) p;
-        setInputFields<PointT> ();
-      }
+      void setInputFields (const PointT p = PointT ());
 
 
       /** \brief Set the Separting characters for the ascii point fields 2.
@@ -164,9 +154,24 @@ namespace pcl
 	};
 }
 
+//////////////////////////////////////////////////////////////////////////////
+template<typename PointT> void
+pcl::ASCIIReader::setInputFields (const PointT p)
+{
+  (void) p;
 
+  pcl::getFields<PointT> (fields_);
 
-
-#include <pcl/io/impl/ascii_io.hpp>
+  // Remove empty fields and adjust offset
+  int offset =0;
+  for (std::vector<pcl::PCLPointField>::iterator field_iter = fields_.begin ();
+       field_iter != fields_.end (); field_iter++)
+  {
+    if (field_iter->name == "_") 
+      field_iter = fields_.erase (field_iter);
+    field_iter->offset = offset;
+    offset += typeSize (field_iter->datatype);
+  }
+}
 
 #endif    // PCL_IO_ASCII_IO_H_

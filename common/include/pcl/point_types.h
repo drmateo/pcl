@@ -689,10 +689,7 @@ namespace pcl
     {
       if (field.name == "rgb")
       {
-        // For fixing the alpha value bug #1141, the rgb field can also match
-        // uint32.
-        return ((field.datatype == pcl::PCLPointField::FLOAT32 ||
-                 field.datatype == pcl::PCLPointField::UINT32) &&
+        return (field.datatype == pcl::PCLPointField::FLOAT32 &&
                 field.count == 1);
       }
       else
@@ -715,10 +712,8 @@ namespace pcl
       }
       else
       {
-        // For fixing the alpha value bug #1141, rgb can also match uint32
         return (field.name == traits::name<PointT, fields::rgb>::value &&
-                (field.datatype == traits::datatype<PointT, fields::rgb>::value ||
-                 field.datatype == pcl::PCLPointField::UINT32) &&
+                field.datatype == traits::datatype<PointT, fields::rgb>::value &&
                 field.count == traits::datatype<PointT, fields::rgb>::size);
       }
     }

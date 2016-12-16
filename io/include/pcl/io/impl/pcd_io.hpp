@@ -91,10 +91,7 @@ pcl::PCDWriter::generateHeader (const pcl::PointCloud<PointT> &cloud, const int 
     // Add the regular dimension
     field_names << " " << fields[i].name;
     field_sizes << " " << pcl::getFieldSize (fields[i].datatype);
-    if ("rgb" == fields[i].name)
-      field_types << " " << "U";
-    else
-      field_types << " " << pcl::getFieldType (fields[i].datatype);
+    field_types << " " << pcl::getFieldType (fields[i].datatype);
     int count = abs (static_cast<int> (fields[i].count));
     if (count == 0) count = 1;  // check for 0 counts (coming from older converter code)
     field_counts << " " << count;
@@ -148,7 +145,7 @@ pcl::PCDWriter::writeBinary (const std::string &file_name,
     return (-1);
   }
 #else
-  int fd = pcl_open (file_name.c_str (), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  int fd = pcl_open (file_name.c_str (), O_RDWR | O_CREAT | O_TRUNC, static_cast<mode_t> (0600));
   if (fd < 0)
   {
     throw pcl::IOException ("[pcl::PCDWriter::writeBinary] Error during open!");
@@ -286,7 +283,7 @@ pcl::PCDWriter::writeBinaryCompressed (const std::string &file_name,
     return (-1);
   }
 #else
-  int fd = pcl_open (file_name.c_str (), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  int fd = pcl_open (file_name.c_str (), O_RDWR | O_CREAT | O_TRUNC, static_cast<mode_t> (0600));
   if (fd < 0)
   {
     throw pcl::IOException ("[pcl::PCDWriter::writeBinaryCompressed] Error during open!");
@@ -579,30 +576,12 @@ pcl::PCDWriter::writeASCII (const std::string &file_name, const pcl::PointCloud<
           }
           case pcl::PCLPointField::FLOAT32:
           {
-            /*
-             * Despite the float type, store the rgb field as uint32
-             * because several fully opaque color values are mapped to
-             * nan.
-             */
-            if ("rgb" == fields[d].name)
-            {
-              uint32_t value;
-              memcpy (&value, reinterpret_cast<const char*> (&cloud.points[i]) + fields[d].offset + c * sizeof (float), sizeof (float));
-              if (pcl_isnan (value))
-                stream << "nan";
-              else
-                stream << boost::numeric_cast<uint32_t>(value);
-              break;
-            }
+            float value;
+            memcpy (&value, reinterpret_cast<const char*> (&cloud.points[i]) + fields[d].offset + c * sizeof (float), sizeof (float));
+            if (pcl_isnan (value))
+              stream << "nan";
             else
-            {
-              float value;
-              memcpy (&value, reinterpret_cast<const char*> (&cloud.points[i]) + fields[d].offset + c * sizeof (float), sizeof (float));
-              if (pcl_isnan (value))
-                stream << "nan";
-              else
-                stream << boost::numeric_cast<float>(value);
-            }
+              stream << boost::numeric_cast<float>(value);
             break;
           }
           case pcl::PCLPointField::FLOAT64:
@@ -661,7 +640,7 @@ pcl::PCDWriter::writeBinary (const std::string &file_name,
     return (-1);
   }
 #else
-  int fd = pcl_open (file_name.c_str (), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+  int fd = pcl_open (file_name.c_str (), O_RDWR | O_CREAT | O_TRUNC, static_cast<mode_t> (0600));
   if (fd < 0)
   {
     throw pcl::IOException ("[pcl::PCDWriter::writeBinary] Error during open!");
@@ -898,29 +877,12 @@ pcl::PCDWriter::writeASCII (const std::string &file_name,
           }
           case pcl::PCLPointField::FLOAT32:
           {
-            /*
-             * Despite the float type, store the rgb field as uint32
-             * because several fully opaque color values are mapped to
-             * nan.
-             */
-            if ("rgb" == fields[d].name)
-            {
-              uint32_t value;
-              memcpy (&value, reinterpret_cast<const char*> (&cloud.points[indices[i]]) + fields[d].offset + c * sizeof (float), sizeof (float));
-              if (pcl_isnan (value))
-                stream << "nan";
-              else
-                stream << boost::numeric_cast<uint32_t>(value);
-            }
+            float value;
+            memcpy (&value, reinterpret_cast<const char*> (&cloud.points[indices[i]]) + fields[d].offset + c * sizeof (float), sizeof (float));
+            if (pcl_isnan (value))
+              stream << "nan";
             else
-            {
-              float value;
-              memcpy (&value, reinterpret_cast<const char*> (&cloud.points[indices[i]]) + fields[d].offset + c * sizeof (float), sizeof (float));
-              if (pcl_isnan (value))
-                stream << "nan";
-              else
-                stream << boost::numeric_cast<float>(value);
-            }
+              stream << boost::numeric_cast<float>(value);
             break;
           }
           case pcl::PCLPointField::FLOAT64:

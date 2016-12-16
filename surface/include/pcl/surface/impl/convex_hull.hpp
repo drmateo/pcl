@@ -57,15 +57,14 @@ template <typename PointInT> void
 pcl::ConvexHull<PointInT>::calculateInputDimension ()
 {
   PCL_DEBUG ("[pcl::%s::calculateInputDimension] WARNING: Input dimension not specified.  Automatically determining input dimension.\n", getClassName ().c_str ());
-  Eigen::Vector4d xyz_centroid;
-  compute3DCentroid (*input_, *indices_, xyz_centroid);
   EIGEN_ALIGN16 Eigen::Matrix3d covariance_matrix;
-  computeCovarianceMatrixNormalized (*input_, *indices_, xyz_centroid, covariance_matrix);
+  Eigen::Vector4d xyz_centroid;
+  computeMeanAndCovarianceMatrix (*input_, *indices_, covariance_matrix, xyz_centroid);
 
   EIGEN_ALIGN16 Eigen::Vector3d eigen_values;
   pcl::eigen33 (covariance_matrix, eigen_values);
 
-  if (std::abs (eigen_values[0]) < std::numeric_limits<double>::epsilon () || std::abs (eigen_values[0] / eigen_values[2]) < 1.0e-3)
+  if (eigen_values[0] / eigen_values[2] < 1.0e-3)
     dimension_ = 2;
   else
     dimension_ = 3;
@@ -102,9 +101,7 @@ pcl::ConvexHull<PointInT>::performReconstruction2D (PointCloud &hull, std::vecto
     
   Eigen::Vector4d normal_calc_centroid;
   Eigen::Matrix3d normal_calc_covariance;
-  pcl::compute3DCentroid (normal_calc_cloud, normal_calc_centroid);
-  pcl::computeCovarianceMatrixNormalized (normal_calc_cloud, normal_calc_centroid, normal_calc_covariance);
-
+  pcl::computeMeanAndCovarianceMatrix (normal_calc_cloud, normal_calc_covariance, normal_calc_centroid);
   // Need to set -1 here. See eigen33 for explanations.
   Eigen::Vector3d::Scalar eigen_value;
   Eigen::Vector3d plane_params;

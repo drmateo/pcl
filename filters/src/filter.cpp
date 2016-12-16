@@ -67,6 +67,9 @@ pcl::Filter<pcl::PCLPointCloud2>::filter (PCLPointCloud2 &output)
     applyFilter (output);
   }
 
+  // Apply the actual filter
+  applyFilter (output);
+
   deinitCompute ();
 }
 

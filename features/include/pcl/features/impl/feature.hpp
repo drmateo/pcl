@@ -49,9 +49,7 @@ pcl::solvePlaneParameters (const Eigen::Matrix3f &covariance_matrix,
                            const Eigen::Vector4f &point,
                            Eigen::Vector4f &plane_parameters, float &curvature)
 {
-  solvePlaneParameters (covariance_matrix,
-                        (float &)plane_parameters [0], (float &)plane_parameters [1], (float &)plane_parameters [2],
-                        curvature);
+  solvePlaneParameters (covariance_matrix, plane_parameters [0], plane_parameters [1], plane_parameters [2], curvature);
 
   plane_parameters[3] = 0;
   // Hessian form (D = nc . p_plane (centroid here) + p)

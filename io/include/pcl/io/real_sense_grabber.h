@@ -109,9 +109,6 @@ namespace pcl
 
         /** Set desired framerate, depth and color resolution. */
         Mode (unsigned int fps, unsigned int depth_width, unsigned int depth_height, unsigned int color_width, unsigned int color_height);
-
-        bool
-        operator== (const pcl::RealSenseGrabber::Mode& m) const;
       };
 
       enum TemporalFilteringType
@@ -275,6 +272,9 @@ namespace pcl
   };
 
 }
+
+bool
+operator== (const pcl::RealSenseGrabber::Mode& m1, const pcl::RealSenseGrabber::Mode& m2);
 
 #endif /* PCL_IO_REAL_SENSE_GRABBER_H */
 

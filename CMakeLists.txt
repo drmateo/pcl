@@ -258,9 +258,7 @@ if(OPENMP_FOUND)
       set(OPENMP_DLL VCOMP120)
     elseif(MSVC14)
       set(OPENMP_DLL VCOMP140)
-    elseif(MSVC15)
-      set(OPENMP_DLL VCOMP150)
-    endif()
+    endif(MSVC90)
     if(OPENMP_DLL)
       set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /DELAYLOAD:${OPENMP_DLL}D.dll")
       set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DELAYLOAD:${OPENMP_DLL}.dll")
@@ -461,16 +459,6 @@ endif(CPACK_GENERATOR)
 ### ---[ Make a pretty picture of the dependency graph
 include("${PCL_SOURCE_DIR}/cmake/dep_graph.cmake")
 MAKE_DEP_GRAPH()
-
-option(WITH_CATKIN "Build as a catkin package" TRUE)
-if(WITH_CATKIN)
-  find_package(catkin REQUIRED)
-  catkin_package(
-     INCLUDE_DIRS ${PCL_INCLUDE_DIRS}
-     LIBRARIES ${PCL_LIBRARIES}
-     DEPENS python-empy
-   )
-endif(WITH_CATKIN)
 
 ### ---[ Finish up
 PCL_WRITE_STATUS_REPORT()

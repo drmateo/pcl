@@ -216,9 +216,7 @@ pcl::ModelOutlierRemoval<PointT>::applyFilterIndices (std::vector<int> &indices)
   // check distance of pointcloud to model
   std::vector<double> distances;
   //TODO: get signed distances !
-  model_->setIndices(indices_); // added to reduce computation and arrange distances with indices
   model_->getDistancesToModel (model_coefficients_, distances);
-
   bool thresh_result;
 
   // Filter for non-finite entries and the specified field limits
@@ -232,7 +230,7 @@ pcl::ModelOutlierRemoval<PointT>::applyFilterIndices (std::vector<int> &indices)
       continue;
     }
 
-    // use threshold function to separate outliers from inliers:
+    // use threshold function to seperate outliers from inliers: 
     thresh_result = threshold_function_ (distances[iii]);
 
     // in normal mode: define outliers as false thresh_result

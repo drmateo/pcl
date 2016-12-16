@@ -174,7 +174,7 @@ namespace pcl
              const std::string &cloud_name = "cloud")
       {
         pcl::PCLPointCloud2 blob;
-        pcl::toPCLPointCloud2<PointT> (cloud, blob);
+        pcl::fromPCLPointCloud2<PointT> (blob, cloud);
         return (write (file_name, blob, cloud_name));
       }
   };

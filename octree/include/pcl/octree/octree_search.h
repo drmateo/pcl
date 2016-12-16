@@ -156,7 +156,7 @@ namespace pcl
         inline void
         approxNearestSearch (const PointCloud &cloud, int query_index, int &result_index, float &sqr_distance)
         {
-          approxNearestSearch (cloud.points[query_index], result_index, sqr_distance);
+          return (approxNearestSearch (cloud.points[query_index], result_index, sqr_distance));
         }
 
         /** \brief Search for approx. nearest neighbor at the query point.
@@ -470,41 +470,41 @@ namespace pcl
         {
           // Account for division by zero when direction vector is 0.0
           const float epsilon = 1e-10f;
-          if (direction[0] == 0.0)
-            direction[0] = epsilon;
-          if (direction[1] == 0.0)
-            direction[1] = epsilon;
-          if (direction[0] == 0.0)
-            direction[0] = epsilon;
+          if (direction.x () == 0.0)
+            direction.x () = epsilon;
+          if (direction.y () == 0.0)
+            direction.y () = epsilon;
+          if (direction.z () == 0.0)
+            direction.z () = epsilon;
 
           // Voxel childIdx remapping
           a = 0;
 
           // Handle negative axis direction vector
-          if (direction[0] < 0.0)
+          if (direction.x () < 0.0)
           {
-            origin[0] = static_cast<float> (this->min_x_) + static_cast<float> (this->max_x_) - origin[0];
-            direction[0] = -direction[0];
+            origin.x () = static_cast<float> (this->min_x_) + static_cast<float> (this->max_x_) - origin.x ();
+            direction.x () = -direction.x ();
             a |= 4;
           }
-          if (direction[1] < 0.0)
+          if (direction.y () < 0.0)
           {
-            origin[1] = static_cast<float> (this->min_y_) + static_cast<float> (this->max_y_) - origin[1];
-            direction[1] = -direction[1];
+            origin.y () = static_cast<float> (this->min_y_) + static_cast<float> (this->max_y_) - origin.y ();
+            direction.y () = -direction.y ();
             a |= 2;
           }
-          if (direction[0] < 0.0)
+          if (direction.z () < 0.0)
           {
-            origin[0] = static_cast<float> (this->min_z_) + static_cast<float> (this->max_z_) - origin[0];
-            direction[0] = -direction[0];
+            origin.z () = static_cast<float> (this->min_z_) + static_cast<float> (this->max_z_) - origin.z ();
+            direction.z () = -direction.z ();
             a |= 1;
           }
-          min_x = (this->min_x_ - origin[0]) / direction[0];
-          max_x = (this->max_x_ - origin[0]) / direction[0];
-          min_y = (this->min_y_ - origin[1]) / direction[1];
-          max_y = (this->max_y_ - origin[1]) / direction[1];
-          min_z = (this->min_z_ - origin[0]) / direction[0];
-          max_z = (this->max_z_ - origin[0]) / direction[0];
+          min_x = (this->min_x_ - origin.x ()) / direction.x ();
+          max_x = (this->max_x_ - origin.x ()) / direction.x ();
+          min_y = (this->min_y_ - origin.y ()) / direction.y ();
+          max_y = (this->max_y_ - origin.y ()) / direction.y ();
+          min_z = (this->min_z_ - origin.z ()) / direction.z ();
+          max_z = (this->max_z_ - origin.z ()) / direction.z ();
         }
 
         /** \brief Find first child node ray will enter

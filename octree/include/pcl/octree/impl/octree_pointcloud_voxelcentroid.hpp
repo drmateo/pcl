@@ -48,16 +48,20 @@ pcl::octree::OctreePointCloudVoxelCentroid<PointT, LeafContainerT, BranchContain
     const PointT& point_arg, PointT& voxel_centroid_arg) const
 {
   OctreeKey key;
-  LeafContainerT* leaf = NULL;
+  LeafNode* leaf = 0;
 
   // generate key
   genOctreeKeyforPoint (point_arg, key);
 
   leaf = this->findLeaf (key);
-  if (leaf)
-    leaf->getCentroid (voxel_centroid_arg);
 
-  return (leaf != NULL);
+  if (leaf)
+  {
+    LeafContainerT* container = leaf;
+    container->getCentroid (voxel_centroid_arg);
+  }
+
+  return (leaf != 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
