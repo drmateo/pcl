@@ -460,16 +460,6 @@ endif(CPACK_GENERATOR)
 include("${PCL_SOURCE_DIR}/cmake/dep_graph.cmake")
 MAKE_DEP_GRAPH()
 
-option(WITH_CATKIN "Build as a catkin package" TRUE)
-if(WITH_CATKIN)
-  find_package(catkin REQUIRED)
-  catkin_package(
-     INCLUDE_DIRS ${PCL_INCLUDE_DIRS}
-     LIBRARIES ${PCL_LIBRARIES}
-     DEPENS python-empy
-   )
-endif(WITH_CATKIN)
-
 ### ---[ Finish up
 PCL_WRITE_STATUS_REPORT()
 PCL_RESET_MAPS()

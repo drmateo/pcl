@@ -226,9 +226,9 @@ pcl::octree::OctreePointCloud<PointT, LeafContainerT, BranchContainerT, OctreeT>
     Eigen::Vector3f p = origin + (direction * step_size * static_cast<const float> (i));
 
     PointT octree_p;
-    octree_p.x = p[0];
-    octree_p.y = p[1];
-    octree_p.z = p[2];
+    octree_p.x = p.x ();
+    octree_p.y = p.y ();
+    octree_p.z = p.z ();
 
     OctreeKey key;
     this->genOctreeKeyforPoint (octree_p, key);
@@ -247,9 +247,9 @@ pcl::octree::OctreePointCloud<PointT, LeafContainerT, BranchContainerT, OctreeT>
 
   OctreeKey end_key;
   PointT end_p;
-  end_p.x = end[0];
-  end_p.y = end[1];
-  end_p.z = end[2];
+  end_p.x = end.x ();
+  end_p.y = end.y ();
+  end_p.z = end.z ();
   this->genOctreeKeyforPoint (end_p, end_key);
   if (!(end_key == prev_key))
   {
