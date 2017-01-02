@@ -45,7 +45,7 @@
 #  include <vtkWin32RenderWindowInteractor.h>
 #else
 #include <vtkConfigure.h>
-#if (VTK_MAJOR_VERSION <= 5 && defined VTK_USE_COCOA) || defined __APPLE__
+#if (VTK_MAJOR_VERSION <= 5 && defined VTK_USE_COCOA)
 #  include <vtkCocoaRenderWindowInteractor.h>
 #elif VTK_MAJOR_VERSION <= 5 && defined VTK_USE_CARBON
 #  include <vtkCarbonRenderWindowInteractor.h>
@@ -66,7 +66,7 @@ namespace pcl
     /** \brief The PCLVisualizer interactor */
 #ifdef _WIN32
     class PCL_EXPORTS PCLVisualizerInteractor : public vtkWin32RenderWindowInteractor
-#elif (VTK_MAJOR_VERSION <= 5 && defined VTK_USE_COCOA) || defined __APPLE__
+#elif (VTK_MAJOR_VERSION <= 5 && defined VTK_USE_COCOA)
     class PCLVisualizerInteractor : public vtkCocoaRenderWindowInteractor
 #elif VTK_MAJOR_VERSION <= 5 && defined VTK_USE_CARBON
     class PCLVisualizerInteractor : public vtkCarbonRenderWindowInteractor

@@ -281,7 +281,7 @@ pcl::visualization::PCLVisualizer::createInteractor ()
   interactor_ = vtkSmartPointer<PCLVisualizerInteractor>::New ();
 #else
   //interactor_ = vtkSmartPointer<vtkRenderWindowInteractor>::New ();
-  interactor_ = vtkSmartPointer <vtkRenderWindowInteractor>::Take (vtkRenderWindowInteractorFixNew ());
+  interactor_ = vtkSmartPointer <vtkRenderWindowInteractor>::Take (vtkRenderWindowInteractor::New ());
 #endif
 
   //win_->PointSmoothingOn ();

@@ -80,7 +80,7 @@ pcl::visualization::ImageViewer::ImageViewer (const std::string& window_title)
 #if ((VTK_MAJOR_VERSION == 5) && (VTK_MINOR_VERSION <= 4))
   interactor_ = vtkSmartPointer<PCLVisualizerInteractor>::New ();
 #else
-  interactor_ = vtkSmartPointer <vtkRenderWindowInteractor>::Take (vtkRenderWindowInteractorFixNew ());
+  interactor_ = vtkSmartPointer <vtkRenderWindowInteractor>::Take (vtkRenderWindowInteractor::New ());
 #endif
 
   // Prepare for image flip
