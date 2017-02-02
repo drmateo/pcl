@@ -205,9 +205,9 @@ pcl::FPFHEstimation<PointInT, PointNT, PointOutT>::computeSPFHSignatures (std::v
 
   // Initialize the arrays that will store the SPFH signatures
   size_t data_size = spfh_indices.size ();
-  hist_f1.setZero (data_size, nr_bins_f1_);
-  hist_f2.setZero (data_size, nr_bins_f2_);
-  hist_f3.setZero (data_size, nr_bins_f3_);
+  hist_f1 = Eigen::MatrixXf::Zero(data_size, nr_bins_f1_);
+  hist_f2 = Eigen::MatrixXf::Zero(data_size, nr_bins_f2_);
+  hist_f3 = Eigen::MatrixXf::Zero(data_size, nr_bins_f2_);
 
   // Compute SPFH signatures for every point that needs them
   std::set<int>::iterator spfh_indices_itr = spfh_indices.begin ();
