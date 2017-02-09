@@ -412,6 +412,281 @@ pcl::PCDReader::readHeader (const std::string &file_name, pcl::PCLPointCloud2 &c
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 int
+pcl::PCDReader::readHeader (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud,
+                            Eigen::Vector4f &origin, Eigen::Quaternionf &orientation,
+                            int &pcd_version, int &data_type, unsigned int &data_idx)
+{
+  // Default values
+  data_idx = 0;
+  data_type = 0;
+  pcd_version = PCD_V6;
+  origin      = Eigen::Vector4f::Zero ();
+  orientation = Eigen::Quaternionf::Identity ();
+  cloud.width = cloud.height = cloud.point_step = cloud.row_step = 0;
+  cloud.data.clear ();
+
+  // By default, assume that there are _no_ invalid (e.g., NaN) points
+  //cloud.is_dense = true;
+
+  if (buffer.str() == "")
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] Empty buffer.\n");
+    return (-1);
+  }
+
+  int nr_points = 0;
+  std::string line;
+
+  int specified_channel_count = 0;
+
+  // field_sizes represents the size of one element in a field (e.g., float = 4, char = 1)
+  // field_counts represents the number of elements in a field (e.g., x = 1, normal_x = 1, fpfh = 33)
+  std::vector<int> field_sizes, field_counts;
+  // field_types represents the type of data in a field (e.g., F = float, U = unsigned)
+  std::vector<char> field_types;
+  std::vector<std::string> st;
+
+  // Read the header and fill it in with wonderful values
+  try
+  {
+    int last_stream_pos = buffer.beg;
+    int current_stream_pos = buffer.tellg();
+    for (std::string line; std::getline(buffer, line); )
+    {
+      last_stream_pos = current_stream_pos;
+      current_stream_pos = buffer.tellg();
+      // Ignore empty lines
+      if (line == "")
+        continue;
+
+      // Tokenize the line
+      boost::trim (line);
+      boost::split (st, line, boost::is_any_of ("\t\r "), boost::token_compress_on);
+
+      std::stringstream sstream (line);
+      sstream.imbue (std::locale::classic ());
+
+      std::string line_type;
+      sstream >> line_type;
+
+      // Ignore comments
+      if (line_type.substr (0, 1) == "#")
+        continue;
+
+      // Version numbers are not needed for now, but we are checking to see if they're there
+      if (line_type.substr (0, 7) == "VERSION")
+        continue;
+
+      // Get the field indices (check for COLUMNS too for backwards compatibility)
+      if ( (line_type.substr (0, 6) == "FIELDS") || (line_type.substr (0, 7) == "COLUMNS") )
+      {
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        cloud.fields.resize (specified_channel_count);
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          std::string col_type = st.at (i + 1);
+          cloud.fields[i].name = col_type;
+        }
+
+        // Default the sizes and the types of each field to float32 to avoid crashes while using older PCD files
+        int offset = 0;
+        for (int i = 0; i < specified_channel_count; ++i, offset += 4)
+        {
+          cloud.fields[i].offset   = offset;
+          cloud.fields[i].datatype = pcl::PCLPointField::FLOAT32;
+          cloud.fields[i].count    = 1;
+        }
+        cloud.point_step = offset;
+        continue;
+      }
+
+      // Get the field sizes
+      if (line_type.substr (0, 4) == "SIZE")
+      {
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        if (specified_channel_count != static_cast<int> (cloud.fields.size ()))
+          throw "The number of elements in <SIZE> differs than the number of elements in <FIELDS>!";
+
+        // Resize to accommodate the number of values
+        field_sizes.resize (specified_channel_count);
+
+        int offset = 0;
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          int col_type ;
+          sstream >> col_type;
+          cloud.fields[i].offset = offset;                // estimate and save the data offsets
+          offset += col_type;
+          field_sizes[i] = col_type;                      // save a temporary copy
+        }
+        cloud.point_step = offset;
+        //if (cloud.width != 0)
+          //cloud.row_step   = cloud.point_step * cloud.width;
+        continue;
+      }
+
+      // Get the field types
+      if (line_type.substr (0, 4) == "TYPE")
+      {
+        if (field_sizes.empty ())
+          throw "TYPE of FIELDS specified before SIZE in header!";
+
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        if (specified_channel_count != static_cast<int> (cloud.fields.size ()))
+          throw "The number of elements in <TYPE> differs than the number of elements in <FIELDS>!";
+
+        // Resize to accommodate the number of values
+        field_types.resize (specified_channel_count);
+
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          field_types[i] = st.at (i + 1).c_str ()[0];
+          cloud.fields[i].datatype = static_cast<uint8_t> (getFieldType (field_sizes[i], field_types[i]));
+        }
+        continue;
+      }
+
+      // Get the field counts
+      if (line_type.substr (0, 5) == "COUNT")
+      {
+        if (field_sizes.empty () || field_types.empty ())
+          throw "COUNT of FIELDS specified before SIZE or TYPE in header!";
+
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        if (specified_channel_count != static_cast<int> (cloud.fields.size ()))
+          throw "The number of elements in <COUNT> differs than the number of elements in <FIELDS>!";
+
+        field_counts.resize (specified_channel_count);
+
+        int offset = 0;
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          cloud.fields[i].offset = offset;
+          int col_count;
+          sstream >> col_count;
+          cloud.fields[i].count = col_count;
+          offset += col_count * field_sizes[i];
+        }
+        // Adjust the offset for count (number of elements)
+        cloud.point_step = offset;
+        continue;
+      }
+
+      // Get the width of the data (organized point cloud dataset)
+      if (line_type.substr (0, 5) == "WIDTH")
+      {
+        sstream >> cloud.width;
+        if (cloud.point_step != 0)
+          cloud.row_step = cloud.point_step * cloud.width;      // row_step only makes sense for organized datasets
+        continue;
+      }
+
+      // Get the height of the data (organized point cloud dataset)
+      if (line_type.substr (0, 6) == "HEIGHT")
+      {
+        sstream >> cloud.height;
+        continue;
+      }
+
+      // Get the acquisition viewpoint
+      if (line_type.substr (0, 9) == "VIEWPOINT")
+      {
+        pcd_version = PCD_V7;
+        if (st.size () < 8)
+          throw "Not enough number of elements in <VIEWPOINT>! Need 7 values (tx ty tz qw qx qy qz).";
+
+        float x, y, z, w;
+        sstream >> x >> y >> z ;
+        origin      = Eigen::Vector4f (x, y, z, 0.0f);
+        sstream >> w >> x >> y >> z;
+        orientation = Eigen::Quaternionf (w, x, y, z);
+        continue;
+      }
+
+      // Get the number of points
+      if (line_type.substr (0, 6) == "POINTS")
+      {
+        sstream >> nr_points;
+        // Need to allocate: N * point_step
+        cloud.data.resize (nr_points * cloud.point_step);
+        continue;
+      }
+
+      // Read the header + comments line by line until we get to <DATA>
+      if (line_type.substr (0, 4) == "DATA")
+      {
+//        data_idx = static_cast<int> (fs.tellg ());
+        if (st.at (1).substr (0, 17) == "binary_compressed")
+         data_type = 2;
+        else
+          if (st.at (1).substr (0, 6) == "binary")
+            data_type = 1;
+        continue;
+      }
+
+      // Point to the stream begin
+      buffer.seekg(last_stream_pos);
+      break;
+    }
+  }
+  catch (const char *exception)
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] %s\n", exception);
+    return (-1);
+  }
+
+  // Exit early: if no points have been given, there's no sense to read or check anything anymore
+  if (nr_points == 0)
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] No points to read\n");
+    return (-1);
+  }
+
+  // Compatibility with older PCD file versions
+  if (cloud.width == 0 && cloud.height == 0)
+  {
+    cloud.width  = nr_points;
+    cloud.height = 1;
+    cloud.row_step = cloud.point_step * cloud.width;      // row_step only makes sense for organized datasets
+  }
+  //assert (cloud.row_step != 0);       // If row_step = 0, either point_step was not set or width is 0
+
+  // if both height/width are not given, assume an unorganized dataset
+  if (cloud.height == 0)
+  {
+    cloud.height = 1;
+    PCL_WARN ("[pcl::PCDReader::readHeader] no HEIGHT given, setting to 1 (unorganized).\n");
+    if (cloud.width == 0)
+      cloud.width  = nr_points;
+  }
+  else
+  {
+    if (cloud.width == 0 && nr_points != 0)
+    {
+      PCL_ERROR ("[pcl::PCDReader::readHeader] HEIGHT given (%d) but no WIDTH!\n", cloud.height);
+      return (-1);
+    }
+  }
+
+  if (int (cloud.width * cloud.height) != nr_points)
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] HEIGHT (%d) x WIDTH (%d) != number of points (%d)\n", cloud.height, cloud.width, nr_points);
+    return (-1);
+  }
+
+  return (0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+int
 pcl::PCDReader::readHeader (const std::string &file_name, pcl::PCLPointCloud2 &cloud, const int offset)
 {
   // Default values
@@ -670,6 +945,256 @@ pcl::PCDReader::readHeader (const std::string &file_name, pcl::PCLPointCloud2 &c
 
   // Close file
   fs.close ();
+
+  return (0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+int
+pcl::PCDReader::readHeader (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud)
+{
+  // Default values
+  cloud.width = cloud.height = cloud.point_step = cloud.row_step = 0;
+  cloud.data.clear ();
+
+  // By default, assume that there are _no_ invalid (e.g., NaN) points
+  //cloud.is_dense = true;
+
+  int nr_points = 0;
+  std::string line;
+
+  int specified_channel_count = 0;
+
+  if (buffer.str() == "")
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] Empty buffer.\n");
+    return (-1);
+  }
+
+  // field_sizes represents the size of one element in a field (e.g., float = 4, char = 1)
+  // field_counts represents the number of elements in a field (e.g., x = 1, normal_x = 1, fpfh = 33)
+  std::vector<int> field_sizes, field_counts;
+  // field_types represents the type of data in a field (e.g., F = float, U = unsigned)
+  std::vector<char> field_types;
+  std::vector<std::string> st;
+
+  // Read the header and fill it in with wonderful values
+  try
+  {
+    int last_stream_pos = buffer.beg;
+    int current_stream_pos = buffer.tellg();
+    for (std::string line; std::getline(buffer, line); )
+    {
+      last_stream_pos = current_stream_pos;
+      current_stream_pos = buffer.tellg();
+
+      // Ignore empty lines
+      if (line == "")
+        continue;
+
+      // Tokenize the line
+      boost::trim (line);
+      boost::split (st, line, boost::is_any_of ("\t\r "), boost::token_compress_on);
+
+      std::stringstream sstream (line);
+      sstream.imbue (std::locale::classic ());
+
+      std::string line_type;
+      sstream >> line_type;
+
+      // Ignore comments
+      if (line_type.substr (0, 1) == "#")
+        continue;
+
+      // Version numbers are not needed for now, but we are checking to see if they're there
+      if (line_type.substr (0, 7) == "VERSION")
+        continue;
+
+      // Get the field indices (check for COLUMNS too for backwards compatibility)
+      if ( (line_type.substr (0, 6) == "FIELDS") || (line_type.substr (0, 7) == "COLUMNS") )
+      {
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        cloud.fields.resize (specified_channel_count);
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          std::string col_type = st.at (i + 1);
+          cloud.fields[i].name = col_type;
+        }
+
+        // Default the sizes and the types of each field to float32 to avoid crashes while using older PCD files
+        int offset = 0;
+        for (int i = 0; i < specified_channel_count; ++i, offset += 4)
+        {
+          cloud.fields[i].offset   = offset;
+          cloud.fields[i].datatype = pcl::PCLPointField::FLOAT32;
+          cloud.fields[i].count    = 1;
+        }
+        cloud.point_step = offset;
+        continue;
+      }
+
+      // Get the field sizes
+      if (line_type.substr (0, 4) == "SIZE")
+      {
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        if (specified_channel_count != static_cast<int> (cloud.fields.size ()))
+          throw "The number of elements in <SIZE> differs than the number of elements in <FIELDS>!";
+
+        // Resize to accommodate the number of values
+        field_sizes.resize (specified_channel_count);
+
+        int offset = 0;
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          int col_type ;
+          sstream >> col_type;
+          cloud.fields[i].offset = offset;                // estimate and save the data offsets
+          offset += col_type;
+          field_sizes[i] = col_type;                      // save a temporary copy
+        }
+        cloud.point_step = offset;
+        //if (cloud.width != 0)
+          //cloud.row_step   = cloud.point_step * cloud.width;
+        continue;
+      }
+
+      // Get the field types
+      if (line_type.substr (0, 4) == "TYPE")
+      {
+        if (field_sizes.empty ())
+          throw "TYPE of FIELDS specified before SIZE in header!";
+
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        if (specified_channel_count != static_cast<int> (cloud.fields.size ()))
+          throw "The number of elements in <TYPE> differs than the number of elements in <FIELDS>!";
+
+        // Resize to accommodate the number of values
+        field_types.resize (specified_channel_count);
+
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          field_types[i] = st.at (i + 1).c_str ()[0];
+          cloud.fields[i].datatype = static_cast<uint8_t> (getFieldType (field_sizes[i], field_types[i]));
+        }
+        continue;
+      }
+
+      // Get the field counts
+      if (line_type.substr (0, 5) == "COUNT")
+      {
+        if (field_sizes.empty () || field_types.empty ())
+          throw "COUNT of FIELDS specified before SIZE or TYPE in header!";
+
+        specified_channel_count = static_cast<int> (st.size () - 1);
+
+        // Allocate enough memory to accommodate all fields
+        if (specified_channel_count != static_cast<int> (cloud.fields.size ()))
+          throw "The number of elements in <COUNT> differs than the number of elements in <FIELDS>!";
+
+        field_counts.resize (specified_channel_count);
+
+        int offset = 0;
+        for (int i = 0; i < specified_channel_count; ++i)
+        {
+          cloud.fields[i].offset = offset;
+          int col_count;
+          sstream >> col_count;
+          cloud.fields[i].count = col_count;
+          offset += col_count * field_sizes[i];
+        }
+        // Adjust the offset for count (number of elements)
+        cloud.point_step = offset;
+        continue;
+      }
+
+      // Get the width of the data (organized point cloud dataset)
+      if (line_type.substr (0, 5) == "WIDTH")
+      {
+        sstream >> cloud.width;
+        if (cloud.point_step != 0)
+          cloud.row_step = cloud.point_step * cloud.width;      // row_step only makes sense for organized datasets
+        continue;
+      }
+
+      // Get the height of the data (organized point cloud dataset)
+      if (line_type.substr (0, 6) == "HEIGHT")
+      {
+        sstream >> cloud.height;
+        continue;
+      }
+
+      // Check the format of the acquisition viewpoint
+      if (line_type.substr (0, 9) == "VIEWPOINT")
+      {
+        if (st.size () < 8)
+          throw "Not enough number of elements in <VIEWPOINT>! Need 7 values (tx ty tz qw qx qy qz).";
+        continue;
+      }
+
+      // Get the number of points
+      if (line_type.substr (0, 6) == "POINTS")
+      {
+        sstream >> nr_points;
+        // Need to allocate: N * point_step
+        cloud.data.resize (nr_points * cloud.point_step);
+        continue;
+      }
+
+      // Point to the stream begin
+      buffer.seekg(last_stream_pos);
+      break;
+    }
+  }
+  catch (const char *exception)
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] %s\n", exception);
+    return (-1);
+  }
+
+  // Exit early: if no points have been given, there's no sense to read or check anything anymore
+  if (nr_points == 0)
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] No points to read\n");
+    return (-1);
+  }
+
+  // Compatibility with older PCD file versions
+  if (cloud.width == 0 && cloud.height == 0)
+  {
+    cloud.width  = nr_points;
+    cloud.height = 1;
+    cloud.row_step = cloud.point_step * cloud.width;      // row_step only makes sense for organized datasets
+  }
+  //assert (cloud.row_step != 0);       // If row_step = 0, either point_step was not set or width is 0
+
+  // if both height/width are not given, assume an unorganized dataset
+  if (cloud.height == 0)
+  {
+    cloud.height = 1;
+    PCL_WARN ("[pcl::PCDReader::readHeader] no HEIGHT given, setting to 1 (unorganized).\n");
+    if (cloud.width == 0)
+      cloud.width  = nr_points;
+  }
+  else
+  {
+    if (cloud.width == 0 && nr_points != 0)
+    {
+      PCL_ERROR ("[pcl::PCDReader::readHeader] HEIGHT given (%d) but no WIDTH!\n", cloud.height);
+      return (-1);
+    }
+  }
+
+  if (int (cloud.width * cloud.height) != nr_points)
+  {
+    PCL_ERROR ("[pcl::PCDReader::readHeader] HEIGHT (%d) x WIDTH (%d) != number of points (%d)\n", cloud.height, cloud.width, nr_points);
+    return (-1);
+  }
 
   return (0);
 }
@@ -1052,6 +1577,366 @@ pcl::PCDReader::read (const std::string &file_name, pcl::PCLPointCloud2 &cloud,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int
+pcl::PCDReader::read (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud,
+                      Eigen::Vector4f &origin, Eigen::Quaternionf &orientation, int &pcd_version)
+{
+  pcl::console::TicToc tt;
+  tt.tic ();
+
+  int data_type;
+  unsigned int data_idx;
+
+  int res = readHeader (buffer, cloud, origin, orientation, pcd_version, data_type, data_idx);
+
+  if (res < 0)
+    return (res);
+
+  unsigned int idx = 0;
+
+  // Get the number of points the cloud should have
+  unsigned int nr_points = cloud.width * cloud.height;
+
+  // Setting the is_dense property to true by default
+  cloud.is_dense = true;
+
+  if (buffer.str() == "")
+  {
+    PCL_ERROR ("[pcl::PCDReader::read] Empty buffer.\n");
+    return (-1);
+  }
+
+  // if ascii
+  if (data_type == 0)
+  {
+    std::string line;
+    std::vector<std::string> st;
+
+    // Read the rest of the file
+    try
+    {
+      for (std::string line; idx < nr_points && std::getline(buffer, line); )
+      {
+        // Ignore empty lines
+        if (line == "")
+          continue;
+
+        // Tokenize the line
+        boost::trim (line);
+        boost::split (st, line, boost::is_any_of ("\t\r "), boost::token_compress_on);
+
+        if (idx >= nr_points)
+        {
+          PCL_WARN ("[pcl::PCDReader::read] buffer has more points (%d) than advertised (%d)!\n", idx, nr_points);
+          break;
+        }
+
+        size_t total = 0;
+        // Copy data
+        for (unsigned int d = 0; d < static_cast<unsigned int> (cloud.fields.size ()); ++d)
+        {
+          // Ignore invalid padded dimensions that are inherited from binary data
+          if (cloud.fields[d].name == "_")
+          {
+            total += cloud.fields[d].count; // jump over this many elements in the string token
+            continue;
+          }
+          for (unsigned int c = 0; c < cloud.fields[d].count; ++c)
+          {
+            switch (cloud.fields[d].datatype)
+            {
+              case pcl::PCLPointField::INT8:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::INT8>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              case pcl::PCLPointField::UINT8:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::UINT8>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              case pcl::PCLPointField::INT16:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::INT16>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              case pcl::PCLPointField::UINT16:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::UINT16>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              case pcl::PCLPointField::INT32:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::INT32>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              case pcl::PCLPointField::UINT32:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::UINT32>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              case pcl::PCLPointField::FLOAT32:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::FLOAT32>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              case pcl::PCLPointField::FLOAT64:
+              {
+                copyStringValue<pcl::traits::asType<pcl::PCLPointField::FLOAT64>::type> (
+                    st.at (total + c), cloud, idx, d, c);
+                break;
+              }
+              default:
+                PCL_WARN ("[pcl::PCDReader::read] Incorrect field data type specified (%d)!\n",cloud.fields[d].datatype);
+                break;
+            }
+          }
+          total += cloud.fields[d].count; // jump over this many elements in the string token
+        }
+        idx++;
+      }
+    }
+    catch (const char *exception)
+    {
+      PCL_ERROR ("[pcl::PCDReader::read] %s\n", exception);
+      return (-1);
+    }
+  }
+  else
+  /// ---[ Binary mode only
+  /// We must re-open the file and read with mmap () for binary
+  /// TODO: Load binary file from buffer
+  {
+//    // Open for reading
+//    int fd = pcl_open (file_name.c_str (), O_RDONLY);
+//    if (fd == -1)
+//    {
+//      PCL_ERROR ("[pcl::PCDReader::read] Failure to open file %s\n", file_name.c_str () );
+//      return (-1);
+//    }
+//
+//    // Seek at the given offset
+//    off_t result = pcl_lseek (fd, offset, SEEK_SET);
+//    if (result < 0)
+//    {
+//      pcl_close (fd);
+//      PCL_ERROR ("[pcl::PCDReader::read] lseek errno: %d strerror: %s\n", errno, strerror (errno));
+//      PCL_ERROR ("[pcl::PCDReader::read] Error during lseek ()!\n");
+//      return (-1);
+//    }
+//
+//    size_t data_size = data_idx + cloud.data.size ();
+//    // Prepare the map
+//#ifdef _WIN32
+//    // As we don't know the real size of data (compressed or not),
+//    // we set dwMaximumSizeHigh = dwMaximumSizeLow = 0 so as to map the whole file
+//    HANDLE fm = CreateFileMapping ((HANDLE) _get_osfhandle (fd), NULL, PAGE_READONLY, 0, 0, NULL);
+//    // As we don't know the real size of data (compressed or not),
+//    // we set dwNumberOfBytesToMap = 0 so as to map the whole file
+//    char *map = static_cast<char*>(MapViewOfFile (fm, FILE_MAP_READ, 0, 0, 0));
+//    if (map == NULL)
+//    {
+//      CloseHandle (fm);
+//      pcl_close (fd);
+//      PCL_ERROR ("[pcl::PCDReader::read] Error mapping view of file, %s\n", file_name.c_str ());
+//      return (-1);
+//    }
+//#else
+//    char *map = static_cast<char*> (mmap (0, data_size, PROT_READ, MAP_SHARED, fd, 0));
+//    if (map == reinterpret_cast<char*> (-1))    // MAP_FAILED
+//    {
+//      pcl_close (fd);
+//      PCL_ERROR ("[pcl::PCDReader::read] Error preparing mmap for binary PCD file.\n");
+//      return (-1);
+//    }
+//#endif
+//
+//    /// ---[ Binary compressed mode only
+//    if (data_type == 2)
+//    {
+//      // Uncompress the data first
+//      unsigned int compressed_size, uncompressed_size;
+//      memcpy (&compressed_size, &map[data_idx + 0], sizeof (unsigned int));
+//      memcpy (&uncompressed_size, &map[data_idx + 4], sizeof (unsigned int));
+//      PCL_DEBUG ("[pcl::PCDReader::read] Read a binary compressed file with %u bytes compressed and %u original.\n", compressed_size, uncompressed_size);
+//      // For all those weird situations where the compressed data is actually LARGER than the uncompressed one
+//      // (we really ought to check this in the compressor and copy the original data in those cases)
+//      if (data_size < compressed_size || uncompressed_size < compressed_size)
+//      {
+//        PCL_DEBUG ("[pcl::PCDReader::read] Allocated data size (%lu) or uncompressed size (%lu) smaller than compressed size (%u). Need to remap.\n", data_size, uncompressed_size, compressed_size);
+//#ifdef _WIN32
+//        UnmapViewOfFile (map);
+//        data_size = compressed_size + data_idx + 8;
+//        map = static_cast<char*>(MapViewOfFile (fm, FILE_MAP_READ, 0, 0, data_size));
+//#else
+//        munmap (map, data_size);
+//        data_size = compressed_size + data_idx + 8;
+//        map = static_cast<char*> (mmap (0, data_size, PROT_READ, MAP_SHARED, fd, 0));
+//#endif
+//      }
+//
+//      if (uncompressed_size != cloud.data.size ())
+//      {
+//        PCL_WARN ("[pcl::PCDReader::read] The estimated cloud.data size (%u) is different than the saved uncompressed value (%u)! Data corruption?\n",
+//                  cloud.data.size (), uncompressed_size);
+//        cloud.data.resize (uncompressed_size);
+//      }
+//
+//      char *buf = static_cast<char*> (malloc (data_size));
+//      // The size of the uncompressed data better be the same as what we stored in the header
+//      unsigned int tmp_size = pcl::lzfDecompress (&map[data_idx + 8], compressed_size, buf, static_cast<unsigned int> (data_size));
+//      if (tmp_size != uncompressed_size)
+//      {
+//        free (buf);
+//        pcl_close (fd);
+//        PCL_ERROR ("[pcl::PCDReader::read] Size of decompressed lzf data (%u) does not match value stored in PCD header (%u). Errno: %d\n", tmp_size, uncompressed_size, errno);
+//        return (-1);
+//      }
+//
+//      // Get the fields sizes
+//      std::vector<pcl::PCLPointField> fields (cloud.fields.size ());
+//      std::vector<int> fields_sizes (cloud.fields.size ());
+//      int nri = 0, fsize = 0;
+//      for (size_t i = 0; i < cloud.fields.size (); ++i)
+//      {
+//        if (cloud.fields[i].name == "_")
+//          continue;
+//        fields_sizes[nri] = cloud.fields[i].count * pcl::getFieldSize (cloud.fields[i].datatype);
+//        fsize += fields_sizes[nri];
+//        fields[nri] = cloud.fields[i];
+//        ++nri;
+//      }
+//      fields.resize (nri);
+//      fields_sizes.resize (nri);
+//
+//      // Unpack the xxyyzz to xyz
+//      std::vector<char*> pters (fields.size ());
+//      int toff = 0;
+//      for (size_t i = 0; i < pters.size (); ++i)
+//      {
+//        pters[i] = &buf[toff];
+//        toff += fields_sizes[i] * cloud.width * cloud.height;
+//      }
+//      // Copy it to the cloud
+//      for (size_t i = 0; i < cloud.width * cloud.height; ++i)
+//      {
+//        for (size_t j = 0; j < pters.size (); ++j)
+//        {
+//          memcpy (&cloud.data[i * fsize + fields[j].offset], pters[j], fields_sizes[j]);
+//          // Increment the pointer
+//          pters[j] += fields_sizes[j];
+//        }
+//      }
+//      //memcpy (&cloud.data[0], &buf[0], uncompressed_size);
+//
+//      free (buf);
+//    }
+//    else
+//      // Copy the data
+//      memcpy (&cloud.data[0], &map[0] + data_idx, cloud.data.size ());
+//
+//    // Unmap the pages of memory
+//#ifdef _WIN32
+//    UnmapViewOfFile (map);
+//    CloseHandle (fm);
+//#else
+//    if (munmap (map, data_size) == -1)
+//    {
+//      pcl_close (fd);
+//      PCL_ERROR ("[pcl::PCDReader::read] Munmap failure\n");
+//      return (-1);
+//    }
+//#endif
+//    pcl_close (fd);
+//  }
+//
+//  if ((idx != nr_points) && (data_type == 0))
+//  {
+//    PCL_ERROR ("[pcl::PCDReader::read] Number of points read (%d) is different than expected (%d)\n", idx, nr_points);
+//    return (-1);
+//  }
+//
+//  // No need to do any extra checks if the data type is ASCII
+//  if (data_type != 0)
+//  {
+//    int point_size = static_cast<int> (cloud.data.size () / (cloud.height * cloud.width));
+//    // Once copied, we need to go over each field and check if it has NaN/Inf values and assign cloud.is_dense to true or false
+//    for (uint32_t i = 0; i < cloud.width * cloud.height; ++i)
+//    {
+//      for (unsigned int d = 0; d < static_cast<unsigned int> (cloud.fields.size ()); ++d)
+//      {
+//        for (uint32_t c = 0; c < cloud.fields[d].count; ++c)
+//        {
+//          switch (cloud.fields[d].datatype)
+//          {
+//            case pcl::PCLPointField::INT8:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::INT8>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//            case pcl::PCLPointField::UINT8:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::UINT8>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//            case pcl::PCLPointField::INT16:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::INT16>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//            case pcl::PCLPointField::UINT16:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::UINT16>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//            case pcl::PCLPointField::INT32:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::INT32>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//            case pcl::PCLPointField::UINT32:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::UINT32>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//            case pcl::PCLPointField::FLOAT32:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::FLOAT32>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//            case pcl::PCLPointField::FLOAT64:
+//            {
+//              if (!isValueFinite<pcl::traits::asType<pcl::PCLPointField::FLOAT64>::type>(cloud, i, point_size, d, c))
+//                cloud.is_dense = false;
+//              break;
+//            }
+//          }
+//        }
+//      }
+//    }
+  }
+  double total_time = tt.toc ();
+  PCL_DEBUG ("[pcl::PCDReader::read] Loaded buffer as a %s cloud in %g ms with %d points. Available dimensions: %s.\n",
+             cloud.is_dense ? "dense" : "non-dense", total_time,
+             cloud.width * cloud.height, pcl::getFieldsList (cloud).c_str ());
+  return (0);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int
 pcl::PCDReader::read (const std::string &file_name, pcl::PCLPointCloud2 &cloud, const int offset)
 {
   int pcd_version;
@@ -1059,6 +1944,22 @@ pcl::PCDReader::read (const std::string &file_name, pcl::PCLPointCloud2 &cloud, 
   Eigen::Quaternionf orientation;
   // Load the data
   int res = read (file_name, cloud, origin, orientation, pcd_version, offset);
+
+  if (res < 0)
+    return (res);
+
+  return (0);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int
+pcl::PCDReader::read (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud)
+{
+  int pcd_version;
+  Eigen::Vector4f origin;
+  Eigen::Quaternionf orientation;
+  // Load the data
+  int res = read (buffer, cloud, origin, orientation, pcd_version);
 
   if (res < 0)
     return (res);
