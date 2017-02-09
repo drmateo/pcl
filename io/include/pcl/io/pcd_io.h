@@ -117,6 +117,12 @@ namespace pcl
                   int &data_type, unsigned int &data_idx, const int offset = 0);
 
 
+      int
+      readHeader (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud,
+                  Eigen::Vector4f &origin, Eigen::Quaternionf &orientation, int &pcd_version,
+                  int &data_type, unsigned int &data_idx);
+
+
       /** \brief Read a point cloud data header from a PCD file. 
         *
         * Load only the meta information (number of points, their types, etc),
@@ -141,6 +147,8 @@ namespace pcl
         */
       int 
       readHeader (const std::string &file_name, pcl::PCLPointCloud2 &cloud, const int offset = 0);
+      int
+      readHeader (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud);
 
       /** \brief Read a point cloud data from a PCD file and store it into a pcl/PCLPointCloud2.
         * \param[in] file_name the name of the file containing the actual PointCloud data
@@ -162,6 +170,9 @@ namespace pcl
       int 
       read (const std::string &file_name, pcl::PCLPointCloud2 &cloud,
             Eigen::Vector4f &origin, Eigen::Quaternionf &orientation, int &pcd_version, const int offset = 0);
+      int
+      read (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud,
+            Eigen::Vector4f &origin, Eigen::Quaternionf &orientation, int &pcd_version);
 
       /** \brief Read a point cloud data from a PCD (PCD_V6) and store it into a pcl/PCLPointCloud2.
         * 
@@ -185,6 +196,8 @@ namespace pcl
         */
       int 
       read (const std::string &file_name, pcl::PCLPointCloud2 &cloud, const int offset = 0);
+      int
+      read (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud);
 
       /** \brief Read a point cloud data from any PCD file, and convert it to the given template format.
         * \param[in] file_name the name of the file containing the actual PointCloud data
@@ -207,6 +220,20 @@ namespace pcl
         int pcd_version;
         int res = read (file_name, blob, cloud.sensor_origin_, cloud.sensor_orientation_, 
                         pcd_version, offset);
+
+        // If no error, convert the data
+        if (res == 0)
+          pcl::fromPCLPointCloud2 (blob, cloud);
+        return (res);
+      }
+
+      template<typename PointT> int
+      read (std::istringstream &buffer, pcl::PointCloud<PointT> &cloud)
+      {
+        pcl::PCLPointCloud2 blob;
+        int pcd_version;
+        int res = read (buffer, blob, cloud.sensor_origin_, cloud.sensor_orientation_,
+                        pcd_version);
 
         // If no error, convert the data
         if (res == 0)
@@ -514,6 +541,12 @@ namespace pcl
       pcl::PCDReader p;
       return (p.read (file_name, cloud));
     }
+    inline int
+    loadPCDBuffer (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud)
+    {
+      pcl::PCDReader p;
+      return (p.read (buffer, cloud));
+    }
 
     /** \brief Load any PCD file into a templated PointCloud type.
       * \param[in] file_name the name of the file to load
@@ -531,6 +564,14 @@ namespace pcl
       int pcd_version;
       return (p.read (file_name, cloud, origin, orientation, pcd_version));
     }
+    inline int
+    loadPCDBuffer (std::istringstream &buffer, pcl::PCLPointCloud2 &cloud,
+                   Eigen::Vector4f &origin, Eigen::Quaternionf &orientation)
+    {
+      pcl::PCDReader p;
+      int pcd_version;
+      return (p.read (buffer, cloud, origin, orientation, pcd_version));
+    }
 
     /** \brief Load any PCD file into a templated PointCloud type
       * \param[in] file_name the name of the file to load
@@ -542,6 +583,12 @@ namespace pcl
     {
       pcl::PCDReader p;
       return (p.read (file_name, cloud));
+    }
+    template<typename PointT> inline int
+    loadPCDBuffer (std::istringstream &buffer, pcl::PointCloud<PointT> &cloud)
+    {
+      pcl::PCDReader p;
+      return (p.read (buffer, cloud));
     }
 
     /** \brief Save point cloud data to a PCD file containing n-D points
