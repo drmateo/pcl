@@ -252,8 +252,16 @@ pcl::SpinImageEstimation<PointInT, PointNT, PointOutT>::initCompute ()
     return (false);
   }
 
+  // If the surface won't be set, make fake surface and fake surface normals
+  // if we wouldn't do it here, the following method would alarm that no surface normals is given
+  if (!surface_)
+  {
+    surface_ = input_;
+    fake_surface_ = true;
+  }
+
   // Check if the size of normals is the same as the size of the surface
-  if (input_normals_->points.size () != input_->points.size ())
+  if (input_normals_->points.size () != surface_->points.size ())
   {
     PCL_ERROR ("[pcl::%s::initCompute] ", getClassName ().c_str ());
     PCL_ERROR ("The number of points in the input dataset differs from ");
@@ -274,13 +282,6 @@ pcl::SpinImageEstimation<PointInT, PointNT, PointOutT>::initCompute ()
     PCL_ERROR ("[pcl::%s::initCompute] K-nearest neighbor search for spin images not implemented. Used a search radius instead!\n", getClassName ().c_str ());
     Feature<PointInT, PointOutT>::deinitCompute ();
     return (false);
-  }
-  // If the surface won't be set, make fake surface and fake surface normals
-  // if we wouldn't do it here, the following method would alarm that no surface normals is given
-  if (!surface_)
-  {
-    surface_ = input_;
-    fake_surface_ = true;
   }
 
   //if (fake_surface_ && !input_normals_)

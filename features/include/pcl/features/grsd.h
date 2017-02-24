@@ -80,6 +80,7 @@ namespace pcl
       using Feature<PointInT, PointOutT>::search_radius_;
       using Feature<PointInT, PointOutT>::search_parameter_;
       using Feature<PointInT, PointOutT>::input_;
+      using Feature<PointInT, PointOutT>::surface_;
       using FeatureFromNormals<PointInT, PointNT, PointOutT>::normals_;
       using Feature<PointInT, PointOutT>::setSearchSurface;
       //using Feature<PointInT, PointOutT>::computeFeature;

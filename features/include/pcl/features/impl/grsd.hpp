@@ -77,7 +77,7 @@ pcl::GRSDEstimation<PointInT, PointNT, PointOutT>::computeFeature (PointCloudOut
   PointCloudInPtr cloud_downsampled (new PointCloudIn());
   pcl::VoxelGrid<PointInT> grid;
   grid.setLeafSize (width_, width_, width_);
-  grid.setInputCloud (input_);
+  grid.setInputCloud (surface_);
   grid.setSaveLeafLayout (true); // TODO maybe avoid this using nearest neighbor search
   grid.filter (*cloud_downsampled);
 
@@ -85,7 +85,7 @@ pcl::GRSDEstimation<PointInT, PointNT, PointOutT>::computeFeature (PointCloudOut
   pcl::PointCloud<pcl::PrincipalRadiiRSD>::Ptr radii (new pcl::PointCloud<pcl::PrincipalRadiiRSD>());
   pcl::RSDEstimation<PointInT, PointNT, pcl::PrincipalRadiiRSD> rsd;
   rsd.setInputCloud (cloud_downsampled);
-  rsd.setSearchSurface (input_);
+  rsd.setSearchSurface (surface_);
   rsd.setInputNormals (normals_);
   rsd.setRadiusSearch (std::max (search_radius_, std::sqrt (3.0) * width_ / 2));
   rsd.compute (*radii);
