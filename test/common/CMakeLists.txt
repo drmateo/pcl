@@ -12,7 +12,7 @@ PCL_ADD_TEST(common_pca test_pca FILES test_pca.cpp LINK_WITH pcl_gtest pcl_comm
 PCL_ADD_TEST(common_gaussian test_gaussian FILES test_gaussian.cpp LINK_WITH pcl_gtest pcl_common)
 PCL_ADD_TEST(common_operators test_operators FILES test_operators.cpp LINK_WITH pcl_gtest pcl_common)
 #PCL_ADD_TEST(common_convolution test_convolution FILES test_convolution.cpp LINK_WITH pcl_gtest pcl_common)
-PCL_ADD_TEST(common_eigen test_eigen FILES test_eigen.cpp LINK_WITH pcl_gtest pcl_common)
+#PCL_ADD_TEST(common_eigen test_eigen FILES test_eigen.cpp LINK_WITH pcl_gtest pcl_common)
 PCL_ADD_TEST(common_intensity test_intensity FILES test_intensity.cpp LINK_WITH pcl_gtest pcl_common)
 PCL_ADD_TEST(common_generator test_generator FILES test_generator.cpp LINK_WITH pcl_gtest pcl_common)
 PCL_ADD_TEST(common_io test_common_io FILES test_io.cpp LINK_WITH pcl_gtest pcl_common)
