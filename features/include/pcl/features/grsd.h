@@ -90,7 +90,7 @@ namespace pcl
       typedef typename Feature<PointInT, PointOutT>::PointCloudInPtr  PointCloudInPtr;
 
       /** \brief Constructor. */
-      GRSDEstimation () : additive_ (true)
+      GRSDEstimation () : additive_ (true), width_(-1)
       {
         feature_name_ = "GRSDEstimation";
         relative_coordinates_all_ = getAllNeighborCellIndices ();

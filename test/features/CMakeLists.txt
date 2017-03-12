@@ -6,18 +6,18 @@ PCL_ADD_TEST(feature_base test_base_feature
              FILES test_base_feature.cpp
              LINK_WITH pcl_gtest pcl_features pcl_io
              ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
-#PCL_ADD_TEST(feature_cppf_estimation test_cppf_estimation
-#             FILES test_cppf_estimation.cpp
-#             LINK_WITH pcl_gtest pcl_features pcl_io
-#             ARGUMENTS "${PCL_SOURCE_DIR}/test/colored_cloud.pcd")
+PCL_ADD_TEST(feature_cppf_estimation test_cppf_estimation
+             FILES test_cppf_estimation.cpp
+             LINK_WITH pcl_gtest pcl_features pcl_io
+             ARGUMENTS "${PCL_SOURCE_DIR}/test/colored_cloud.pcd")
 PCL_ADD_TEST(feature_normal_estimation test_normal_estimation
              FILES test_normal_estimation.cpp
              LINK_WITH pcl_gtest pcl_features pcl_io
              ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
-#PCL_ADD_TEST(feature_pfh_estimation test_pfh_estimation
-#             FILES test_pfh_estimation.cpp
-#             LINK_WITH pcl_gtest pcl_features pcl_io
-#             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
+PCL_ADD_TEST(feature_pfh_estimation test_pfh_estimation
+             FILES test_pfh_estimation.cpp
+             LINK_WITH pcl_gtest pcl_features pcl_io
+             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
 
 PCL_ADD_TEST(feature_cvfh_estimation test_cvfh_estimation
              FILES test_cvfh_estimation.cpp
@@ -32,10 +32,10 @@ PCL_ADD_TEST(feature_shot_estimation test_shot_estimation
              FILES test_shot_estimation.cpp
              LINK_WITH pcl_gtest pcl_features pcl_io
              ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
-#PCL_ADD_TEST(feature_gshot_estimation test_gshot_estimation
-#             FILES test_gshot_estimation.cpp
-#             LINK_WITH pcl_gtest pcl_features pcl_io
-#             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd" "${PCL_SOURCE_DIR}/test/bun03.pcd" "${PCL_SOURCE_DIR}/test/milk.pcd")
+PCL_ADD_TEST(feature_gshot_estimation test_gshot_estimation
+             FILES test_gshot_estimation.cpp
+             LINK_WITH pcl_gtest pcl_features pcl_io
+             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd" "${PCL_SOURCE_DIR}/test/bun03.pcd" "${PCL_SOURCE_DIR}/test/milk.pcd")
 PCL_ADD_TEST(feature_boundary_estimation test_boundary_estimation
              FILES test_boundary_estimation.cpp
              LINK_WITH pcl_gtest pcl_features pcl_io
@@ -74,10 +74,10 @@ PCL_ADD_TEST(feature_shot_lrf_estimation test_shot_lrf_estimation
              FILES test_shot_lrf_estimation.cpp
              LINK_WITH pcl_gtest pcl_features pcl_io
              ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
-#PCL_ADD_TEST(feature_shot_grf_estimation test_shot_grf_estimation
-#             FILES test_shot_grf_estimation.cpp
-#             LINK_WITH pcl_gtest pcl_features pcl_common pcl_io pcl_visualization
-#             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
+PCL_ADD_TEST(feature_shot_grf_estimation test_shot_grf_estimation
+             FILES test_shot_grf_estimation.cpp
+             LINK_WITH pcl_gtest pcl_features pcl_common pcl_io pcl_visualization
+             ARGUMENTS "${PCL_SOURCE_DIR}/test/bun0.pcd")
 PCL_ADD_TEST(feature_brisk test_brisk
              FILES test_brisk.cpp
              LINK_WITH pcl_gtest pcl_io pcl_kdtree pcl_filters pcl_keypoints pcl_common pcl_features pcl_search
