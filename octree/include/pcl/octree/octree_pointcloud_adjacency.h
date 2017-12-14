@@ -40,10 +40,8 @@
 #ifndef PCL_OCTREE_POINTCLOUD_ADJACENCY_H_
 #define PCL_OCTREE_POINTCLOUD_ADJACENCY_H_
 
-#include <pcl/console/print.h>
-#include <pcl/common/geometry.h>
 #include <pcl/octree/boost.h>
-#include <pcl/octree/octree_impl.h>
+#include <pcl/octree/octree_pointcloud.h>
 #include <pcl/octree/octree_pointcloud_adjacency_container.h>
 
 #include <set>
@@ -107,15 +105,29 @@ namespace pcl
         typedef OctreeDepthFirstIterator<OctreeAdjacencyT> Iterator;
         typedef const OctreeDepthFirstIterator<OctreeAdjacencyT> ConstIterator;
 
-        Iterator depth_begin (unsigned int max_depth_arg = 0) { return Iterator (this, max_depth_arg); }
-        const Iterator depth_end () { return Iterator (); }
+        Iterator depth_begin (unsigned int max_depth_arg = 0)
+        {
+          return Iterator (this, max_depth_arg? max_depth_arg : this->octree_depth_);
+        }
+
+        const Iterator depth_end (unsigned int max_depth_arg = 0)
+        {
+          return Iterator (this, max_depth_arg? max_depth_arg : this->octree_depth_, NULL);
+        }
 
         // Octree leaf node iterators
         typedef OctreeLeafNodeIterator<OctreeAdjacencyT> LeafNodeIterator;
         typedef const OctreeLeafNodeIterator<OctreeAdjacencyT> ConstLeafNodeIterator;
 
-        LeafNodeIterator leaf_begin (unsigned int max_depth_arg = 0) { return LeafNodeIterator (this, max_depth_arg); }
-        const LeafNodeIterator leaf_end () { return LeafNodeIterator (); }
+        LeafNodeIterator leaf_begin (unsigned int max_depth_arg = 0)
+        {
+          return LeafNodeIterator (this, max_depth_arg? max_depth_arg : this->octree_depth_);
+        }
+
+        const LeafNodeIterator leaf_end (unsigned int max_depth_arg = 0)
+        {
+          return LeafNodeIterator (this, max_depth_arg? max_depth_arg : this->octree_depth_, NULL);
+        }
 
         // BGL graph
         typedef boost::adjacency_list<boost::setS, boost::setS, boost::undirectedS, PointT, float> VoxelAdjacencyList;
@@ -247,9 +259,8 @@ namespace pcl
 
 }
 
-//#ifdef PCL_NO_PRECOMPILE
+// Note: Do not precompile this octree type because it is typically used with custom leaf containers.
 #include <pcl/octree/impl/octree_pointcloud_adjacency.hpp>
-//#endif
 
 #endif // PCL_OCTREE_POINTCLOUD_ADJACENCY_H_
 

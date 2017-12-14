@@ -128,7 +128,7 @@ pcl::visualization::PCLVisualizer::PCLVisualizer (const std::string &name, const
   , exit_main_loop_timer_callback_ ()
   , exit_callback_ ()
   , rens_ (vtkSmartPointer<vtkRendererCollection>::New ())
-  , win_ ()
+  , win_ (vtkSmartPointer<vtkRenderWindow>::New ())
   , style_ (vtkSmartPointer<pcl::visualization::PCLVisualizerInteractorStyle>::New ())
   , cloud_actor_map_ (new CloudActorMap)
   , shape_actor_map_ (new ShapeActorMap)
@@ -136,54 +136,15 @@ pcl::visualization::PCLVisualizer::PCLVisualizer (const std::string &name, const
   , camera_set_ ()
   , camera_file_loaded_ (false)
 {
-  // Create a Renderer
   vtkSmartPointer<vtkRenderer> ren = vtkSmartPointer<vtkRenderer>::New ();
-  ren->AddObserver (vtkCommand::EndEvent, update_fps_);
-  // Add it to the list of renderers
-  rens_->AddItem (ren);
-
-  // FPS callback
-  vtkSmartPointer<vtkTextActor> txt = vtkSmartPointer<vtkTextActor>::New ();
-  update_fps_->actor = txt;
-  update_fps_->pcl_visualizer = this;
-  update_fps_->decimated = false;
-  ren->AddActor (txt);
-  txt->SetInput("0 FPS");
-
-  // Create a RendererWindow
-  win_ = vtkSmartPointer<vtkRenderWindow>::New ();
-  win_->SetWindowName (name.c_str ());
-
-  // Get screen size
-  int scr_size_x = win_->GetScreenSize ()[0];
-  int scr_size_y = win_->GetScreenSize ()[1];
-  // Set the window size as 1/2 of the screen size
-  win_->SetSize (scr_size_x / 2, scr_size_y / 2);
-
-  // By default, don't use vertex buffer objects
-  use_vbos_ = false;
-
-  // Add all renderers to the window
-  rens_->InitTraversal ();
-  vtkRenderer* renderer = NULL;
-  while ((renderer = rens_->GetNextItem ()) != NULL)
-    win_->AddRenderer (renderer);
-
-  // Set renderer window in case no interactor is created
-  style_->setRenderWindow (win_);
-
-  // Create the interactor style
-  style_->Initialize ();
-  style_->setRendererCollection (rens_);
-  style_->setCloudActorMap (cloud_actor_map_);
-  style_->setShapeActorMap (shape_actor_map_);
-  style_->UseTimersOn ();
-  style_->setUseVbos(use_vbos_);
+  setupRenderer (ren);
+  setupFPSCallback (ren);
+  setupRenderWindow (name);
+  setDefaultWindowSizeAndPos ();
+  setupStyle ();
 
   if (create_interactor)
     createInteractor ();
-
-  win_->SetWindowName (name.c_str ());
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,7 +158,7 @@ pcl::visualization::PCLVisualizer::PCLVisualizer (int &argc, char **argv, const 
   , exit_main_loop_timer_callback_ ()
   , exit_callback_ ()
   , rens_ (vtkSmartPointer<vtkRendererCollection>::New ())
-  , win_ ()
+  , win_ (vtkSmartPointer<vtkRenderWindow>::New ())
   , style_ (style)
   , cloud_actor_map_ (new CloudActorMap)
   , shape_actor_map_ (new ShapeActorMap)
@@ -205,78 +166,84 @@ pcl::visualization::PCLVisualizer::PCLVisualizer (int &argc, char **argv, const 
   , camera_set_ ()
   , camera_file_loaded_ (false)
 {
-  // Create a Renderer
   vtkSmartPointer<vtkRenderer> ren = vtkSmartPointer<vtkRenderer>::New ();
-  ren->AddObserver (vtkCommand::EndEvent, update_fps_);
-  // Add it to the list of renderers
-  rens_->AddItem (ren);
+  setupRenderer (ren);
+  setupFPSCallback (ren);
+  setupRenderWindow (name);
+  setupStyle ();
+  setupCamera (argc, argv);
 
-  // FPS callback
-  vtkSmartPointer<vtkTextActor> txt = vtkSmartPointer<vtkTextActor>::New ();
-  update_fps_->actor = txt;
-  update_fps_->pcl_visualizer = this;
-  update_fps_->decimated = false;
-  ren->AddActor (txt);
-  txt->SetInput("0 FPS");
-
-  // Create a RendererWindow
-  win_ = vtkSmartPointer<vtkRenderWindow>::New ();
-  win_->SetWindowName (name.c_str ());
-
-  // By default, don't use vertex buffer objects
-  use_vbos_ = false;
-
-  // Add all renderers to the window
-  rens_->InitTraversal ();
-  vtkRenderer* renderer = NULL;
-  while ((renderer = rens_->GetNextItem ()) != NULL)
-    win_->AddRenderer (renderer);
-
-  // Set renderer window in case no interactor is created
-  style_->setRenderWindow (win_);
-
-  // Create the interactor style
-  style_->Initialize ();
-  style_->setRendererCollection (rens_);
-  style_->setCloudActorMap (cloud_actor_map_);
-  style_->setShapeActorMap (shape_actor_map_);
-  style_->UseTimersOn ();
-
-  // Get screen size
-  int scr_size_x = win_->GetScreenSize ()[0];
-  int scr_size_y = win_->GetScreenSize ()[1];
-
-  // Set default camera parameters
-  initCameraParameters ();
-
-  // Parse the camera settings and update the internal camera
-  camera_set_ = getCameraParameters (argc, argv);
-  // Calculate unique camera filename for camera parameter saving/restoring
-  if (!camera_set_)
-  {
-    std::string camera_file = getUniqueCameraFile (argc, argv);
-    if (!camera_file.empty ())
-    {
-      if (boost::filesystem::exists (camera_file) && style_->loadCameraParameters (camera_file))
-      {
-        camera_file_loaded_ = true;
-      }
-      else
-      {
-        style_->setCameraFile (camera_file);
-      }
-    }
-  }
-  // Set the window size as 1/2 of the screen size or the user given parameter
-  if (!camera_set_ && !camera_file_loaded_)
-  {
-    win_->SetSize (scr_size_x/2, scr_size_y/2);
-    win_->SetPosition (0, 0);
-  }
+  if(!camera_set_ && !camera_file_loaded_)
+    setDefaultWindowSizeAndPos ();
 
   if (create_interactor)
     createInteractor ();
 
+  //window name should be reset due to its reset somewhere in camera initialization
+  win_->SetWindowName (name.c_str ());
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+pcl::visualization::PCLVisualizer::PCLVisualizer (vtkSmartPointer<vtkRenderer> ren, vtkSmartPointer<vtkRenderWindow> wind,
+                                                  const std::string &name, const bool create_interactor)
+  : interactor_ ()
+  , update_fps_ (vtkSmartPointer<FPSCallback>::New ())
+#if !((VTK_MAJOR_VERSION == 5) && (VTK_MINOR_VERSION <= 4))
+  , stopped_ ()
+  , timer_id_ ()
+#endif
+  , exit_main_loop_timer_callback_ ()
+  , exit_callback_ ()
+  , rens_ (vtkSmartPointer<vtkRendererCollection>::New ())
+  , win_ (wind)
+  , style_ (vtkSmartPointer<pcl::visualization::PCLVisualizerInteractorStyle>::New ())
+  , cloud_actor_map_ (new CloudActorMap)
+  , shape_actor_map_ (new ShapeActorMap)
+  , coordinate_actor_map_ (new CoordinateActorMap)
+  , camera_set_ ()
+  , camera_file_loaded_ (false)
+{
+  setupRenderer (ren);
+  setupFPSCallback (ren);
+  setupRenderWindow (name);
+  setDefaultWindowSizeAndPos ();
+  setupStyle ();
+
+  if (create_interactor)
+    createInteractor ();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+pcl::visualization::PCLVisualizer::PCLVisualizer (int &argc, char **argv, vtkSmartPointer<vtkRenderer> ren, vtkSmartPointer<vtkRenderWindow> wind,
+                                                  const std::string &name, PCLVisualizerInteractorStyle* style, const bool create_interactor)
+  : interactor_ ()
+  , update_fps_ (vtkSmartPointer<FPSCallback>::New ())
+#if !((VTK_MAJOR_VERSION == 5) && (VTK_MINOR_VERSION <= 4))
+  , stopped_ ()
+  , timer_id_ ()
+#endif
+  , exit_main_loop_timer_callback_ ()
+  , exit_callback_ ()
+  , rens_ (vtkSmartPointer<vtkRendererCollection>::New ())
+  , win_ (wind)
+  , style_ (style)
+  , cloud_actor_map_ (new CloudActorMap)
+  , shape_actor_map_ (new ShapeActorMap)
+  , coordinate_actor_map_ (new CoordinateActorMap)
+  , camera_set_ ()
+  , camera_file_loaded_ (false)
+{
+  setupRenderer (ren);
+  setupFPSCallback (ren);
+  setupRenderWindow (name);
+  setupStyle ();
+  setupCamera (argc, argv);
+  if (!camera_set_ && !camera_file_loaded_)
+    setDefaultWindowSizeAndPos ();
+  if (create_interactor)
+    createInteractor ();
+
+  //window name should be reset due to its reset somewhere in camera initialization
   win_->SetWindowName (name.c_str ());
 }
 
@@ -388,6 +355,103 @@ pcl::visualization::PCLVisualizer::setupInteractor (
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+void pcl::visualization::PCLVisualizer::setupRenderer (vtkSmartPointer<vtkRenderer> ren)
+{
+  if (!ren)
+    PCL_ERROR ("Passed pointer to renderer is null");
+
+  ren->AddObserver (vtkCommand::EndEvent, update_fps_);
+  // Add it to the list of renderers
+  rens_->AddItem (ren);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+void pcl::visualization::PCLVisualizer::setupFPSCallback (const vtkSmartPointer<vtkRenderer>& ren)
+{
+  if (!ren)
+    PCL_ERROR ("Passed pointer to renderer is null");
+  // FPS callback
+  vtkSmartPointer<vtkTextActor> txt = vtkSmartPointer<vtkTextActor>::New ();
+  update_fps_->actor = txt;
+  update_fps_->pcl_visualizer = this;
+  update_fps_->decimated = false;
+  ren->AddActor (txt);
+  txt->SetInput ("0 FPS");
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+void pcl::visualization::PCLVisualizer::setupRenderWindow (const std::string& name)
+{
+  if (!win_)
+    PCL_ERROR ("Pointer to render window is null");
+
+  win_->SetWindowName (name.c_str ());
+
+  // By default, don't use vertex buffer objects
+  use_vbos_ = false;
+
+  // Add all renderers to the window
+  rens_->InitTraversal ();
+  vtkRenderer* renderer = NULL;
+  while ((renderer = rens_->GetNextItem ()) != NULL)
+    win_->AddRenderer (renderer);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+void pcl::visualization::PCLVisualizer::setupStyle ()
+{
+  if (!style_)
+    PCL_ERROR ("Pointer to style is null");
+
+  // Set rend erer window in case no interactor is created
+  style_->setRenderWindow (win_);
+
+  // Create the interactor style
+  style_->Initialize ();
+  style_->setRendererCollection (rens_);
+  style_->setCloudActorMap (cloud_actor_map_);
+  style_->setShapeActorMap (shape_actor_map_);
+  style_->UseTimersOn ();
+  style_->setUseVbos (use_vbos_);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+void pcl::visualization::PCLVisualizer::setDefaultWindowSizeAndPos ()
+{
+  if (!win_)
+    PCL_ERROR ("Pointer to render window is null");
+  int scr_size_x = win_->GetScreenSize ()[0];
+  int scr_size_y = win_->GetScreenSize ()[1];
+  win_->SetSize (scr_size_x / 2, scr_size_y / 2);
+  win_->SetPosition (0, 0);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+void pcl::visualization::PCLVisualizer::setupCamera (int &argc, char **argv)
+{
+  initCameraParameters ();
+
+  // Parse the camera settings and update the internal camera
+  camera_set_ = getCameraParameters (argc, argv);
+  // Calculate unique camera filename for camera parameter saving/restoring
+  if (!camera_set_)
+  {
+    std::string camera_file = getUniqueCameraFile (argc, argv);
+    if (!camera_file.empty ())
+    {
+      if (boost::filesystem::exists (camera_file) && style_->loadCameraParameters (camera_file))
+      {
+        camera_file_loaded_ = true;
+      }
+      else
+      {
+        style_->setCameraFile (camera_file);
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 pcl::visualization::PCLVisualizer::~PCLVisualizer ()
 {
   if (interactor_ != NULL)
@@ -470,7 +534,8 @@ pcl::visualization::PCLVisualizer::spin ()
   resetStoppedFlag ();
   // Render the window before we start the interactor
   win_->Render ();
-  interactor_->Start ();
+  if (interactor_)
+    interactor_->Start ();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -486,6 +551,9 @@ pcl::visualization::PCLVisualizer::spinOnce (int time, bool force_redraw)
       return;
     }
   #endif
+
+  if (!interactor_)
+    return;
 
   if (time <= 0)
     time = 1;
@@ -539,31 +607,6 @@ pcl::visualization::PCLVisualizer::removeOrientationMarkerWidgetAxes ()
   {
     pcl::console::print_error ("Attempted to delete Orientation Widget Axes which does not exist!\n");
   }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-void
-pcl::visualization::PCLVisualizer::addCoordinateSystem (double scale, int viewport)
-{
-  addCoordinateSystem (scale, "reference", viewport);
-}
-
-void
-pcl::visualization::PCLVisualizer::addCoordinateSystem (double scale, float x, float y, float z, int viewport)
-{
-  addCoordinateSystem (scale, x, y, z, "reference", viewport);
-}
-
-void
-pcl::visualization::PCLVisualizer::addCoordinateSystem (double scale, const Eigen::Affine3f& t, int viewport)
-{
-  addCoordinateSystem (scale, t, "reference", viewport);
-}
-
-bool
-pcl::visualization::PCLVisualizer::removeCoordinateSystem (int viewport)
-{
-  return (removeCoordinateSystem ("reference", viewport));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -851,23 +894,51 @@ pcl::visualization::PCLVisualizer::removeShape (const std::string &id, int viewp
 bool
 pcl::visualization::PCLVisualizer::removeText3D (const std::string &id, int viewport)
 {
-  // Check to see if the given ID entry exists
-  ShapeActorMap::iterator am_it = shape_actor_map_->find (id);
+  if (viewport < 0)
+    return false;
 
-  if (am_it == shape_actor_map_->end ())
+  bool success = true;
+
+  // If there is no custom viewport and the viewport number is not 0, exit
+  if (rens_->GetNumberOfItems () <= viewport)
   {
-    //pcl::console::print_warn (stderr, "[removeSape] Could not find any shape with id <%s>!\n", id.c_str ());
-    return (false);
+    PCL_ERROR ("[removeText3D] The viewport [%d] doesn't exist (id <%s>)! ",
+               viewport,
+               id.c_str ());
+    return false;
   }
 
-  // Remove it from all renderers
-  if (removeActorFromRenderer (am_it->second, viewport))
+  // check all or an individual viewport for a similar id
+  rens_->InitTraversal ();
+  for (size_t i = viewport; rens_->GetNextItem () != NULL; ++i)
   {
-    // Remove the pointer/ID pair to the global actor map
-    shape_actor_map_->erase (am_it);
-    return (true);
+    const std::string uid = id + std::string (i, '*');
+    ShapeActorMap::iterator am_it = shape_actor_map_->find (uid);
+
+    // was it found
+    if (am_it == shape_actor_map_->end ())
+    {
+      if (viewport > 0)
+        return (false);
+
+      continue;
+    }
+
+    // Remove it from all renderers
+    if (removeActorFromRenderer (am_it->second, i))
+    {
+      // Remove the pointer/ID pair to the global actor map
+      shape_actor_map_->erase (am_it);
+      if (viewport > 0)
+        return (true);
+
+      success &= true;
+    }
+    else
+      success = false;
   }
-  return (false);
+
+  return success;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -1619,6 +1690,58 @@ pcl::visualization::PCLVisualizer::setShapeRenderingProperties (
 /////////////////////////////////////////////////////////////////////////////////////////////
 bool
 pcl::visualization::PCLVisualizer::setShapeRenderingProperties (
+    int property, double val1, double val2, const std::string &id, int)
+{
+  // Check to see if this ID entry already exists (has it been already added to the visualizer?)
+  ShapeActorMap::iterator am_it = shape_actor_map_->find (id);
+
+  if (am_it == shape_actor_map_->end ())
+  {
+    pcl::console::print_error ("[setShapeRenderingProperties] Could not find any shape with id <%s>!\n", id.c_str ());
+    return (false);
+  }
+  // Get the actor pointer
+  vtkActor* actor = vtkActor::SafeDownCast (am_it->second);
+  if (!actor)
+    return (false);
+
+  switch (property)
+  {
+    case PCL_VISUALIZER_LUT_RANGE:
+    {
+      // Check if the mapper has scalars
+      if (!actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ())
+        break;
+      
+      // Check that scalars are not unisgned char (i.e. check if a LUT is used to colormap scalars assuming vtk ColorMode is Default)
+      if (actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ()->IsA ("vtkUnsignedCharArray"))
+        break;
+
+      // Check that range values are correct
+      if (val1 >= val2)
+      {
+        PCL_WARN ("[setShapeRenderingProperties] Range max must be greater than range min!\n");
+        return (false);
+      }
+      
+      // Update LUT
+      actor->GetMapper ()->GetLookupTable ()->SetRange (val1, val2);
+      actor->GetMapper()->UseLookupTableScalarRangeOn ();
+      style_->updateLookUpTableDisplay (false);
+      break;
+    }
+    default:
+    {
+      pcl::console::print_error ("[setShapeRenderingProperties] Unknown property (%d) specified!\n", property);
+      return (false);
+    }
+  }
+  return (true);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+bool
+pcl::visualization::PCLVisualizer::setShapeRenderingProperties (
     int property, double value, const std::string &id, int)
 {
   // Check to see if this ID entry already exists (has it been already added to the visualizer?)
@@ -1740,17 +1863,45 @@ pcl::visualization::PCLVisualizer::setShapeRenderingProperties (
       if (!actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ())
         break;
 
-      double range[2];
-      actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ()->GetRange (range);
+      // Check that scalars are not unisgned char (i.e. check if a LUT is used to colormap scalars assuming vtk ColorMode is Default)
+      if (actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ()->IsA ("vtkUnsignedCharArray"))
+        break;
+      
+      // Get range limits from existing LUT
+      double *range;
+      range = actor->GetMapper ()->GetLookupTable ()->GetRange ();
+      
       actor->GetMapper ()->ScalarVisibilityOn ();
       actor->GetMapper ()->SetScalarRange (range[0], range[1]);
-      vtkSmartPointer<vtkLookupTable> table = vtkSmartPointer<vtkLookupTable>::New ();
-      getColormapLUT (static_cast<LookUpTableRepresentationProperties>(static_cast<int>(value)), table);
+      vtkSmartPointer<vtkLookupTable> table;
+      if (!pcl::visualization::getColormapLUT (static_cast<LookUpTableRepresentationProperties>(static_cast<int>(value)), table))
+        break;
       table->SetRange (range[0], range[1]);
       actor->GetMapper ()->SetLookupTable (table);
       style_->updateLookUpTableDisplay (false);
-      break;
     }
+    case PCL_VISUALIZER_LUT_RANGE:
+    {
+      // Check if the mapper has scalars
+      if (!actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ())
+        break;
+      
+      // Check that scalars are not unisgned char (i.e. check if a LUT is used to colormap scalars assuming vtk ColorMode is Default)
+      if (actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ()->IsA ("vtkUnsignedCharArray"))
+        break;
+
+      switch (int(value))
+      {
+        case PCL_VISUALIZER_LUT_RANGE_AUTO:
+          double range[2];
+          actor->GetMapper ()->GetInput ()->GetPointData ()->GetScalars ()->GetRange (range);
+          actor->GetMapper ()->GetLookupTable ()->SetRange (range[0], range[1]);
+          actor->GetMapper ()->UseLookupTableScalarRangeOn ();
+          style_->updateLookUpTableDisplay (false);
+          break;
+      }
+      break;
+    }    
     default:
     {
       pcl::console::print_error ("[setShapeRenderingProperties] Unknown property (%d) specified!\n", property);
@@ -2837,10 +2988,10 @@ pcl::visualization::PCLVisualizer::updateColorHandlerIndex (const std::string &i
     return (false);
   }
 
-  int color_handler_size = int (am_it->second.color_handlers.size ());
-  if (index >= color_handler_size)
+  size_t color_handler_size = am_it->second.color_handlers.size ();
+  if (!(size_t (index) < color_handler_size))
   {
-    pcl::console::print_warn (stderr, "[updateColorHandlerIndex] Invalid index <%d> given! Maximum range is: 0-%lu.\n", index, static_cast<unsigned long> (am_it->second.color_handlers.size ()));
+    pcl::console::print_warn (stderr, "[updateColorHandlerIndex] Invalid index <%d> given! Index must be less than %d.\n", index, int (color_handler_size));
     return (false);
   }
   // Get the handler
@@ -3315,7 +3466,7 @@ pcl::visualization::PCLVisualizer::addTextureMesh (const pcl::TextureMesh &mesh,
   int texture_units = tex_manager->GetNumberOfTextureUnits ();
   if ((mesh.tex_materials.size () > 1) && (texture_units > 1))
   {
-    if (texture_units < mesh.tex_materials.size ())
+    if ((size_t) texture_units < mesh.tex_materials.size ())
       PCL_WARN ("[PCLVisualizer::addTextureMesh] GPU texture units %d < mesh textures %d!\n",
                 texture_units, mesh.tex_materials.size ());
     // Load textures
@@ -3466,6 +3617,14 @@ void
 pcl::visualization::PCLVisualizer::setShowFPS (bool show_fps)
 {
   update_fps_->actor->SetVisibility (show_fps);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////
+float
+pcl::visualization::PCLVisualizer::getFPS () const
+{
+  return (update_fps_->last_fps);
 }
 
 
@@ -4310,14 +4469,18 @@ void
 pcl::visualization::PCLVisualizer::close ()
 {
 #if ((VTK_MAJOR_VERSION == 5) && (VTK_MINOR_VERSION <= 4))
-  interactor_->stopped = true;
-  // This tends to close the window...
-  interactor_->stopLoop ();
+  if (interactor_)
+  {
+    interactor_->stopped = true;
+    // This tends to close the window...
+    interactor_->stopLoop ();
+  }
 #else
   stopped_ = true;
   // This tends to close the window...
   win_->Finalize ();
-  interactor_->TerminateApp ();
+  if (interactor_)
+    interactor_->TerminateApp ();
 #endif
 }
 
@@ -4409,10 +4572,11 @@ pcl::visualization::PCLVisualizer::ExitMainLoopTimerCallback::Execute (
   if (timer_id != right_timer_id)
     return;
   // Stop vtk loop and send notification to app to wake it up
+  if (pcl_visualizer->interactor_)
 #if ((VTK_MAJOR_VERSION == 5) && (VTK_MINOR_VERSION <= 4))
-  pcl_visualizer->interactor_->stopLoop ();
+    pcl_visualizer->interactor_->stopLoop ();
 #else
-  pcl_visualizer->interactor_->TerminateApp ();
+    pcl_visualizer->interactor_->TerminateApp ();
 #endif
 }
   
@@ -4424,13 +4588,17 @@ pcl::visualization::PCLVisualizer::ExitCallback::Execute (
   if (event_id != vtkCommand::ExitEvent)
     return;
 #if ((VTK_MAJOR_VERSION == 5) && (VTK_MINOR_VERSION <= 4))
-  pcl_visualizer->interactor_->stopped = true;
-  // This tends to close the window...
-  pcl_visualizer->interactor_->stopLoop ();
+  if (pcl_visualizer->interactor_)
+  {
+    pcl_visualizer->interactor_->stopped = true;
+    // This tends to close the window...
+    pcl_visualizer->interactor_->stopLoop ();
+  }
 #else
   pcl_visualizer->stopped_ = true;
   // This tends to close the window...
-  pcl_visualizer->interactor_->TerminateApp ();
+  if (pcl_visualizer->interactor_)
+    pcl_visualizer->interactor_->TerminateApp ();
 #endif
 }
 
@@ -4442,9 +4610,9 @@ pcl::visualization::PCLVisualizer::FPSCallback::Execute (
     vtkObject* caller, unsigned long, void*)
 {
   vtkRenderer *ren = reinterpret_cast<vtkRenderer *> (caller);
-  float fps = 1.0f / static_cast<float> (ren->GetLastRenderTimeInSeconds ());
+  last_fps = 1.0f / static_cast<float> (ren->GetLastRenderTimeInSeconds ());
   char buf[128];
-  sprintf (buf, "%.1f FPS", fps);
+  sprintf (buf, "%.1f FPS", last_fps);
   actor->SetInput (buf);
 }
 

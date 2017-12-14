@@ -39,11 +39,6 @@
 #ifndef PCL_OCTREE_ITERATOR_HPP_
 #define PCL_OCTREE_ITERATOR_HPP_
 
-#include <vector>
-#include <assert.h>
-
-#include <pcl/common/common.h>
-
 namespace pcl
 {
   namespace octree
@@ -64,12 +59,6 @@ namespace pcl
     {
       // initialize iterator
       this->reset ();
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////
-    template<typename OctreeT>
-    OctreeDepthFirstIterator<OctreeT>::~OctreeDepthFirstIterator ()
-    {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
@@ -200,12 +189,6 @@ namespace pcl
 
       // initialize iterator
       this->reset ();
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////
-    template<typename OctreeT>
-    OctreeBreadthFirstIterator<OctreeT>::~OctreeBreadthFirstIterator ()
-    {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////
