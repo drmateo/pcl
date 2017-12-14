@@ -233,6 +233,14 @@ namespace pcl
   }
 
   std::ostream& 
+  operator << (std::ostream& os, const GRSDSignature21& p)
+  {
+    for (int i = 0; i < 21; ++i)
+    os << (i == 0 ? "(" : "") << p.histogram[i] << (i < 20 ? ", " : ")");
+    return (os);
+  }
+
+  std::ostream&
   operator << (std::ostream& os, const Boundary& p)
   {
     os << p.boundary_point;

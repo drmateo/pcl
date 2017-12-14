@@ -189,6 +189,10 @@ namespace pcl
             /** \brief Empty destructor */
             virtual ~FeatureContainer () {}
 
+            /** \brief Get a string representation of the name of this class. */
+            inline const std::string&
+            getClassName () const { return (std::string("CorrespondenceRejectorFeatures")); }
+
             inline void 
             setSourceFeature (const FeatureCloudConstPtr &source_features)
             {
