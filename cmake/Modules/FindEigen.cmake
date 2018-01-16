@@ -12,7 +12,7 @@ pkg_check_modules(PC_EIGEN eigen3)
 set(EIGEN_DEFINITIONS ${PC_EIGEN_CFLAGS_OTHER})
 
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
-    set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /usr /usr/local)
+    set(CMAKE_INCLUDE_PATH /usr /usr/local ${CMAKE_INCLUDE_PATH})
 endif(CMAKE_SYSTEM_NAME STREQUAL Linux)
 if(APPLE)
   list(APPEND CMAKE_INCLUDE_PATH /opt/local)
