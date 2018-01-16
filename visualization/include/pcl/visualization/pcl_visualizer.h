@@ -103,7 +103,8 @@ namespace pcl
           */
         PCLVisualizer (const std::string &name = "", const bool create_interactor = true);
 
-        /** \brief PCL Visualizer constructor.
+        /** \brief PCL Visualizer constructor. It looks through the passed argv arguments to find the "-cam *.cam" argument. 
+          *        If the search failed, the name for cam file is calculated with boost uuid. If there is no such file, camera is not initilalized.
           * \param[in] argc
           * \param[in] argv
           * \param[in] name the window name (empty by default)
@@ -1179,6 +1180,19 @@ namespace pcl
         getPointCloudRenderingProperties (int property, double &value,
                                           const std::string &id = "cloud");
         
+       /** \brief Get the rendering properties of a PointCloud
+         * \param[in] property the property type
+         * \param[out] val1 the resultant property value
+         * \param[out] val2 the resultant property value
+         * \param[out] val3 the resultant property value
+         * \param[in] id the point cloud object id (default: cloud)
+         * \return True if the property is effectively retrieved.
+         * \note The list of properties can be found in \ref pcl::visualization::LookUpTableRepresentationProperties.
+         */
+        bool
+        getPointCloudRenderingProperties (RenderingProperties property, double &val1, double &val2, double &val3,
+                                          const std::string &id = "cloud");
+
         /** \brief Set whether the point cloud is selected or not 
          *  \param[in] selected whether the cloud is selected or not (true = selected)
          *  \param[in] id the point cloud object id (default: cloud)
