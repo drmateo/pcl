@@ -85,8 +85,8 @@
 
 #include <pcl/common/angles.h>
 
-#include "tsdf_volume.h"
-#include "tsdf_volume.hpp"
+#include <pcl/gpu/kinfu/tsdf_volume.h>
+#include <pcl/gpu/kinfu/tsdf_volume.hpp>
 
 #ifdef HAVE_OPENCV  
   #include <opencv2/highgui/highgui.hpp>
@@ -287,7 +287,7 @@ write_depth_image(const float* depth_buffer)
   
   std::stringstream ss;
   ss <<"depth_image.png" ;   
-  cv::imwrite(ss.str()  , cv_mat);     
+  cv::imwrite(ss.str()  , cv_mat);      // @suppress("Invalid arguments")
   
   delete [] depth_img;
 }
@@ -319,7 +319,7 @@ write_rgb_image(const uint8_t* rgb_buffer)
   
   std::stringstream ss;
   ss <<"rgb_image.png" ;   
-  cv::imwrite(ss.str()  , cv_mat);   
+  cv::imwrite(ss.str()  , cv_mat);    // @suppress("Invalid arguments")
   
   delete [] rgb_img;
 }
@@ -361,7 +361,7 @@ write_depth_image_uint(unsigned short* depth_img)
   IplImage *cv_ipl = cvCreateImage( cvSize(640 ,480), IPL_DEPTH_16U, 1);
   cv::Mat cv_mat(cv_ipl);
   cv_mat.data =(uchar *) depth_img;
-  cv::imwrite("depth_image_uint.png", cv_mat);     
+  cv::imwrite("depth_image_uint.png", cv_mat);      // @suppress("Invalid arguments")
 }
 
 
@@ -798,7 +798,7 @@ struct SceneCloudView
       if (cube_added_)
           cloud_viewer_.removeShape("cube");
       else
-        cloud_viewer_.addCube(size*0.5, Eigen::Quaternionf::Identity(), size(0), size(1), size(2));
+        cloud_viewer_.addCube(size*0.5, Eigen::Quaternionf::Identity(), size(0), size(1), size(2)); // @suppress("Invalid arguments")
 
       cube_added_ = !cube_added_;
   }
@@ -1032,7 +1032,7 @@ struct KinFuApp
     range_likelihood_->setUseColor (true);  
 
     camera_->set(0.471703, 1.59862, 3.10937, 0, 0.418879, -12.2129);
-    camera_->set_pitch(0.418879); // not sure why this is here:
+    camera_->set_pitch(0.418879); // not sure why this is here: // @suppress("Method cannot be resolved")
 
     cout << "About to read: "<< plyfile << endl;   
     load_PolygonMesh_model (plyfile);  

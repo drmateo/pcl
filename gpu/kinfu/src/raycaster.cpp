@@ -36,7 +36,7 @@
  */
 
 #include <pcl/gpu/kinfu/raycaster.h>
-#include <pcl/gpu/kinfu/tsdf_volume.h>
+#include <pcl/gpu/kinfu/tsdf_volume_internal.h>
 #include "internal.h"
 
 using namespace pcl;
@@ -96,6 +96,44 @@ pcl::gpu::RayCaster::run(const TsdfVolume& volume, const Affine3f& camera_pose)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void
+pcl::gpu::RayCaster::run(const TsdfVolume& volume, const Affine3f& camera_pose, const Affine3f& global_pose,
+                         const Eigen::Vector3f& pt1, const Eigen::Vector3f& pt2, float lengthsq, float radius_sq)
+{
+  camera_pose_.linear() = camera_pose.linear();
+  camera_pose_.translation() = camera_pose.translation();
+  volume_size_ = volume.getSize();
+  device::Intr intr (fx_, fy_, cx_, cy_);
+
+  vertex_map_.create(rows * 3, cols);
+  normal_map_.create(rows * 3, cols);
+
+  typedef Matrix<float, 3, 3, RowMajor> Matrix3f;
+
+  Matrix3f R = camera_pose_.linear();
+  Vector3f t = camera_pose_.translation();
+
+  const  Mat33& device_R   = device_cast<const Mat33>(R);
+  const float3& device_t   = device_cast<const float3>(t);
+
+  Matrix3f Rglobal = global_pose.linear();
+  Matrix3f Rglobal_inv = Rglobal.inverse();
+  Vector3f tglobal = global_pose.translation();
+
+  const Mat33& device_Rglob_inv = device_cast<const Mat33> (Rglobal_inv);
+  const float3& device_tglob = device_cast<const float3> (tglobal);
+
+  const float3& device_pt1 = device_cast<const float3> (pt1);
+  const float3& device_pt2 = device_cast<const float3> (pt2);
+
+  float tranc_dist = volume.getTsdfTruncDist();
+  device::raycast (intr, device_R, device_t, tranc_dist, device_cast<const float3>(volume_size_),
+                   device_Rglob_inv, device_tglob,
+                   device_pt1, device_pt2, lengthsq, radius_sq,
+                   volume.data(), vertex_map_, normal_map_);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
 pcl::gpu::RayCaster::generateSceneView(View& view) const
 {
   generateSceneView(view, volume_size_ * (-3.f));
@@ -125,6 +163,42 @@ pcl::gpu::RayCaster::generateDepthImage(Depth& depth) const
   Vector3f t = camera_pose_.translation();
   
   device::generateDepth(device_cast<Mat33>(R_inv), device_cast<const float3>(t), vertex_map_, depth);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+pcl::gpu::RayCaster::generateDepthImage(const Eigen::Affine3f& T_base, float z_min, float z_max, Depth& depth) const
+{
+  device::Intr intr (fx_, fy_, cx_, cy_);
+
+  depth.create(rows, cols);
+
+  Matrix<float, 3, 3, RowMajor> R_base = T_base.linear().inverse() ;
+  Vector3f t_base = T_base.translation();
+
+  Matrix<float, 3, 3, RowMajor> R_inv = camera_pose_.linear().inverse();
+  Vector3f t = camera_pose_.translation();
+
+  device::generateDepth(intr, device_cast<Mat33>(R_inv), device_cast<const float3>(t), device_cast<Mat33>(R_base), device_cast<const float3>(t_base), z_min, z_max, vertex_map_, depth);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+pcl::gpu::RayCaster::generateDepthImage(const Eigen::Affine3f& T_base, float z_min, float z_max,
+                                        const Eigen::Vector3f& pt1, const Eigen::Vector3f& pt2, float lengthsq, float radius_sq,  Depth& depth) const
+{
+  device::Intr intr (fx_, fy_, cx_, cy_);
+
+  depth.create(rows, cols);
+
+  Matrix<float, 3, 3, RowMajor> R_base = T_base.linear() ;
+  Vector3f t_base = T_base.translation();
+
+  Matrix<float, 3, 3, RowMajor> R_inv = camera_pose_.linear().inverse();
+  Vector3f t = camera_pose_.translation();
+
+  device::generateDepth(intr, device_cast<Mat33>(R_inv), device_cast<const float3>(t), device_cast<Mat33>(R_base), device_cast<const float3>(t_base),
+                        z_min, z_max, device_cast<const float3>(pt1), device_cast<const float3>(pt2), lengthsq, radius_sq, vertex_map_, depth);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

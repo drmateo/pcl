@@ -249,7 +249,7 @@ namespace pcl
     PCL_EXPORTS void 
     integrateTsdfVolume (const PtrStepSz<ushort>& depth_raw, const Intr& intr, const float3& volume_size, 
                          const Mat33& Rcurr_inv, const float3& tcurr, float tranc_dist, PtrStep<short2> volume, DeviceArray2D<float>& depthRawScaled);
-    
+
     /** \brief Initialzied color volume
       * \param[out] color_volume color volume for initialization
       */
@@ -288,6 +288,17 @@ namespace pcl
     raycast (const Intr& intr, const Mat33& Rcurr, const float3& tcurr, float tranc_dist, const float3& volume_size, 
              const PtrStep<short2>& volume, MapArr& vmap, MapArr& nmap);
 
+
+
+    void
+    raycast (const Intr& intr, const Mat33& Rcurr, const float3& tcurr, float tranc_dist, const float3& volume_size,
+             const Mat33& Rglobal_inv, const float3& tglobal,
+             const float3& pt1, const float3& pt2, float lengthsq, float radius_sq,
+             const PtrStep<short2>& volume, MapArr& vmap, MapArr& nmap);
+
+
+
+
     /** \brief Renders 3D image of the scene
       * \param[in] vmap vetex map
       * \param[in] nmap normals map
@@ -306,6 +317,19 @@ namespace pcl
       */
     void
     generateDepth (const Mat33& R_inv, const float3& t, const MapArr& vmap, DepthMap& dst);
+
+    /** \brief Renders depth image from give pose
+      * \param[in] R_inv inverse camera rotation
+      * \param[in] t camera translation
+      * \param[in] vmap vertex map
+      * \param[out] dst buffer where depth is generated
+      */
+    void
+    generateDepth (const Intr& intr, const Mat33& R_inv, const float3& t, const Mat33& R_base, const float3& t_base, float z_min, float z_max, const MapArr& vmap, DepthMap& dst);
+
+    void
+    generateDepth (const Intr& intr, const Mat33& R_inv, const float3& t, const Mat33& R_base, const float3& t_base, float z_min, float z_max,
+                   const float3& pt1, const float3& pt2, float lengthsq, float radius_sq, const MapArr& vmap, DepthMap& dst);
 
      /** \brief Paints 3D view with color map
       * \param[in] colors rgb color frame from OpenNI   
@@ -333,13 +357,42 @@ namespace pcl
     // Cloud extraction 
 
     /** \brief Perform point cloud extraction from tsdf volume
+      * \param[in] volume tsdf volume
+      * \param[in] volume_size size of the volume
+      * \param[out] output buffer large enought to store point cloud
+      * \return number of point stored to passed buffer
+      */
+    PCL_EXPORTS size_t
+    extractCloud (const PtrStep<short2>& volume, const float3& volume_size, PtrSz<PointType> output);
+
+    /** \brief Perform point cloud extraction from tsdf volume
       * \param[in] volume tsdf volume 
       * \param[in] volume_size size of the volume
       * \param[out] output buffer large enought to store point cloud
       * \return number of point stored to passed buffer
       */ 
     PCL_EXPORTS size_t 
-    extractCloud (const PtrStep<short2>& volume, const float3& volume_size, PtrSz<PointType> output);
+    extractCloud (const PtrStep<short2>& volume, const float3& volume_size, const Mat33& Rcurr_inv, const float3& tcurr, PtrSz<PointType> output);
+
+    /** \brief Perform point cloud extraction from tsdf volume
+      * \param[in] volume tsdf volume
+      * \param[in] volume_size size of the volume
+      * \param[out] output buffer large enought to store point cloud
+      * \return number of point stored to passed buffer
+      */
+    PCL_EXPORTS size_t
+    extractCloud (const PtrStep<short2>& volume, const float3& volume_size, const Mat33& Rcurr_inv, const float3& tcurr,
+                  const float3& pt1, const float3& pt2, float lengthsq, float radius_sq, PtrSz<PointType> output);
+
+    /** \brief Perform point cloud extraction from tsdf volume
+      * \param[in] volume tsdf volume
+      * \param[in] volume_size size of the volume
+      * \param[out] output buffer large enought to store point cloud
+      * \return number of point stored to passed buffer
+      */
+    PCL_EXPORTS size_t
+    extractCloud (const PtrStep<short2>& volume, const float3& volume_size, const Mat33& Rcurr_inv, const float3& tcurr,
+                  const float3& pt1, const float3& pt2, float lengthsq, float radius_sq, float z_min, float z_max, PtrSz<PointType> output);
 
     /** \brief Performs normals computation for given poins using tsdf volume
       * \param[in] volume tsdf volume

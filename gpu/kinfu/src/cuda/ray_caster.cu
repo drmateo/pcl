@@ -235,31 +235,206 @@ namespace pcl
               float3 n;
 
               t = vetex_found;
-              t.x += cell_size.x;
+              t.x += cell_size.x / 2.f;
               float Fx1 = interpolateTrilineary (t);
 
               t = vetex_found;
-              t.x -= cell_size.x;
+              t.x -= cell_size.x / 2.f;
               float Fx2 = interpolateTrilineary (t);
 
               n.x = (Fx1 - Fx2);
 
               t = vetex_found;
-              t.y += cell_size.y;
+              t.y += cell_size.y / 2.f;
               float Fy1 = interpolateTrilineary (t);
 
               t = vetex_found;
-              t.y -= cell_size.y;
+              t.y -= cell_size.y / 2.f;
               float Fy2 = interpolateTrilineary (t);
 
               n.y = (Fy1 - Fy2);
 
               t = vetex_found;
-              t.z += cell_size.z;
+              t.z += cell_size.z / 2.f;
               float Fz1 = interpolateTrilineary (t);
 
               t = vetex_found;
-              t.z -= cell_size.z;
+              t.z -= cell_size.z / 2.f;
+              float Fz2 = interpolateTrilineary (t);
+
+              n.z = (Fz1 - Fz2);
+
+              n = normalized (n);
+
+              nmap.ptr (y       )[x] = n.x;
+              nmap.ptr (y + rows)[x] = n.y;
+              nmap.ptr (y + 2 * rows)[x] = n.z;
+            }
+            break;
+          }
+
+        }          /* for(;;)  */
+      }
+    };
+
+    struct RayCasterV2 : RayCaster
+    {
+        Mat33 Rglobal_inv;
+        float3 tglobal;
+
+        float3 pt1;
+        float3 pt2;
+        float lengthsq;
+        float radius_sq;
+
+        __device__ __forceinline__ float
+        CylTest( float3 testpt ) const
+        {
+        	float dx, dy, dz;	// vector d  from line segment point 1 to point 2
+        	float pdx, pdy, pdz;	// vector pd from point 1 to test point
+        	float dot, dsq;
+
+        	dx = pt2.x - pt1.x;	// translate so pt1 is origin.  Make vector from
+        	dy = pt2.y - pt1.y;     // pt1 to pt2.  Need for this is easily eliminated
+        	dz = pt2.z - pt1.z;
+
+        	pdx = testpt.x - pt1.x;		// vector from pt1 to test point.
+        	pdy = testpt.y - pt1.y;
+        	pdz = testpt.z - pt1.z;
+
+        	dot = pdx * dx + pdy * dy + pdz * dz;
+
+        	if( dot < 0.0f || dot > lengthsq )
+        	{
+        		return( -1.0f );
+        	}
+        	else
+        	{
+        		dsq = (pdx*pdx + pdy*pdy + pdz*pdz) - dot*dot/lengthsq;
+
+        		if( dsq > radius_sq )
+        		{
+        			return( -1.0f );
+        		}
+        		else
+        		{
+        			return( dsq );		// return distance squared to axis
+        		}
+        	}
+        }
+
+      __device__ __forceinline__ void
+      operator () () const
+      {
+        int x = threadIdx.x + blockIdx.x * CTA_SIZE_X;
+        int y = threadIdx.y + blockIdx.y * CTA_SIZE_Y;
+
+        if (x >= cols || y >= rows)
+          return;
+
+        vmap.ptr (y)[x] = numeric_limits<float>::quiet_NaN ();
+        nmap.ptr (y)[x] = numeric_limits<float>::quiet_NaN ();
+
+        float3 ray_start = tcurr;
+        float3 ray_next = Rcurr * get_ray_next (x, y) + tcurr;
+
+        float3 ray_dir = normalized (ray_next - ray_start);
+
+        //ensure that it isn't a degenerate case
+        ray_dir.x = (ray_dir.x == 0.f) ? 1e-15 : ray_dir.x;
+        ray_dir.y = (ray_dir.y == 0.f) ? 1e-15 : ray_dir.y;
+        ray_dir.z = (ray_dir.z == 0.f) ? 1e-15 : ray_dir.z;
+
+        // computer time when entry and exit volume
+        float time_start_volume = getMinTime (volume_size, ray_start, ray_dir);
+        float time_exit_volume = getMaxTime (volume_size, ray_start, ray_dir);
+
+        const float min_dist = 0.f;         //in meters
+        time_start_volume = fmax (time_start_volume, min_dist);
+        if (time_start_volume >= time_exit_volume)
+          return;
+
+        float time_curr = time_start_volume;
+        int3 g = getVoxel (ray_start + ray_dir * time_curr);
+        g.x = max (0, min (g.x, VOLUME_X - 1));
+        g.y = max (0, min (g.y, VOLUME_Y - 1));
+        g.z = max (0, min (g.z, VOLUME_Z - 1));
+
+        float tsdf = readTsdf (g.x, g.y, g.z);
+
+        //infinite loop guard
+        const float max_time = 3 * (volume_size.x + volume_size.y + volume_size.z);
+
+        for (; time_curr < max_time; time_curr += time_step)
+        {
+          float3 p = ray_start + ray_dir * (time_curr + time_step) ;
+
+          float3 pt = Rglobal_inv * (p - tglobal);           // check if point belong to robot
+		  if(CylTest( pt ) != -1.f )
+			  continue;
+
+          float tsdf_prev = tsdf;
+
+          int3 g = getVoxel (  ray_start + ray_dir * (time_curr + time_step)  );
+          if (!checkInds (g))
+            break;
+
+          tsdf = readTsdf (g.x, g.y, g.z);
+
+          if (tsdf_prev < 0.f && tsdf > 0.f)
+            break;
+
+          if (tsdf_prev > 0.f && tsdf < 0.f)           //zero crossing
+          {
+            float Ftdt = interpolateTrilineary (ray_start, ray_dir, time_curr + time_step);
+            if (isnan (Ftdt))
+              break;
+
+            float Ft = interpolateTrilineary (ray_start, ray_dir, time_curr);
+            if (isnan (Ft))
+              break;
+
+            //float Ts = time_curr - time_step * Ft/(Ftdt - Ft);
+            float Ts = time_curr - time_step * Ft / (Ftdt - Ft);
+
+            float3 vetex_found = ray_start + ray_dir * Ts;
+
+            vmap.ptr (y       )[x] = vetex_found.x;
+            vmap.ptr (y + rows)[x] = vetex_found.y;
+            vmap.ptr (y + 2 * rows)[x] = vetex_found.z;
+
+            int3 g = getVoxel ( ray_start + ray_dir * time_curr );
+            if (g.x > 1 && g.y > 1 && g.z > 1 && g.x < VOLUME_X - 2 && g.y < VOLUME_Y - 2 && g.z < VOLUME_Z - 2)
+            {
+              float3 t;
+              float3 n;
+
+              t = vetex_found;
+              t.x += cell_size.x / 2.f;
+              float Fx1 = interpolateTrilineary (t);
+
+              t = vetex_found;
+              t.x -= cell_size.x / 2.f;
+              float Fx2 = interpolateTrilineary (t);
+
+              n.x = (Fx1 - Fx2);
+
+              t = vetex_found;
+              t.y += cell_size.y / 2.f;
+              float Fy1 = interpolateTrilineary (t);
+
+              t = vetex_found;
+              t.y -= cell_size.y / 2.f;
+              float Fy2 = interpolateTrilineary (t);
+
+              n.y = (Fy1 - Fy2);
+
+              t = vetex_found;
+              t.z += cell_size.z / 2.f;
+              float Fz1 = interpolateTrilineary (t);
+
+              t = vetex_found;
+              t.z -= cell_size.z / 2.f;
               float Fz2 = interpolateTrilineary (t);
 
               n.z = (Fz1 - Fz2);
@@ -280,6 +455,11 @@ namespace pcl
     __global__ void
     rayCastKernel (const RayCaster rc) {
       rc ();
+    }
+
+    __global__ void
+    rayCastKernel (const RayCasterV2 rc) {
+    	rc ();
     }
   }
 }
@@ -312,6 +492,57 @@ pcl::device::raycast (const Intr& intr, const Mat33& Rcurr, const float3& tcurr,
   rc.volume = volume;
   rc.vmap = vmap;
   rc.nmap = nmap;
+
+  dim3 block (RayCaster::CTA_SIZE_X, RayCaster::CTA_SIZE_Y);
+  dim3 grid (divUp (rc.cols, block.x), divUp (rc.rows, block.y));
+
+  rayCastKernel<<<grid, block>>>(rc);
+  cudaSafeCall (cudaGetLastError ());
+  //cudaSafeCall(cudaDeviceSynchronize());
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void
+pcl::device::raycast (const Intr& intr, const Mat33& Rcurr, const float3& tcurr,
+                      float tranc_dist, const float3& volume_size,
+                      const Mat33& Rglobal_inv, const float3& tglobal,
+                      const float3& pt1, const float3& pt2, float lengthsq, float radius_sq,
+                      const PtrStep<short2>& volume,
+                      MapArr& vmap, MapArr& nmap)
+{
+  RayCasterV2 rc;
+
+  rc.Rcurr = Rcurr;
+  rc.tcurr = tcurr;
+
+  rc.time_step = tranc_dist * 0.8f;
+
+  rc.volume_size = volume_size;
+
+  rc.cell_size.x = volume_size.x / VOLUME_X;
+  rc.cell_size.y = volume_size.y / VOLUME_Y;
+  rc.cell_size.z = volume_size.z / VOLUME_Z;
+
+  rc.cols = vmap.cols ();
+  rc.rows = vmap.rows () / 3;
+
+  rc.intr = intr;
+
+  rc.Rglobal_inv = Rglobal_inv;
+  rc.tglobal = tglobal;
+
+  rc.pt1 = pt1;
+  rc.pt2 = pt2;
+  rc.lengthsq = lengthsq;
+  rc.radius_sq = radius_sq;
+
+  rc.volume = volume;
+  rc.vmap = vmap;
+  rc.nmap = nmap;
+
+
+
 
   dim3 block (RayCaster::CTA_SIZE_X, RayCaster::CTA_SIZE_Y);
   dim3 grid (divUp (rc.cols, block.x), divUp (rc.rows, block.y));

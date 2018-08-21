@@ -10,7 +10,7 @@ if(WITH_OPENNI)
 		include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 	endif(NOT VTK_FOUND)
 
-	FILE(GLOB hdrs "*.h*")
+	FILE(GLOB hdrs "*.h*" include/pcl/gpu/kinfu/tools/*.h*)
 	include_directories(${VTK_INCLUDE_DIRS} ${OPENNI_INCLUDE_DIRS})       
 
 	## KINECT FUSION

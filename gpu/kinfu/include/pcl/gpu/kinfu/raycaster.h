@@ -89,6 +89,10 @@ namespace pcl
       void 
       run(const TsdfVolume& volume, const Eigen::Affine3f& camera_pose);
 
+      void
+      run(const TsdfVolume& volume, const Eigen::Affine3f& camera_pose, const Eigen::Affine3f& global_pose,
+          const Eigen::Vector3f& pt1, const Eigen::Vector3f& pt2, float lengthsq, float radius_sq);
+
       /** \brief Generates scene view using data raycasted by run method. So call it before.
         * \param[out] view output array for RGB image        
         */
@@ -108,6 +112,13 @@ namespace pcl
       void
       generateDepthImage(Depth& depth) const;
       
+      void
+      generateDepthImage(const Eigen::Affine3f& T_base, float z_min, float z_max, Depth& depth) const;
+
+      void
+      generateDepthImage(const Eigen::Affine3f& T_base, float z_min, float z_max,
+                         const Eigen::Vector3f& pt1, const Eigen::Vector3f& pt2, float lengthsq, float radius_sq, Depth& depth) const;
+
       /** \brief Returns raycasterd vertex map. */ 
       MapArr
       getVertexMap() const;

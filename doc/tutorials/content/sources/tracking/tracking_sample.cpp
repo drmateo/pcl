@@ -199,7 +199,7 @@ main (int argc, char** argv)
 
   //Set parameters
   new_cloud_  = false;
-  downsampling_grid_size_ =  0.002;
+  downsampling_grid_size_ = 0.002;
 
   std::vector<double> default_step_covariance = std::vector<double> (6, 0.015 * 0.015);
   default_step_covariance[3] *= 40.0;

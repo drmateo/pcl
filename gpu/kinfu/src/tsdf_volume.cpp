@@ -35,7 +35,7 @@
  *
  */
 
-#include <pcl/gpu/kinfu/tsdf_volume.h>
+#include <pcl/gpu/kinfu/tsdf_volume_internal.h>
 #include "internal.h"
 #include <algorithm>
 #include <Eigen/Core>
@@ -82,10 +82,11 @@ pcl::gpu::TsdfVolume::setTsdfTruncDist (float distance)
   float cy = size_(1) / resolution_(1);
   float cz = size_(2) / resolution_(2);
 
-  tranc_dist_ = std::max (distance, 2.1f * std::max (cx, std::max (cy, cz)));  
+//  tranc_dist_ = std::max (distance, 2.1f * std::max (cx, std::max (cy, cz)));
+  tranc_dist_ = distance ;
 
-  /*if (tranc_dist_ != distance)
-	  PCL_WARN ("Tsdf truncation distance can't be less than 2 * voxel_size. Passed value '%f', but setting minimal possible '%f'.\n", distance, tranc_dist_);*/
+//  if (tranc_dist_ != distance)
+//	  PCL_WARN ("Tsdf truncation distance can't be less than 2 * voxel_size. Passed value '%f', but setting minimal possible '%f'.\n", distance, tranc_dist_);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,7 +118,7 @@ pcl::gpu::TsdfVolume::getResolution() const
 const Eigen::Vector3f
 pcl::gpu::TsdfVolume::getVoxelSize() const
 {    
-  return size_.array () / resolution_.array().cast<float>();
+  return size_.array () / resolution_.array().cast<float>(); // @suppress("Method cannot be resolved")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,10 +169,11 @@ pcl::gpu::TsdfVolume::fetchCloudHost (PointCloud<PointType>& cloud, bool connect
         int W = reinterpret_cast<short2*>(&tmp)->y;
         int F = reinterpret_cast<short2*>(&tmp)->x;
 
-        if (W == 0 || F == DIVISOR)
+        if (W <= 0 || F == DIVISOR)
           continue;
 
-        Vector3f V = ((Array3i(x, y, z).cast<float>() + 0.5f) * cell_size).matrix ();
+
+        Vector3f V = ((Array3i(x, y, z).cast<float>() + 0.5f) * cell_size).matrix (); // @suppress("Method cannot be resolved")
 
         if (connected26)
         {
@@ -183,12 +185,12 @@ pcl::gpu::TsdfVolume::fetchCloudHost (PointCloud<PointType>& cloud, bool connect
 
               int Wn = reinterpret_cast<short2*>(&tmp)->y;
               int Fn = reinterpret_cast<short2*>(&tmp)->x;
-              if (Wn == 0 || Fn == DIVISOR)
+              if (Wn <= 0 || Fn == DIVISOR)
                 continue;
 
               if ((F > 0 && Fn < 0) || (F < 0 && Fn > 0))
               {
-                Vector3f Vn = ((Array3i (x+dx, y+dy, z+dz).cast<float>() + 0.5f) * cell_size).matrix ();
+                Vector3f Vn = ((Array3i (x+dx, y+dy, z+dz).cast<float>() + 0.5f) * cell_size).matrix (); // @suppress("Method cannot be resolved")
                 Vector3f point = (V * (float)abs (Fn) + Vn * (float)abs (F)) / (float)(abs (F) + abs (Fn));
 
                 pcl::PointXYZ xyz;
@@ -207,12 +209,12 @@ pcl::gpu::TsdfVolume::fetchCloudHost (PointCloud<PointType>& cloud, bool connect
 
               int Wn = reinterpret_cast<short2*>(&tmp)->y;
               int Fn = reinterpret_cast<short2*>(&tmp)->x;
-              if (Wn == 0 || Fn == DIVISOR)
+              if (Wn <= 0 || Fn == DIVISOR)
                 continue;
 
               if ((F > 0 && Fn < 0) || (F < 0 && Fn > 0))
               {
-                Vector3f Vn = ((Array3i (x+dx, y+dy, z+dz).cast<float>() + 0.5f) * cell_size).matrix ();
+                Vector3f Vn = ((Array3i (x+dx, y+dy, z+dz).cast<float>() + 0.5f) * cell_size).matrix (); // @suppress("Method cannot be resolved")
                 Vector3f point = (V * (float)abs(Fn) + Vn * (float)abs(F))/(float)(abs(F) + abs (Fn));
 
                 pcl::PointXYZ xyz;
@@ -239,12 +241,12 @@ pcl::gpu::TsdfVolume::fetchCloudHost (PointCloud<PointType>& cloud, bool connect
 
             int Wn = reinterpret_cast<short2*>(&tmp)->y;
             int Fn = reinterpret_cast<short2*>(&tmp)->x;
-            if (Wn == 0 || Fn == DIVISOR)
+            if (Wn <= 0 || Fn == DIVISOR)
               continue;
 
             if ((F > 0 && Fn < 0) || (F < 0 && Fn > 0))
             {
-              Vector3f Vn = ((Array3i (x+dx, y+dy, z+dz).cast<float>() + 0.5f) * cell_size).matrix ();
+              Vector3f Vn = ((Array3i (x+dx, y+dy, z+dz).cast<float>() + 0.5f) * cell_size).matrix (); // @suppress("Method cannot be resolved")
               Vector3f point = (V * (float)abs (Fn) + Vn * (float)abs (F)) / (float)(abs (F) + abs (Fn));
 
               pcl::PointXYZ xyz;
@@ -275,6 +277,60 @@ pcl::gpu::TsdfVolume::fetchCloud (DeviceArray<PointType>& cloud_buffer) const
   size_t size = device::extractCloud (volume_, device_volume_size, cloud_buffer);
   return (DeviceArray<PointType> (cloud_buffer.ptr (), size));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+pcl::gpu::DeviceArray<pcl::gpu::TsdfVolume::PointType>
+pcl::gpu::TsdfVolume::fetchCloud (DeviceArray<PointType>& cloud_buffer, Eigen::Matrix<float, 3, 3, Eigen::RowMajor>&  Rcurr_inv, Vector3f&  tcurr) const
+{
+  if (cloud_buffer.empty ())
+    cloud_buffer.create (DEFAULT_CLOUD_BUFFER_SIZE);
+
+
+
+  pcl::device::Mat33& device_Rcurr_inv = pcl::device::device_cast<pcl::device::Mat33> (Rcurr_inv);
+  float3& device_tcurr = pcl::device::device_cast<float3> (tcurr);
+
+  float3 device_volume_size = device_cast<const float3> (size_);
+  size_t size = device::extractCloud (volume_, device_volume_size, device_Rcurr_inv, device_tcurr, cloud_buffer);
+  return (DeviceArray<PointType> (cloud_buffer.ptr (), size));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+pcl::gpu::DeviceArray<pcl::gpu::TsdfVolume::PointType>
+pcl::gpu::TsdfVolume::fetchCloud (DeviceArray<PointType>& cloud_buffer, Eigen::Matrix<float, 3, 3, Eigen::RowMajor>&  Rcurr_inv, Vector3f&  tcurr,
+                                  Eigen::Vector3f& pt1, Eigen::Vector3f& pt2, float lengthsq, float radius_sq) const
+{
+  if (cloud_buffer.empty ())
+    cloud_buffer.create (DEFAULT_CLOUD_BUFFER_SIZE);
+
+  pcl::device::Mat33& device_Rcurr_inv = pcl::device::device_cast<pcl::device::Mat33> (Rcurr_inv);
+  float3& device_tcurr = pcl::device::device_cast<float3> (tcurr);
+  float3& device_pt1 = pcl::device::device_cast<float3> (pt1);
+  float3& device_pt2 = pcl::device::device_cast<float3> (pt2);
+
+  float3 device_volume_size = device_cast<const float3> (size_);
+  size_t size = device::extractCloud (volume_, device_volume_size, device_Rcurr_inv, device_tcurr, device_pt1, device_pt2, lengthsq, radius_sq, cloud_buffer);
+  return (DeviceArray<PointType> (cloud_buffer.ptr (), size));
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+pcl::gpu::DeviceArray<pcl::gpu::TsdfVolume::PointType>
+pcl::gpu::TsdfVolume::fetchCloud (DeviceArray<PointType>& cloud_buffer, Eigen::Matrix<float, 3, 3, Eigen::RowMajor>&  Rcurr_inv, Vector3f&  tcurr,
+                                  Eigen::Vector3f& pt1, Eigen::Vector3f& pt2, float lengthsq, float radius_sq, float z_min, float z_max) const
+{
+  if (cloud_buffer.empty ())
+    cloud_buffer.create (DEFAULT_CLOUD_BUFFER_SIZE);
+
+  pcl::device::Mat33& device_Rcurr_inv = pcl::device::device_cast<pcl::device::Mat33> (Rcurr_inv);
+  float3& device_tcurr = pcl::device::device_cast<float3> (tcurr);
+  float3& device_pt1 = pcl::device::device_cast<float3> (pt1);
+  float3& device_pt2 = pcl::device::device_cast<float3> (pt2);
+
+  float3 device_volume_size = device_cast<const float3> (size_);
+  size_t size = device::extractCloud (volume_, device_volume_size, device_Rcurr_inv, device_tcurr, device_pt1, device_pt2, lengthsq, radius_sq, z_min, z_max, cloud_buffer);
+  return (DeviceArray<PointType> (cloud_buffer.ptr (), size));
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

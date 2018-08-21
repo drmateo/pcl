@@ -566,6 +566,7 @@ pcl::visualization::PCLVisualizer::spinOnce (int time, bool force_redraw)
     interactor_->Start ();
     interactor_->DestroyTimer (exit_main_loop_timer_callback_->right_timer_id);
   );
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

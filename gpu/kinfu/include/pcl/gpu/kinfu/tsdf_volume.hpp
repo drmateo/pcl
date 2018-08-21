@@ -38,7 +38,6 @@
 #define TSDF_VOLUME_HPP_
 
 #include "tsdf_volume.h"
-
 #include <fstream>
 
 
@@ -219,7 +218,7 @@ pcl::TSDFVolume<VoxelT, WeightT>::getVoxelCoordAndOffset (const PointT &point,
   coord(2) = round(voxel_coord(2));
 
   // offset of point wrt. to voxel center
-  offset = (voxel_coord - coord.cast<float>().array() * voxel_size).matrix();
+  offset = (voxel_coord - coord.cast<float>().array() * voxel_size).matrix(); // @suppress("Method cannot be resolved") // @suppress("Invalid arguments")
 }
 
 
@@ -525,6 +524,6 @@ pcl::TSDFVolume<VoxelT, WeightT>::integrateVolume (const Eigen::MatrixXf &depth_
   std::cout << std::endl;
 }*/
 
-#define PCL_INSTANTIATE_TSDFVolume(VT,WT) template class PCL_EXPORTS pcl::reconstruction::TSDFVolume<VT,WT>;
+#define PCL_INSTANTIATE_TSDFVolume(VT,WT) template class PCL_EXPORTS pcl::TSDFVolume<VT,WT>;
 
 #endif /* TSDF_VOLUME_HPP_ */

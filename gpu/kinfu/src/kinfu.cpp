@@ -349,7 +349,7 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
             }
             //float maxc = A.maxCoeff();
 
-            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>();
+            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>(); // @suppress("Invalid arguments")
             //Eigen::Matrix<float, 6, 1> result = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 
             float alpha = result (0);
@@ -558,13 +558,13 @@ namespace pcl
 {
   namespace gpu
   {
-    PCL_EXPORTS void 
+    void
     paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight = 0.5f)
     {
       device::paint3DView(rgb24, view, colors_weight);
     }
 
-    PCL_EXPORTS void
+    void
     mergePointNormal(const DeviceArray<PointXYZ>& cloud, const DeviceArray<Normal>& normals, DeviceArray<PointNormal>& output)
     {
       const size_t size = min(cloud.size(), normals.size());
@@ -620,7 +620,7 @@ namespace pcl
         vth *= theta;
         rx *= vth; ry *= vth; rz *= vth;
       }
-      return Eigen::Vector3d(rx, ry, rz).cast<float>();
+      return Eigen::Vector3d(rx, ry, rz).cast<float>(); // @suppress("Invalid arguments")
     }
   }
 }

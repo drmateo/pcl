@@ -68,8 +68,8 @@
 
 #include <pcl/common/angles.h>
 
-#include "tsdf_volume.h"
-#include "tsdf_volume.hpp"
+#include <pcl/gpu/kinfu/tsdf_volume.h>
+#include <pcl/gpu/kinfu/tsdf_volume.hpp>
 
 #include "camera_pose.h"
 
@@ -213,7 +213,7 @@ struct SampledScopeTime : public StopWatch
     {
       boost::posix_time::ptime endtime_ = boost::posix_time::microsec_clock::local_time();
       cout << "Average frame time = " << time_ms_ / EACH << "ms ( " << 1000.f * EACH / time_ms_ << "fps )"
-           << "( real: " << 1000.f * EACH / (endtime_-starttime_).total_milliseconds() << "fps )"  << endl;
+           << "( real: " << 1000.f * EACH / (endtime_-starttime_).total_milliseconds() << "fps )"  << endl; // @suppress("Method cannot be resolved") // @suppress("Invalid overload")
       time_ms_ = 0;
       starttime_ = endtime_;
     }
@@ -554,7 +554,7 @@ struct SceneCloudView
       if (cube_added_)
           cloud_viewer_->removeShape("cube");
       else
-        cloud_viewer_->addCube(size*0.5, Eigen::Quaternionf::Identity(), size(0), size(1), size(2));
+        cloud_viewer_->addCube(size*0.5, Eigen::Quaternionf::Identity(), size(0), size(1), size(2)); // @suppress("Invalid arguments")
 
       cube_added_ = !cube_added_;
   }
