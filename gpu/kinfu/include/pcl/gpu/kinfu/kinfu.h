@@ -41,9 +41,9 @@
 #include <pcl/pcl_macros.h>
 #include <pcl/gpu/containers/device_array.h>
 #include <pcl/gpu/kinfu/pixel_rgb.h>
+#include <pcl/gpu/kinfu/tsdf_volume.h>
 #include <pcl/gpu/kinfu/color_volume.h>
 #include <pcl/gpu/kinfu/raycaster.h>
-#include <pcl/gpu/kinfu/tsdf_volume_internal.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <Eigen/Core>
@@ -66,18 +66,6 @@ namespace pcl
       */
     class PCL_EXPORTS KinfuTracker
     {
-      /** \brief Number of pyramid levels */
-      enum { LEVELS = 3 };
-
-      /** \brief ICP Correspondences  map type */
-      typedef DeviceArray2D<int> CorespMap;
-
-      /** \brief Vertex or Normal Map type */
-      typedef DeviceArray2D<float> MapArr;
-
-      typedef Eigen::Matrix<float, 3, 3, Eigen::RowMajor> Matrix3frm;
-      typedef Eigen::Vector3f Vector3f;
-
       public:
         /** \brief Pixel type for rendered image. */
         typedef pcl::gpu::PixelRGB PixelRGB;
@@ -113,7 +101,7 @@ namespace pcl
         getDepthIntrinsics (float& fx, float& fy, float& cx, float& cy);
         
 
-        /** \brief Sets initial camera pose relative to volume coordiante space
+        /** \brief Sets initial camera pose relative to volume coordinate space
           * \param[in] pose Initial camera pose
           */
         void
@@ -212,34 +200,20 @@ namespace pcl
         /** \brief Disables ICP forever */
         void disableIcp();
 
-        void
-        getCameraIntr (float& fx, float& fy, float& cx, float& cy) { fx = fx_, fy = fy_, cx = cx_, cy = cy_; }
+      private:
+        
+        /** \brief Number of pyramid levels */
+        enum { LEVELS = 3 };
 
-        void
-        getInitialCameraPose (Matrix3frm& init_Rcam, Vector3f& init_tcam) { init_Rcam = init_Rcam_ ; init_tcam = init_tcam_ ; }
+        /** \brief ICP Correspondences  map type */
+        typedef DeviceArray2D<int> CorespMap;
 
-        std::vector<DepthMap>&
-        depthsCurr () { return depths_curr_; }
+        /** \brief Vertex or Normal Map type */
+        typedef DeviceArray2D<float> MapArr;
+        
+        typedef Eigen::Matrix<float, 3, 3, Eigen::RowMajor> Matrix3frm;
+        typedef Eigen::Vector3f Vector3f;
 
-        int&
-        globalTime () { return global_time_ ; }
-
-        std::vector<Matrix3frm>&
-        RMats () { return rmats_; }
-
-        std::vector<Vector3f>&
-        tVecs () { return tvecs_; }
-
-        DeviceArray2D<float>&
-        depthRawScaled() { return depthRawScaled_; }
-
-        std::vector<MapArr>&
-        vmapsGPrev () { return vmaps_g_prev_; }
-
-        std::vector<MapArr>&
-        nmapsGPrev () { return nmaps_g_prev_; }
-
-      protected:
         /** \brief Height of input depth image. */
         int rows_;
         /** \brief Width of input depth image. */
@@ -307,7 +281,7 @@ namespace pcl
         /** \brief Camera movement threshold. TSDF is integrated iff a camera movement metric exceedes some value. */
         float integration_metric_threshold_;
 
-        /** \brief ICP step is completelly disabled. Inly integratio now */
+        /** \brief ICP step is completely disabled. Only integration now. */
         bool disable_icp_;
         
         /** \brief Allocates all GPU internal buffers.
@@ -326,14 +300,7 @@ public:
 EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     };
-
-    PCL_EXPORTS void paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight);
-
-    PCL_EXPORTS void mergePointNormal(const DeviceArray<PointXYZ>& cloud, const DeviceArray<Normal>& normals, DeviceArray<PointNormal>& output);
-
-    Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix);
   }
-}
-
+};
 
 #endif /* PCL_KINFU_KINFUTRACKER_HPP_ */

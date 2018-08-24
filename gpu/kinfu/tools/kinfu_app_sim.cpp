@@ -85,8 +85,8 @@
 
 #include <pcl/common/angles.h>
 
-#include <pcl/gpu/kinfu/tsdf_volume.h>
-#include <pcl/gpu/kinfu/tsdf_volume.hpp>
+#include "tsdf_volume.h"
+#include "tsdf_volume.hpp"
 
 #ifdef HAVE_OPENCV  
   #include <opencv2/highgui/highgui.hpp>
@@ -287,7 +287,7 @@ write_depth_image(const float* depth_buffer)
   
   std::stringstream ss;
   ss <<"depth_image.png" ;   
-  cv::imwrite(ss.str()  , cv_mat);      // @suppress("Invalid arguments")
+  cv::imwrite(ss.str()  , cv_mat);     
   
   delete [] depth_img;
 }
@@ -319,7 +319,7 @@ write_rgb_image(const uint8_t* rgb_buffer)
   
   std::stringstream ss;
   ss <<"rgb_image.png" ;   
-  cv::imwrite(ss.str()  , cv_mat);    // @suppress("Invalid arguments")
+  cv::imwrite(ss.str()  , cv_mat);   
   
   delete [] rgb_img;
 }
@@ -361,7 +361,7 @@ write_depth_image_uint(unsigned short* depth_img)
   IplImage *cv_ipl = cvCreateImage( cvSize(640 ,480), IPL_DEPTH_16U, 1);
   cv::Mat cv_mat(cv_ipl);
   cv_mat.data =(uchar *) depth_img;
-  cv::imwrite("depth_image_uint.png", cv_mat);      // @suppress("Invalid arguments")
+  cv::imwrite("depth_image_uint.png", cv_mat);     
 }
 
 
@@ -396,7 +396,7 @@ display_tic_toc (vector<double> &tic_toc,const string &fun_name)
 void
 capture (Eigen::Isometry3d pose_in,unsigned short* depth_buffer_mm,const uint8_t* color_buffer)//, string point_cloud_fname)
 {
-  // No reference image - but this is kept for compatability with range_test_v2:
+  // No reference image - but this is kept for compatibility with range_test_v2:
   float* reference = new float[range_likelihood_->getRowHeight() * range_likelihood_->getColWidth()];
   //const float* depth_buffer = range_likelihood_->getDepthBuffer();
   // Copy one image from our last as a reference.
@@ -798,7 +798,7 @@ struct SceneCloudView
       if (cube_added_)
           cloud_viewer_.removeShape("cube");
       else
-        cloud_viewer_.addCube(size*0.5, Eigen::Quaternionf::Identity(), size(0), size(1), size(2)); // @suppress("Invalid arguments")
+        cloud_viewer_.addCube(size*0.5, Eigen::Quaternionf::Identity(), size(0), size(1), size(2));
 
       cube_added_ = !cube_added_;
   }
@@ -1032,7 +1032,7 @@ struct KinFuApp
     range_likelihood_->setUseColor (true);  
 
     camera_->set(0.471703, 1.59862, 3.10937, 0, 0.418879, -12.2129);
-    camera_->set_pitch(0.418879); // not sure why this is here: // @suppress("Method cannot be resolved")
+    camera_->set_pitch(0.418879); // not sure why this is here:
 
     cout << "About to read: "<< plyfile << endl;   
     load_PolygonMesh_model (plyfile);  
@@ -1078,7 +1078,7 @@ struct KinFuApp
       PtrStepSz<const KinfuTracker::PixelRGB> rgb24_sim = PtrStepSz<const KinfuTracker::PixelRGB>(height, width, color_buf_, width);
       tic_toc.push_back (getTime ());
       
-      if (1==0){ // live capture - probably doesnt work anymore, left in here for comparison:
+      if (1==0){ // live capture - probably doesn't work anymore, left in here for comparison:
 	bool has_frame = evaluation_ptr_ ? evaluation_ptr_->grab(i, depth) : capture_.grab (depth, rgb24);      
 	if (!has_frame)
 	{
@@ -1382,7 +1382,7 @@ print_cli_help ()
   cout << "    --registration, -r              : enable registration mode" << endl; 
   cout << "    --integrate-colors, -ic         : enable color integration mode ( allows to get cloud with colors )" << endl;   
   cout << "    -volume_suze <size_in_meters>   : define integration volume size" << endl;   
-  cout << "    -dev <deivce>, -oni <oni_file>  : select depth source. Default will be selected if not specified" << endl;
+  cout << "    -dev <device>, -oni <oni_file>  : select depth source. Default will be selected if not specified" << endl;
   cout << "";
   cout << " For RGBD benchmark (Requires OpenCV):" << endl; 
   cout << "    -eval <eval_folder> [-match_file <associations_file_in_the_folder>]" << endl;

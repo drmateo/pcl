@@ -222,7 +222,7 @@ pcl::gpu::KinfuTracker::allocateBufffers (int rows, int cols)
     coresps_[i].create (pyr_rows, pyr_cols);
   }  
   depthRawScaled_.create (rows, cols);
-  // see estimate tranform for the magic numbers
+  // see estimate transform for the magic numbers
   gbuf_.create (27, 20*60);
   sumbuf_.create (27);
 }
@@ -297,7 +297,7 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
       }
       else
       {
-        Rcurr = Rprev; // tranform to global coo for ith camera pose
+        Rcurr = Rprev; // transform to global coo for ith camera pose
         tcurr = tprev;
       }
       {
@@ -349,7 +349,7 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
             }
             //float maxc = A.maxCoeff();
 
-            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>(); // @suppress("Invalid arguments")
+            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>();
             //Eigen::Matrix<float, 6, 1> result = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 
             float alpha = result (0);
@@ -365,7 +365,7 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
           }
         }
       }
-      //save tranform
+      //save transform
       rmats_.push_back (Rcurr);
       tvecs_.push_back (tcurr);
   } 
@@ -558,13 +558,13 @@ namespace pcl
 {
   namespace gpu
   {
-    void
+    PCL_EXPORTS void 
     paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight = 0.5f)
     {
       device::paint3DView(rgb24, view, colors_weight);
     }
 
-    void
+    PCL_EXPORTS void
     mergePointNormal(const DeviceArray<PointXYZ>& cloud, const DeviceArray<Normal>& normals, DeviceArray<PointNormal>& output)
     {
       const size_t size = min(cloud.size(), normals.size());
@@ -620,7 +620,7 @@ namespace pcl
         vth *= theta;
         rx *= vth; ry *= vth; rz *= vth;
       }
-      return Eigen::Vector3d(rx, ry, rz).cast<float>(); // @suppress("Invalid arguments")
+      return Eigen::Vector3d(rx, ry, rz).cast<float>();
     }
   }
 }

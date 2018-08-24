@@ -124,13 +124,13 @@ namespace pcl
           return;
 
         short2 *pos = volume.ptr (y) + x;
-        int elem_step = volume.step * VOLUME_Z / sizeof(*pos);
+        int elem_step = volume.step * VOLUME_Y / sizeof(*pos);
 
         for (int z = 0; z < VOLUME_Z; ++z, pos += elem_step)
         {
           float3 v_g = getVoxelGCoo (x, y, z);            //3 // p
 
-          //tranform to curr cam coo space
+          //transform to curr cam coo space
           float3 v = Rcurr_inv * (v_g - tcurr);           //4
 
           int2 coo;           //project to current cam
@@ -145,11 +145,11 @@ namespace pcl
             {
               float xl = (coo.x - intr.cx) / intr.fx;
               float yl = (coo.y - intr.cy) / intr.fy;
-              float lambda_inv = rsqrtf (xl * xl + yl * yl + 1.0);
+              float lambda_inv = rsqrtf (xl * xl + yl * yl + 1);
 
-              float sdf = 1000.0 * norm (tcurr - v_g) * lambda_inv - Dp; //mm
+              float sdf = 1000 * norm (tcurr - v_g) * lambda_inv - Dp; //mm
 
-              sdf *= (-1.0);
+              sdf *= (-1);
 
               if (sdf >= -tranc_dist_mm)
               {
@@ -163,34 +163,11 @@ namespace pcl
 
                 const int Wrk = 1;
 
+                float tsdf_new = (tsdf_prev * weight_prev + Wrk * tsdf) / (weight_prev + Wrk);
                 int weight_new = min (weight_prev + Wrk, MAX_WEIGHT);
-                float tsdf_new = (tsdf_prev * (float)weight_prev + (float)weight_new * tsdf) / (float)(weight_prev + weight_new);
 
                 pack_tsdf (tsdf_new, weight_new, *pos);
               }
-
-//              float sdf = 1000.0 * norm (tcurr - v_g) - Dp; //mm
-//
-////              sdf *= (-1.0);
-//
-//              float tsdf = 0 ;
-//              if (sdf > 0)
-//            	  tsdf = fmin (1.f, sdf / tranc_dist_mm);
-//              else
-//            	  tsdf = fmax (-1.f, sdf / 0.0001);
-//
-//              int weight_prev;
-//              float tsdf_prev;
-//
-//              //read and unpack
-//              unpack_tsdf (*pos, tsdf_prev, weight_prev);
-//
-//              const int Wrk = 1;
-//
-//              int weight_new = min (weight_prev + Wrk, MAX_WEIGHT);
-//              float tsdf_new = (tsdf_prev * (float)weight_prev + (float)weight_new * tsdf) / (float)(weight_prev + weight_new);
-//
-//              pack_tsdf (tsdf_new, weight_new, *pos);
             }
           }
         }
@@ -266,8 +243,8 @@ namespace pcl
 
               const int Wrk = 1;
 
+              float tsdf_new = (tsdf_prev * weight_prev + Wrk * tsdf) / (weight_prev + Wrk);
               int weight_new = min (weight_prev + Wrk, Tsdf::MAX_WEIGHT);
-              float tsdf_new = (tsdf_prev * weight_prev + weight_new * tsdf) / (weight_prev + weight_new);
 
               pack_tsdf (tsdf_new, weight_new, *pos);
             }
@@ -299,12 +276,12 @@ pcl::device::integrateTsdfVolume (const PtrStepSz<ushort>& depth_raw, const Intr
   tsdf.tcurr = tcurr;
   tsdf.depth_raw = depth_raw;
 
-  tsdf.tranc_dist_mm = tranc_dist*1000.0; //mm
+  tsdf.tranc_dist_mm = tranc_dist*1000; //mm
 
   dim3 block (Tsdf::CTA_SIZE_X, Tsdf::CTA_SIZE_Y);
   dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
 
-#if 1
+#if 0
    //tsdf2<<<grid, block>>>(volume, tranc_dist, Rcurr_inv, tcurr, intr, depth_raw, tsdf.cell_size);
    integrateTsdfKernel<<<grid, block>>>(tsdf);
 #endif
@@ -402,8 +379,8 @@ namespace pcl
 
             const int Wrk = 1;
 
+            float tsdf_new = (tsdf_prev * weight_prev + Wrk * tsdf) / (weight_prev + Wrk);
             int weight_new = min (weight_prev + Wrk, Tsdf::MAX_WEIGHT);
-            float tsdf_new = (tsdf_prev * weight_prev + tsdf * weight_new) / (weight_prev + weight_new);
 
             pack_tsdf (tsdf_new, weight_new, *pos);
           }
@@ -522,8 +499,8 @@ namespace pcl
 
                         const int Wrk = 1;
 
+                        float tsdf_new = (tsdf_prev * weight_prev + Wrk * tsdf) / (weight_prev + Wrk);
                         int weight_new = min (weight_prev + Wrk, Tsdf::MAX_WEIGHT);
-                        float tsdf_new = (tsdf_prev * weight_prev + weight_new * tsdf) / (weight_prev + weight_new);
 
                         pack_tsdf (tsdf_new, weight_new, *pos);
                     }

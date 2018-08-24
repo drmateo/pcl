@@ -51,8 +51,8 @@
 
 #include "../src/internal.h"
 
-#include <pcl/gpu/kinfu/tsdf_volume.h>
-#include <pcl/gpu/kinfu/tsdf_volume.hpp>
+#include "tsdf_volume.h"
+#include "tsdf_volume.hpp"
 
 using namespace std;
 namespace pc = pcl::console;
@@ -92,7 +92,7 @@ public:
     pcl::device::initVolume (device_volume_);
 
     // truncation distance
-    Eigen::Vector3f voxel_size = volume_size.array() / volume_res.array().cast<float>(); // @suppress("Method cannot be resolved")
+    Eigen::Vector3f voxel_size = volume_size.array() / volume_res.array().cast<float>();
     trunc_dist_ = max ((float)min_trunc_dist, 2.1f * max (voxel_size[0], max (voxel_size[1], voxel_size[2])));
   };
 
