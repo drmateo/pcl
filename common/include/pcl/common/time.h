@@ -70,9 +70,6 @@ namespace pcl
       inline double
       getTime () const
       {
-        //boost::posix_time::ptime end_time = boost::posix_time::microsec_clock::local_time ();
-        //return (static_cast<double> (((end_time - start_time_).total_milliseconds ()))); // @suppress("Method cannot be resolved")
-
         auto end_time = std::chrono::steady_clock::now();
         return std::chrono::duration<double, std::ratio<1, 1000>>(end_time - start_time_).count();
       }
@@ -193,13 +190,7 @@ namespace pcl
 inline double 
 getTime ()
 {
-<<<<<<< HEAD
-  boost::posix_time::ptime epoch_time (boost::gregorian::date (1970, 1, 1));
-  boost::posix_time::ptime current_time = boost::posix_time::microsec_clock::local_time ();
-  return (static_cast<double>((current_time - epoch_time).total_nanoseconds ()) * 1.0e-9); // @suppress("Method cannot be resolved")
-=======
   return std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
->>>>>>> e8681d1eff1a154c574f9fee5b0b8d2790afbb97
 }
 
 /// Executes code, only if secs are gone since last exec.

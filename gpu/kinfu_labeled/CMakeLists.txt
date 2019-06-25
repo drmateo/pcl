@@ -1,3 +1,5 @@
+return()
+
 set(SUBSYS_NAME gpu_kinfu_labeled)
 set(SUBSYS_PATH gpu/kinfu_labeled)
 set(SUBSYS_DESC "Kinect Fusion Labeled implementation")

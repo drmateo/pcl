@@ -542,7 +542,6 @@ pcl::visualization::PCLVisualizer::spinOnce (int time, bool force_redraw)
     interactor_->Start ();
     interactor_->DestroyTimer (exit_main_loop_timer_callback_->right_timer_id);
   );
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -2042,10 +2041,10 @@ pcl::visualization::PCLVisualizer::getViewerPose (int viewport)
       z_axis = (z_axis - pos).normalized ();
       x_axis = y_axis.cross (z_axis).normalized ();
 
-      ret.translation () = pos.cast<float> (); // @suppress("Invalid arguments") // @suppress("Symbol is not resolved")
-      ret.linear ().col (0) << x_axis.cast<float> (); // @suppress("Invalid arguments") // @suppress("Symbol is not resolved")
-      ret.linear ().col (1) << y_axis.cast<float> (); // @suppress("Invalid arguments") // @suppress("Symbol is not resolved")
-      ret.linear ().col (2) << z_axis.cast<float> (); // @suppress("Invalid arguments") // @suppress("Symbol is not resolved")
+      ret.translation () = pos.cast<float> ();
+      ret.linear ().col (0) << x_axis.cast<float> ();
+      ret.linear ().col (1) << y_axis.cast<float> ();
+      ret.linear ().col (2) << z_axis.cast<float> ();
 
       return ret;
     }
@@ -4249,7 +4248,7 @@ pcl::visualization::PCLVisualizer::addPointCloud (
   }
 
   PointCloudColorHandlerCustom<pcl::PCLPointCloud2>::Ptr color_handler (new PointCloudColorHandlerCustom<pcl::PCLPointCloud2> (cloud, 255, 255, 255));
-  return (fromHandlersToScreen (geometry_handler, color_handler, id, viewport, sensor_origin, sensor_orientation)); // @suppress("Invalid arguments")
+  return (fromHandlersToScreen (geometry_handler, color_handler, id, viewport, sensor_origin, sensor_orientation));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -4272,7 +4271,7 @@ pcl::visualization::PCLVisualizer::addPointCloud (
   }
 
   PointCloudGeometryHandlerXYZ<pcl::PCLPointCloud2>::Ptr geometry_handler (new PointCloudGeometryHandlerXYZ<pcl::PCLPointCloud2> (cloud));
-  return (fromHandlersToScreen (geometry_handler, color_handler, id, viewport, sensor_origin, sensor_orientation)); // @suppress("Invalid arguments")
+  return (fromHandlersToScreen (geometry_handler, color_handler, id, viewport, sensor_origin, sensor_orientation));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

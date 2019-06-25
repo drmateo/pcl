@@ -350,7 +350,7 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
             }
             //float maxc = A.maxCoeff();
 
-            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>(); // @suppress("Symbol is not resolved") // @suppress("Invalid arguments")
+            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>();
             //Eigen::Matrix<float, 6, 1> result = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 
             float alpha = result (0);
@@ -620,7 +620,7 @@ namespace pcl
         vth *= theta;
         rx *= vth; ry *= vth; rz *= vth;
       }
-      return Eigen::Vector3d(rx, ry, rz).cast<float>();  // @suppress("Symbol is not resolved") // @suppress("Invalid arguments")
+      return Eigen::Vector3d(rx, ry, rz).cast<float>();
     }
   }
 }

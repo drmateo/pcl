@@ -545,9 +545,9 @@ namespace pcl
         WARP_SIZE     = 1 << LOG_WARP_SIZE,
         STRIDE        = WARP_SIZE
       };
-
+      
       /** \brief Returns the warp lane ID of the calling thread. */
-      static __device__ __forceinline__ unsigned int
+      static __device__ __forceinline__ unsigned int 
       laneId()
       {
 	    unsigned int ret;
@@ -561,7 +561,7 @@ namespace pcl
         return tid >> LOG_WARP_SIZE;
       }
 
-      static __device__ __forceinline__
+      static __device__ __forceinline__ 
       int laneMaskLt()
       {
         unsigned int ret;
@@ -572,7 +572,7 @@ namespace pcl
       static __device__ __forceinline__ int binaryExclScan(int ballot_mask)
       {
         return __popc(Warp::laneMaskLt() & ballot_mask);
-      }
+      }   
     };
 
 
