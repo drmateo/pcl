@@ -37,7 +37,7 @@
 
 #include <pcl/gpu/kinfu_labeled/color_volume.h>
 #include <pcl/gpu/kinfu_labeled/tsdf_volume_internal.h>
-#include "internal.h"
+#include "internal.hpp"
 #include <algorithm>
 #include <Eigen/Core>
 

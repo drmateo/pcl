@@ -35,9 +35,7 @@
  *
  */
 
-#include "device.hpp"
-//#include <pcl/gpu/utils/device/block.hpp>
-//#include <pcl/gpu/utils/device/funcattrib.hpp>
+#include <cuda/device.hpp>
 //#include <pcl/gpu/utils/timers_cuda.hpp>
 
 namespace pcl

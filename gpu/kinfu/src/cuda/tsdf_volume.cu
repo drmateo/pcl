@@ -34,8 +34,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
+#include <cuda.h>
+#include <cuda_runtime.h>
 #include "device.hpp"
+//#include "../internal.h"
 
 using namespace pcl::device;
 
@@ -226,7 +228,7 @@ namespace pcl
           {
             float xl = (coo.x - intr.cx) / intr.fx;
             float yl = (coo.y - intr.cy) / intr.fy;
-            float lambda_inv = rsqrtf (xl * xl + yl * yl + 1);
+            float lambda_inv = rsqrtf (xl * xl + yl * yl + 1.f);
 
             float sdf = Dp - norm (vr) * lambda_inv * 1000; //mm
 

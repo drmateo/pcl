@@ -5,7 +5,7 @@
  *      Author: Carlos M. Mateo
  */
 
-#include "device.hpp"
+#include <cuda/device.hpp>
 
 namespace pcl
 {
@@ -86,25 +86,47 @@ namespace pcl
       enum
       {
         CTA_SIZE_X = 32,
-        CTA_SIZE_Y = 8,
-
-        ONE_VOXEL = 0
+        CTA_SIZE_Y = 8
       };
-
-      Intr intr;
-
-      PtrStep<float> vmap;
-      PtrStepSz<uchar3> colors;
 
       Mat33 R_inv;
       float3 t;
 
       float3 cell_size;
-      float trunc_dist;
 
-      int max_weight;
+      mutable PtrStep<uint1> label_volume;
 
-      mutable PtrStep<uchar4> color_volume;
+      float3 pt1;
+      float3 pt2;
+      float3 dpt21;
+      float3 dpt12;
+      float lengthsq;
+      float radius_sq;
+
+      __device__ __forceinline__ float
+      cylinderTest( float3 pt0 ) const
+      {
+        float3 dpt01 = pt0 - pt1;
+        float3 dpt10 = pt1 - pt0;
+
+        // Dot the d and pd vectors to see if point lies behind the
+        // cylinder cap at pt1.x, pt1.y, pt1.z
+        float d_l2 = dot(dpt01, dpt12);
+        float d_l1 = dot(dpt10, dpt21);
+
+        if(  d_l2 > lengthsq || d_l1 > lengthsq)
+          return -1.0f;
+        else
+        {
+          // radial distance to mayor axis
+          float d = norm(cross(dpt21, dpt10)) / norm(dpt21);
+
+          if( d > radius_sq )
+            return -1.0f;
+          else
+            return d;
+        }
+      }
 
       __device__ __forceinline__ int3
       getVoxel (float3 point) const
@@ -138,66 +160,23 @@ namespace pcl
         if (x >= VOLUME_X || y >= VOLUME_Y)
           return;
 
-        for (int z = 0; z < VOLUME_Z; ++z)
+        uint1 *pos = label_volume.ptr (y) + x;
+        int elem_step = label_volume.step * VOLUME_Z / sizeof(*pos);
+
+        for (int z = 0; z < VOLUME_Z; ++z,  pos += elem_step)
         {
           float3 v_g = getVoxelGCoo (x, y, z);
+//           float3 v = R_inv * (v_g - t); // with respect to camera frame
+          float3 v = v_g ; // with respect to volume frame
 
-          float3 v = R_inv * (v_g - t);
+//          if (v.z <= 0)
+//            continue;
 
-          if (v.z <= 0)
-            continue;
+          unsigned int label = 0 ;
+          if (cylinderTest( v ) != -1.f)
+            label = 1;
 
-          int2 coo;                   //project to current cam
-          coo.x = __float2int_rn (v.x * intr.fx / v.z + intr.cx);
-          coo.y = __float2int_rn (v.y * intr.fy / v.z + intr.cy);
-
-          if (coo.x >= 0 && coo.y >= 0 && coo.x < colors.cols && coo.y < colors.rows)
-          {
-            float3 p;
-            p.x = vmap.ptr (coo.y)[coo.x];
-
-            if (isnan (p.x))
-              continue;
-
-            p.y = vmap.ptr (coo.y + colors.rows    )[coo.x];
-            p.z = vmap.ptr (coo.y + colors.rows * 2)[coo.x];
-
-            bool update = false;
-            if (ONE_VOXEL)
-            {
-              int3 vp = getVoxel (p);
-              update = vp.x == x && vp.y == y && vp.z == z;
-            }
-            else
-            {
-              float dist = norm (p - v_g);
-              update = dist < trunc_dist;
-            }
-
-            if (update)
-            {
-              uchar4 *ptr = color_volume.ptr (VOLUME_Y * z + y) + x;
-              uchar3 rgb = colors.ptr (coo.y)[coo.x];
-              uchar4 volume_rgbw = *ptr;
-
-              int weight_prev = volume_rgbw.w;
-
-              const float Wrk = 1.f;
-              float new_x = (volume_rgbw.x * weight_prev + Wrk * rgb.x) / (weight_prev + Wrk);
-              float new_y = (volume_rgbw.y * weight_prev + Wrk * rgb.y) / (weight_prev + Wrk);
-              float new_z = (volume_rgbw.z * weight_prev + Wrk * rgb.z) / (weight_prev + Wrk);
-
-              int weight_new = weight_prev + 1;
-
-              uchar4 volume_rgbw_new;
-              volume_rgbw_new.x = min (255, max (0, __float2int_rn (new_x)));
-              volume_rgbw_new.y = min (255, max (0, __float2int_rn (new_y)));
-              volume_rgbw_new.z = min (255, max (0, __float2int_rn (new_z)));
-              volume_rgbw_new.w = min (max_weight, weight_new);
-
-              *ptr = volume_rgbw_new;
-            }
-          }           /* in camera image range */
+          *pos =  make_uint1 ( label );
         }         /* for(int z = 0; z < VOLUME_X; ++z) */
       }       /* void operator() */
     };
@@ -210,28 +189,30 @@ namespace pcl
 }
 
 void
-pcl::device::updateLabelVolume (const Intr& intr, float tranc_dist, const Mat33& R_inv, const float3& t,
-                                const MapArr& vmap, const PtrStepSz<uint1>& labels, const float3& volume_size, PtrStep<uint1> label_volume, int max_weight)
+pcl::device::updateLabelVolume (const Mat33& R_inv, const float3& t, const float3& pt1, const float3& pt2, const float& lengthsq, const float& radius_sq,
+                                const float3& volume_size, PtrStep<uint1> label_volume)
 {
-//  ColorVolumeImpl cvi;
-//  cvi.vmap = vmap;
-//  cvi.colors = colors;
-//  cvi.color_volume = color_volume;
-//
-//  cvi.R_inv = R_inv;
-//  cvi.t = t;
-//  cvi.intr = intr;
-//  cvi.trunc_dist = trunc_dist;
-//  cvi.max_weight = min (max (0, max_weight), 255);
-//
-//  cvi.cell_size.x = volume_size.x / VOLUME_X;
-//  cvi.cell_size.y = volume_size.y / VOLUME_Y;
-//  cvi.cell_size.z = volume_size.z / VOLUME_Z;
-//
-//  dim3 block (ColorVolumeImpl::CTA_SIZE_X, ColorVolumeImpl::CTA_SIZE_Y);
-//  dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
-//
-//  updateColorVolumeKernel<<<grid, block>>>(cvi);
-//  cudaSafeCall ( cudaGetLastError () );
-//  cudaSafeCall (cudaDeviceSynchronize ());
+  LabelVolumeImpl lvi;
+  lvi.label_volume = label_volume;
+
+  lvi.R_inv = R_inv;
+  lvi.t = t;
+
+  lvi.cell_size.x = volume_size.x / VOLUME_X;
+  lvi.cell_size.y = volume_size.y / VOLUME_Y;
+  lvi.cell_size.z = volume_size.z / VOLUME_Z;
+
+  lvi.pt1 = pt1;
+  lvi.pt2 = pt2;
+  lvi.dpt21 = pt2 - pt1;
+  lvi.dpt12 = pt1 - pt2;
+  lvi.lengthsq = lengthsq;
+  lvi.radius_sq = radius_sq;
+
+  dim3 block (LabelVolumeImpl::CTA_SIZE_X, LabelVolumeImpl::CTA_SIZE_Y);
+  dim3 grid (divUp (VOLUME_X, block.x), divUp (VOLUME_Y, block.y));
+
+  updateLabelVolumeKernel<<<grid, block>>>(lvi);
+  cudaSafeCall ( cudaGetLastError () );
+  cudaSafeCall (cudaDeviceSynchronize ());
 }

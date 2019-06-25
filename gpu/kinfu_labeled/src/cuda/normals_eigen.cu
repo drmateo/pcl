@@ -35,8 +35,11 @@
  *
  */
 
-#include "device.hpp"
-//#include <pcl/gpu/features/device/eigen.hpp>
+#include <cuda/device.hpp>
+#include <pcl/gpu/containers/kernel_containers.h>
+#include <pcl/gpu/features/device/eigen.hpp>
+
+using pcl::gpu::PtrStep;
 
 namespace pcl
 {

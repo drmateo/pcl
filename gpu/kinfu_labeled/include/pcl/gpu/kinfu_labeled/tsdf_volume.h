@@ -108,9 +108,10 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     struct Intr
     {
       float fx, fy, cx, cy;
-      Intr () {};
+      Intr ()
+      : fx(0), fy(0), cx(0), cy(0) {}
       Intr (float fx_, float fy_, float cx_, float cy_)
-        : fx(fx_), fy(fy_), cx(cx_), cy(cy_) {};
+        : fx(fx_), fy(fy_), cx(cx_), cy(cy_) {}
 
       Intr operator()(int level_index) const
       {

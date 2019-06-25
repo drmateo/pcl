@@ -117,7 +117,8 @@ namespace pcl
         * \param[out] cloud_buffer buffer to store point cloud
         * \return DeviceArray with disabled reference counting that points to filled part of cloud_buffer.
         */
-      DeviceArray<PointType>
+      //DeviceArray<PointType>
+      size_t
       fetchCloud (DeviceArray<PointType>& cloud_buffer) const;
 
       DeviceArray<PointType>

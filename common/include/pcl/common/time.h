@@ -78,7 +78,7 @@ namespace pcl
       getTime ()
       {
         boost::posix_time::ptime end_time = boost::posix_time::microsec_clock::local_time ();
-        return (static_cast<double> (((end_time - start_time_).total_milliseconds ())));
+        return (static_cast<double> (((end_time - start_time_).total_milliseconds ()))); // @suppress("Method cannot be resolved")
       }
 
       /** \brief Retrieve the time in seconds spent since the last call to \a reset(). */
@@ -206,7 +206,7 @@ getTime ()
 {
   boost::posix_time::ptime epoch_time (boost::gregorian::date (1970, 1, 1));
   boost::posix_time::ptime current_time = boost::posix_time::microsec_clock::local_time ();
-  return (static_cast<double>((current_time - epoch_time).total_nanoseconds ()) * 1.0e-9);
+  return (static_cast<double>((current_time - epoch_time).total_nanoseconds ()) * 1.0e-9); // @suppress("Method cannot be resolved")
 }
 
 /// Executes code, only if secs are gone since last exec.

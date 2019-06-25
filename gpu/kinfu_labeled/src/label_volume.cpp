@@ -7,7 +7,7 @@
 
 #include <pcl/gpu/kinfu_labeled/label_volume.h>
 #include <pcl/gpu/kinfu_labeled/tsdf_volume_internal.h>
-#include "internal.h"
+#include "internal.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

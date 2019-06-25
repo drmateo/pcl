@@ -37,7 +37,7 @@
 
 #include <pcl/gpu/kinfu_labeled/kinfu.h>
 #include <pcl/gpu/kinfu_labeled/marching_cubes.h>
-#include "internal.h"
+#include "internal.hpp"
 
 using namespace pcl;
 using namespace pcl::gpu;
@@ -63,7 +63,7 @@ pcl::gpu::MarchingCubes::run(const TsdfVolume& tsdf, DeviceArray<PointType>& tri
     triangles_buffer.create(DEFAULT_TRIANGLES_BUFFER_SIZE);
   occupied_voxels_buffer_.create(3, static_cast<int> (triangles_buffer.size () / 3));    
 
-  device::bindTextures(edgeTable_, triTable_, numVertsTable_);
+  device::bindTextures(edgeTable_, triTable_, numVertsTable_); // @suppress("Invalid arguments")
   
   int active_voxels = device::getOccupiedVoxels(tsdf.data(), occupied_voxels_buffer_);  
   if(!active_voxels)

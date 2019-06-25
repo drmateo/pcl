@@ -85,7 +85,6 @@ namespace pcl
 
         typedef DeviceArray2D<PixelRGB> View;
         typedef DeviceArray2D<unsigned short> DepthMap;
-        typedef DeviceArray2D<unsigned int> Labels;
 
         typedef pcl::PointXYZ PointType;
         typedef pcl::Normal NormalType;
@@ -176,7 +175,7 @@ namespace pcl
           * \return true if can render 3D view.
           */
         bool
-        operator() (const DepthMap& depth, const View& colors);
+        operator() (const DepthMap& depth, const View& colors, Eigen::Affine3f* hint=NULL);
 
         /** \brief Processes next frame (both depth and color integration). Please call initColorIntegration before invpoking this.
           * \param[in] depth next depth frame with values in millimeters
@@ -184,7 +183,7 @@ namespace pcl
           * \return true if can render 3D view.
           */
         bool
-        operator() (const DepthMap& depth, const Labels& labels);
+        operator() (const DepthMap& depth, const Eigen::Vector3f& pt1, const Eigen::Vector3f& pt2, float lengthsq, float radius_sq, Eigen::Affine3f* hint=NULL);
 
 
         /** \brief Returns camera pose at given time, default the last pose
@@ -221,7 +220,7 @@ namespace pcl
         /** \brief Returns label volume storage */
         LabelVolume&
         labelVolume();
-        
+
         /** \brief Renders 3D scene to display to human
           * \param[out] view output array with image
           */
@@ -360,7 +359,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     };
 
-    PCL_EXPORTS void paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight);
+    PCL_EXPORTS void paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight = 0.5f);
 
     PCL_EXPORTS void mergePointNormal(const DeviceArray<PointXYZ>& cloud, const DeviceArray<Normal>& normals, DeviceArray<PointNormal>& output);
 

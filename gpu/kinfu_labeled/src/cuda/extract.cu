@@ -35,16 +35,12 @@
  *
  */
 
-#include "device.hpp"
-//#include <pcl/gpu/utils/device/funcattrib.hpp>
-//include <pcl/gpu/utils/device/block.hpp>
-//#include <pcl/gpu/utils/device/warp.hpp>
+#include <cuda/device.hpp>
 
 namespace pcl
 {
   namespace device
   {
-
     ////////////////////////////////////////////////////////////////////////////////////////
     ///// Full Volume Scan6
 
@@ -1273,8 +1269,8 @@ pcl::device::extractNormals (const PtrStep<short2>& volume, const float3& volume
   en.points = points;
   en.output = output;
 
-  dim3 block (256);
-  dim3 grid (divUp (points.size, block.x));
+  dim3 block (32);
+  dim3 grid (divUp ((int)points.size, block.x));
 
   extractNormalsKernel<<<grid, block>>>(en);
   cudaSafeCall ( cudaGetLastError () );

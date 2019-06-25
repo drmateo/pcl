@@ -80,7 +80,7 @@
 #endif
 typedef pcl::ScopeTime ScopeTimeT;
 
-#include "../src/internal.h"
+#include "../src/internal.hpp"
 
 using namespace std;
 using namespace pcl;
@@ -92,7 +92,7 @@ namespace pcl
 {
   namespace gpu
   {
-    void paint3DView (const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight = 0.5f);
+    void paint3DView (const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight);
     void mergePointNormal (const DeviceArray<PointXYZ>& cloud, const DeviceArray<Normal>& normals, DeviceArray<PointNormal>& output);
   }
 

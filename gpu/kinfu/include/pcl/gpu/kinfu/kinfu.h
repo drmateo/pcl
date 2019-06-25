@@ -303,4 +303,18 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   }
 };
 
+namespace pcl
+{
+  namespace gpu
+  {
+    PCL_EXPORTS void
+    paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight);
+
+    PCL_EXPORTS void
+    mergePointNormal(const DeviceArray<PointXYZ>& cloud, const DeviceArray<Normal>& normals, DeviceArray<PointNormal>& output);
+
+    Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix);
+  }
+}
+
 #endif /* PCL_KINFU_KINFUTRACKER_HPP_ */

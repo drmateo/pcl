@@ -35,10 +35,7 @@
  *
  */
 
-#include "device.hpp"
-//#include "pcl/gpu/utils/device/block.hpp"
-//#include "pcl/gpu/utils/device/warp.hpp"
-//#include "pcl/gpu/utils/device/vector_math.hpp"
+#include <cuda/device.hpp>
 
 #include "thrust/device_ptr.h"
 #include "thrust/scan.h"

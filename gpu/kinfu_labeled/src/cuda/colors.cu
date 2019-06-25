@@ -35,9 +35,7 @@
  *
  */
 
-#include "device.hpp"
-
-//#include "pcl/gpu/utils/device/vector_math.hpp"
+#include <cuda/device.hpp>
 
 namespace pcl
 {
@@ -160,7 +158,7 @@ namespace pcl
             p.y = vmap.ptr (coo.y + colors.rows    )[coo.x];
             p.z = vmap.ptr (coo.y + colors.rows * 2)[coo.x];
 
-            bool update = false;
+            bool update = true;
             if (ONE_VOXEL)
             {
               int3 vp = getVoxel (p);
@@ -168,8 +166,8 @@ namespace pcl
             }
             else
             {
-              float dist = norm (p - v_g);
-              update = dist < tranc_dist;
+//               float dist = norm (p - v_g);
+//               update = dist < tranc_dist;
             }
 
             if (update)
@@ -180,18 +178,18 @@ namespace pcl
 
               int weight_prev = volume_rgbw.w;
 
-              const float Wrk = 1.f;
-              float new_x = (volume_rgbw.x * weight_prev + Wrk * rgb.x) / (weight_prev + Wrk);
-              float new_y = (volume_rgbw.y * weight_prev + Wrk * rgb.y) / (weight_prev + Wrk);
-              float new_z = (volume_rgbw.z * weight_prev + Wrk * rgb.z) / (weight_prev + Wrk);
-
-              int weight_new = weight_prev + 1;
+              const int Wrk = 1.f;
+              int weight_new = min(weight_prev + Wrk, max_weight);
+              
+              float new_x = (volume_rgbw.x * (float)weight_prev + (float)weight_new * rgb.x) / (float)(weight_prev + weight_new);
+              float new_y = (volume_rgbw.y * (float)weight_prev + (float)weight_new * rgb.y) / (float)(weight_prev + weight_new);
+              float new_z = (volume_rgbw.z * (float)weight_prev + (float)weight_new * rgb.z) / (float)(weight_prev + weight_new);
 
               uchar4 volume_rgbw_new;
               volume_rgbw_new.x = min (255, max (0, __float2int_rn (new_x)));
               volume_rgbw_new.y = min (255, max (0, __float2int_rn (new_y)));
               volume_rgbw_new.z = min (255, max (0, __float2int_rn (new_z)));
-              volume_rgbw_new.w = min (max_weight, weight_new);
+              volume_rgbw_new.w = weight_new;
 
               *ptr = volume_rgbw_new;
             }

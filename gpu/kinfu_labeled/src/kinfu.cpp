@@ -39,8 +39,9 @@
 #include <algorithm>
 
 #include <pcl/common/time.h>
+#include <pcl/console/print.h>
 #include <pcl/gpu/kinfu_labeled/kinfu.h>
-#include "internal.h"
+#include "internal.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/SVD>
@@ -172,7 +173,7 @@ void
 pcl::gpu::KinfuTracker::reset()
 {
   if (global_time_)
-    cout << "Reset" << endl;
+    PCL_WARN("Reset\n");
 
   global_time_ = 0;
   rmats_.clear ();
@@ -352,7 +353,7 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
             }
             //float maxc = A.maxCoeff();
 
-            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>(); // @suppress("Invalid arguments")
+            Eigen::Matrix<float, 6, 1> result = A.llt ().solve (b).cast<float>(); // @suppress("Symbol is not resolved") // @suppress("Invalid arguments")
             //Eigen::Matrix<float, 6, 1> result = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
 
             float alpha = result (0);
@@ -412,7 +413,8 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
   {
     //ScopeTime time("tsdf");
     //integrateTsdfVolume(depth_raw, intr, device_volume_size, device_Rcurr_inv, device_tcurr, tranc_dist, volume_);
-    integrateTsdfVolume (depth_raw, intr, device_volume_size, device_Rcurr_inv, device_tcurr, tsdf_volume_->getTsdfTruncDist(), tsdf_volume_->data(), depthRawScaled_);
+    integrateTsdfVolume (depth_raw, intr, device_volume_size, device_Rcurr_inv, device_tcurr, tsdf_volume_->getTsdfTruncDist(), tsdf_volume_->data());
+//    integrateTsdfVolume (depth_raw, intr, device_volume_size, device_Rcurr_inv, device_tcurr, tsdf_volume_->getTsdfTruncDist(), tsdf_volume_->data(), depthRawScaled_);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////
@@ -550,9 +552,9 @@ pcl::gpu::KinfuTracker::initLabelIntegration(int max_weight)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool 
-pcl::gpu::KinfuTracker::operator() (const DepthMap& depth, const View& colors)
+pcl::gpu::KinfuTracker::operator() (const DepthMap& depth, const View& colors, Eigen::Affine3f *hint)
 { 
-  bool res = (*this)(depth);
+  bool res = (*this)(depth, hint);
 
   if (res && color_volume_)
   {
@@ -574,9 +576,9 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth, const View& colors)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool
-pcl::gpu::KinfuTracker::operator() (const DepthMap& depth, const Labels& labels)
+pcl::gpu::KinfuTracker::operator() (const DepthMap& depth, const Vector3f& pt1, const Vector3f& pt2, float lengthsq, float radius_sq, Eigen::Affine3f* hint)
 {
-  bool res = (*this)(depth);
+  bool res = (*this)(depth, hint);
 
   if (res && label_volume_)
   {
@@ -589,8 +591,10 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth, const Labels& labels)
     Mat33&  device_Rcurr_inv = device_cast<Mat33> (R_inv);
     float3& device_tcurr = device_cast<float3> (t);
 
-    device::updateLabelVolume(intr, tsdf_volume_->getTsdfTruncDist(), device_Rcurr_inv, device_tcurr, vmaps_g_prev_[0],
-        labels, device_volume_size, label_volume_->data(), label_volume_->getMaxWeight());
+    const float3 device_pt1 = device_cast<const float3> (pt1);
+    const float3 device_pt2 = device_cast<const float3> (pt2);
+
+    device::updateLabelVolume(device_Rcurr_inv, device_tcurr, device_pt1, device_pt2, lengthsq, radius_sq, device_volume_size, label_volume_->data());
   }
 
   return res;
@@ -603,7 +607,7 @@ namespace pcl
   namespace gpu
   {
     void
-    paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight = 0.5f)
+    paint3DView(const KinfuTracker::View& rgb24, KinfuTracker::View& view, float colors_weight)
     {
       device::paint3DView(rgb24, view, colors_weight);
     }
@@ -664,7 +668,7 @@ namespace pcl
         vth *= theta;
         rx *= vth; ry *= vth; rz *= vth;
       }
-      return Eigen::Vector3d(rx, ry, rz).cast<float>(); // @suppress("Invalid arguments")
+      return Eigen::Vector3d(rx, ry, rz).cast<float>(); // @suppress("Symbol is not resolved") // @suppress("Invalid arguments")
     }
   }
 }

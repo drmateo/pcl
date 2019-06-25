@@ -1,7 +1,7 @@
 set(SUBSYS_NAME gpu_kinfu_labeled)
 set(SUBSYS_PATH gpu/kinfu_labeled)
 set(SUBSYS_DESC "Kinect Fusion Labeled implementation")
-set(SUBSYS_DEPS common io gpu_containers geometry search visualization)
+set(SUBSYS_DEPS common io gpu_containers gpu_utils gpu_features geometry search visualization)
 
 set(build FALSE)
 
@@ -23,7 +23,7 @@ if (build)
     REMOVE_VTK_DEFINITIONS()
     FILE(GLOB incs include/pcl/gpu/kinfu_labeled/*.h* src/*.h*)
     FILE(GLOB srcs src/*.cpp src/*.h* tools/tsdf_volume.cpp)
-    FILE(GLOB cuda src/cuda/*.cu src/cuda/*.h*)
+    FILE(GLOB cuda src/cuda/*.cu src/cuda/*.hpp)
     #FILE(GLOB tsdf src/cuda/tsdf_volume.cu)
     #FILE(GLOB est src/cuda/estimate_tranform.cu)
 

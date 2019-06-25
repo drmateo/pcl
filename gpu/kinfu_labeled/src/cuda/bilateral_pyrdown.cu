@@ -35,7 +35,7 @@
  *
  */
 
-#include "device.hpp"
+#include <cuda/device.hpp>
 
 namespace pcl
 {

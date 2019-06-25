@@ -52,6 +52,7 @@ namespace pcl
   namespace gpu
   {
     class TsdfVolume;
+    class  LabelVolume;
 
     /** \brief Class that performs raycasting for TSDF volume
       * \author Anatoly Baskeheev, Itseez Ltd, (myname.mysurname@mycompany.com)
@@ -88,6 +89,9 @@ namespace pcl
         */ 
       void 
       run(const TsdfVolume& volume, const Eigen::Affine3f& camera_pose);
+
+      void
+      run(const TsdfVolume& volume, const LabelVolume& labels, const Eigen::Affine3f& camera_pose);
 
       void
       run(const TsdfVolume& volume, const Eigen::Affine3f& camera_pose, const Eigen::Affine3f& global_pose,
