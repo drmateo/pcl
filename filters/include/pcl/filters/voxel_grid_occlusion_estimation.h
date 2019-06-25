@@ -38,8 +38,7 @@
  *
  */
 
-#ifndef PCL_FILTERS_VOXEL_GRID_OCCLUSION_ESTIMATION_H_
-#define PCL_FILTERS_VOXEL_GRID_OCCLUSION_ESTIMATION_H_
+#pragma once
 
 #include <pcl/filters/voxel_grid.h>
 
@@ -62,9 +61,9 @@ namespace pcl
       using VoxelGrid<PointT>::leaf_size_;
       using VoxelGrid<PointT>::inverse_leaf_size_;
 
-      typedef typename Filter<PointT>::PointCloud PointCloud;
-      typedef typename PointCloud::Ptr PointCloudPtr;
-      typedef typename PointCloud::ConstPtr PointCloudConstPtr;
+      using PointCloud = typename Filter<PointT>::PointCloud;
+      using PointCloudPtr = typename PointCloud::Ptr;
+      using PointCloudConstPtr = typename PointCloud::ConstPtr;
 
     public:
       /** \brief Empty constructor. */
@@ -75,7 +74,7 @@ namespace pcl
       }
 
       /** \brief Destructor. */
-      virtual ~VoxelGridOcclusionEstimation ()
+      ~VoxelGridOcclusionEstimation ()
       {
       }
 
@@ -113,7 +112,7 @@ namespace pcl
                            const Eigen::Vector3i& in_target_voxel);
 
       /** \brief Computes the voxel coordinates (i, j, k) of all occluded
-        * voxels in the voxel gird.
+        * voxels in the voxel grid.
         * \param[out] occluded_voxels the coordinates (i, j, k) of all occluded voxels
         * \return 0 upon success and -1 if an error occurs
         */
@@ -249,5 +248,3 @@ namespace pcl
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/filters/impl/voxel_grid_occlusion_estimation.hpp>
 #endif
-
-#endif  //#ifndef PCL_FILTERS_VOXEL_GRID_OCCLUSION_ESTIMATION_H_

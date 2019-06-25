@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef PCL_2D_EDGE_H
-#define PCL_2D_EDGE_H
+#pragma once
 
 #include <pcl/pcl_base.h>
 #include <pcl/2d/convolution.h>
@@ -48,8 +47,8 @@ namespace pcl
   class Edge
   {
     private:
-      typedef typename pcl::PointCloud<PointInT> PointCloudIn;
-      typedef typename PointCloudIn::Ptr PointCloudInPtr;
+      using PointCloudIn = pcl::PointCloud<PointInT>;
+      using PointCloudInPtr = typename PointCloudIn::Ptr;
 
       PointCloudInPtr input_;
       pcl::Convolution<PointInT> convolution_;
@@ -84,8 +83,8 @@ namespace pcl
                          pcl::PointCloud<pcl::PointXYZI> &maxima, float tLow);
 
     public:
-      typedef boost::shared_ptr<Edge> Ptr;
-      typedef boost::shared_ptr<const Edge> ConstPtr;
+      using Ptr = boost::shared_ptr<Edge<PointInT, PointOutT> >;
+      using ConstPtr = boost::shared_ptr<const Edge<PointInT, PointOutT> >;
 
       enum OUTPUT_TYPE
       {
@@ -298,9 +297,8 @@ namespace pcl
       {
         input_ = input;
       }
+
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
 }
 #include <pcl/2d/impl/edge.hpp>
-
-#endif    // PCL_2D_EDGE_H 
-

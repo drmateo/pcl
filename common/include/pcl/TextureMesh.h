@@ -36,8 +36,7 @@
  *
  */
 
-#ifndef PCL_TEXTUREMESH_H_
-#define PCL_TEXTUREMESH_H_
+#pragma once
 
 #include <Eigen/Core>
 #include <string>
@@ -49,7 +48,7 @@ namespace pcl
   /** \author Khai Tran */
   struct TexMaterial
   {
-    TexMaterial () : tex_name (), tex_file (), tex_Ka (), tex_Kd (), tex_Ks (), tex_d (), tex_Ns (), tex_illum () {}
+    TexMaterial () : tex_Ka (), tex_Kd (), tex_Ks (), tex_d (), tex_Ns (), tex_illum () {}
 
     struct RGB
     {
@@ -90,8 +89,7 @@ namespace pcl
   /** \author Khai Tran */
   struct TextureMesh
   {
-    TextureMesh () : 
-      cloud (), tex_polygons (), tex_coordinates (), tex_materials () {}
+    TextureMesh () {}
 
     pcl::PCLPointCloud2  cloud;
     pcl::PCLHeader  header;
@@ -102,13 +100,10 @@ namespace pcl
     std::vector<pcl::TexMaterial>               tex_materials;    // define texture material
 
     public:
-      typedef boost::shared_ptr<pcl::TextureMesh> Ptr;
-      typedef boost::shared_ptr<pcl::TextureMesh const> ConstPtr;
+      using Ptr = boost::shared_ptr<pcl::TextureMesh>;
+      using ConstPtr = boost::shared_ptr<const pcl::TextureMesh>;
    }; // struct TextureMesh
 
-   typedef boost::shared_ptr<pcl::TextureMesh> TextureMeshPtr;
-   typedef boost::shared_ptr<pcl::TextureMesh const> TextureMeshConstPtr;
+   using TextureMeshPtr = boost::shared_ptr<pcl::TextureMesh>;
+   using TextureMeshConstPtr = boost::shared_ptr<const pcl::TextureMesh>;
 } // namespace pcl
-
-#endif /* PCL_TEXTUREMESH_H_ */
-

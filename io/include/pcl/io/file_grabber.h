@@ -40,8 +40,6 @@
  */
 
 #pragma once
-#ifndef PCL_IO_FILE_GRABBER_H_
-#define PCL_IO_FILE_GRABBER_H_
 
 #include <pcl/point_cloud.h>
 
@@ -81,12 +79,7 @@ namespace pcl
         // Throw error 
         throw pcl::IOException ("[pcl::FileGrabber] Attempted to access element which is out of bounds!");
       }
-      else
-      {
-        return (operator[] (idx));
-      }
+      return (operator[] (idx));
     }
   };
 }
-#endif//PCL_IO_FILE_GRABBER_H_
-

@@ -1,5 +1,4 @@
-#ifndef PCL_SIMULATION_CAMERA_HPP_
-#define PCL_SIMULATION_CAMERA_HPP_
+#pragma once
 
 #include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
@@ -14,8 +13,8 @@ namespace pcl
     class PCL_EXPORTS Camera
     {
     public:
-      typedef boost::shared_ptr<Camera> Ptr;
-      typedef boost::shared_ptr<const Camera> ConstPtr;
+      using Ptr = boost::shared_ptr<Camera>;
+      using ConstPtr = boost::shared_ptr<const Camera>;
 
       Camera () : x_ (0), y_ (0), z_ (0), roll_ (0), pitch_ (0), yaw_ (0)
       {
@@ -118,5 +117,3 @@ namespace pcl
     };
   } // namespace - simulation
 } // namespace - pcl
-
-#endif /* PCL_SIMULATION_CAMERA_HPP_ */

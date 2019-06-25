@@ -36,8 +36,7 @@
  * $Id$
  */
 
-#ifndef PCL_OCTREE_SEARCH_H_
-#define PCL_OCTREE_SEARCH_H_
+#pragma once
 
 #include <pcl/point_cloud.h>
 
@@ -58,23 +57,23 @@ namespace pcl
     {
       public:
         // public typedefs
-        typedef boost::shared_ptr<std::vector<int> > IndicesPtr;
-        typedef boost::shared_ptr<const std::vector<int> > IndicesConstPtr;
+        using IndicesPtr = boost::shared_ptr<std::vector<int> >;
+        using IndicesConstPtr = boost::shared_ptr<const std::vector<int> >;
 
-        typedef pcl::PointCloud<PointT> PointCloud;
-        typedef boost::shared_ptr<PointCloud> PointCloudPtr;
-        typedef boost::shared_ptr<const PointCloud> PointCloudConstPtr;
+        using PointCloud = pcl::PointCloud<PointT>;
+        using PointCloudPtr = boost::shared_ptr<PointCloud>;
+        using PointCloudConstPtr = boost::shared_ptr<const PointCloud>;
 
         // Boost shared pointers
-        typedef boost::shared_ptr<OctreePointCloudSearch<PointT, LeafContainerT, BranchContainerT> > Ptr;
-        typedef boost::shared_ptr<const OctreePointCloudSearch<PointT, LeafContainerT, BranchContainerT> > ConstPtr;
+        using Ptr = boost::shared_ptr<OctreePointCloudSearch<PointT, LeafContainerT, BranchContainerT> >;
+        using ConstPtr = boost::shared_ptr<const OctreePointCloudSearch<PointT, LeafContainerT, BranchContainerT> >;
 
         // Eigen aligned allocator
-        typedef std::vector<PointT, Eigen::aligned_allocator<PointT> > AlignedPointTVector;
+        using AlignedPointTVector = std::vector<PointT, Eigen::aligned_allocator<PointT> >;
 
-        typedef OctreePointCloud<PointT, LeafContainerT, BranchContainerT> OctreeT;
-        typedef typename OctreeT::LeafNode LeafNode;
-        typedef typename OctreeT::BranchNode BranchNode;
+        using OctreeT = OctreePointCloud<PointT, LeafContainerT, BranchContainerT>;
+        using LeafNode = typename OctreeT::LeafNode;
+        using BranchNode = typename OctreeT::BranchNode;
 
         /** \brief Constructor.
           * \param[in] resolution octree resolution at lowest octree level
@@ -85,7 +84,7 @@ namespace pcl
         }
 
         /** \brief Empty class destructor. */
-        virtual
+        
         ~OctreePointCloudSearch ()
         {
         }
@@ -242,6 +241,7 @@ namespace pcl
 
 
         /** \brief Search for points within rectangular search area
+         * Points exactly on the edges of the search rectangle are included.
          * \param[in] min_pt lower corner of search area
          * \param[in] max_pt upper corner of search area
          * \param[out] k_indices the resultant point indices
@@ -263,7 +263,7 @@ namespace pcl
         public:
           /** \brief Empty constructor  */
           prioBranchQueueEntry () :
-              node (), point_distance (0), key ()
+              node (), point_distance (0)
           {
           }
 
@@ -602,5 +602,3 @@ namespace pcl
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/octree/impl/octree_search.hpp>
 #endif
-
-#endif    // PCL_OCTREE_SEARCH_H_

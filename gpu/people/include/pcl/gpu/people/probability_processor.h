@@ -34,8 +34,7 @@
  * @author: Koen Buys
  */
 
-#ifndef PCL_GPU_PROBABILITY_PROCESSOR_H_
-#define PCL_GPU_PROBABILITY_PROCESSOR_H_
+#pragma once
 
 #include <iostream>
 #include <sstream>
@@ -60,9 +59,9 @@ namespace pcl
       class PCL_EXPORTS ProbabilityProcessor
       {        
         public:
-          typedef boost::shared_ptr<ProbabilityProcessor> Ptr;
-          typedef DeviceArray2D<unsigned short> Depth;
-          typedef DeviceArray2D<unsigned char> Labels;
+          using Ptr = boost::shared_ptr<ProbabilityProcessor>;
+          using Depth = DeviceArray2D<unsigned short>;
+          using Labels = DeviceArray2D<unsigned char>;
 
           ProbabilityProcessor();
 
@@ -110,5 +109,3 @@ namespace pcl
     }
   }
 }
-
-#endif // PCL_GPU_PROBABILITY_PROCESSOR_H_

@@ -38,8 +38,7 @@
  * Author: Julius Kammerl (julius@kammerl.de)
  */
 
-#ifndef __PCL_IO_RANGECODING__
-#define __PCL_IO_RANGECODING__
+#pragma once
 
 #include <map>
 #include <iostream>
@@ -47,7 +46,7 @@
 #include <string>
 #include <cmath>
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 #include <boost/cstdint.hpp>
 
 namespace pcl
@@ -71,7 +70,7 @@ namespace pcl
   public:
 
     /** \brief Empty constructor. */
-    AdaptiveRangeCoder () : outputCharVector_ ()
+    AdaptiveRangeCoder ()
     {
     }
 
@@ -98,7 +97,7 @@ namespace pcl
     decodeStreamToCharVector (std::istream& inputByteStream_arg, std::vector<char>& outputByteVector_arg);
 
   protected:
-    typedef boost::uint32_t DWord; // 4 bytes
+    using DWord = boost::uint32_t; // 4 bytes
 
   private:
     /** vector containing compressed data
@@ -120,7 +119,7 @@ namespace pcl
     public:
       /** \brief Constructor. */
       StaticRangeCoder () :
-        cFreqTable_ (65537), outputCharVector_ ()
+        cFreqTable_ (65537)
       {
       }
 
@@ -163,16 +162,17 @@ namespace pcl
       decodeStreamToCharVector (std::istream& inputByteStream_arg, std::vector<char>& outputByteVector_arg);
 
     protected:
-      typedef boost::uint32_t DWord; // 4 bytes
+      using DWord = boost::uint32_t; // 4 bytes
 
       /** \brief Helper function to calculate the binary logarithm
        * \param n_arg: some value
        * \return binary logarithm (log2) of argument n_arg
        */
+      [[deprecated("use std::log2 instead")]]
       inline double
       Log2 (double n_arg)
       {
-        return log (n_arg) / log (2.0);
+        return std::log2 (n_arg);
       }
 
     private:
@@ -187,6 +187,3 @@ namespace pcl
 
 
 //#include "impl/entropy_range_coder.hpp"
-
-#endif
-

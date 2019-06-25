@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef PCL_IO_DEPTH_SENSE_GRABBER_H
-#define PCL_IO_DEPTH_SENSE_GRABBER_H
+#pragma once
 
 #include <pcl/io/grabber.h>
 #include <pcl/point_cloud.h>
@@ -59,13 +58,9 @@ namespace pcl
 
     public:
 
-      typedef
-        void (sig_cb_depth_sense_point_cloud)
-          (const pcl::PointCloud<pcl::PointXYZ>::ConstPtr&);
+      using sig_cb_depth_sense_point_cloud = void () (const pcl::PointCloud<pcl::PointXYZ>::ConstPtr&);
 
-      typedef
-        void (sig_cb_depth_sense_point_cloud_rgba)
-          (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr&);
+      using sig_cb_depth_sense_point_cloud_rgba = void () (const pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr&);
 
       enum Mode
       {
@@ -150,6 +145,3 @@ namespace pcl
   };
 
 }
-
-#endif /* PCL_IO_DEPTH_SENSE_GRABBER_H */
-

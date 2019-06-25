@@ -341,9 +341,9 @@ pcl::gpu::KinfuTracker::operator() (const DepthMap& depth_raw,
             //checking nullspace
             double det = A.determinant ();
 
-            if (fabs (det) < 1e-15 || pcl_isnan (det))
+            if (fabs (det) < 1e-15 || std::isnan (det))
             {
-              if (pcl_isnan (det)) cout << "qnan" << endl;
+              if (std::isnan (det)) cout << "qnan" << endl;
 
               reset ();
               return (false);
@@ -594,12 +594,11 @@ namespace pcl
 
       if( s < 1e-5 )
       {
-        double t;
-
         if( c > 0 )
           rx = ry = rz = 0;
         else
         {
+          double t;
           t = (R(0, 0) + 1)*0.5;
           rx = sqrt( std::max(t, 0.0) );
           t = (R(1, 1) + 1)*0.5;

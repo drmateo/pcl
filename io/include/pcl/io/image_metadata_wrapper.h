@@ -38,8 +38,6 @@
  */
 
 #pragma once
-#ifndef PCL_IO_IMAGE_METADATA_WRAPPER_H_
-#define PCL_IO_IMAGE_METADATA_WRAPPER_H_
 
 #include <pcl/pcl_config.h>
 #include <pcl/pcl_macros.h>
@@ -55,7 +53,10 @@ namespace pcl
     class FrameWrapper
     {
       public:
-        typedef boost::shared_ptr<FrameWrapper> Ptr;
+        using Ptr = boost::shared_ptr<FrameWrapper>;
+
+        virtual
+        ~FrameWrapper() = default;
 
         virtual const void*
         getData () const = 0;
@@ -79,5 +80,3 @@ namespace pcl
 
   } // namespace
 }
-
-#endif // PCL_IO_IMAGE_METADATA_WRAPPER_H_

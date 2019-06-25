@@ -35,8 +35,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PCL_COMMON_VECTOR_AVERAGE_H
-#define PCL_COMMON_VECTOR_AVERAGE_H
+#pragma once
 
 #include <pcl/common/eigen.h>
 
@@ -50,7 +49,7 @@ namespace pcl
     * \ingroup common
     */
   template <typename real, int dimension>
-  class VectorAverage 
+  class VectorAverage
   {
      public:
         //-----CONSTRUCTOR&DESTRUCTOR-----
@@ -96,8 +95,11 @@ namespace pcl
         /** Get the eigenvector corresponding to the smallest eigenvalue */
         inline void
         getEigenVector1 (Eigen::Matrix<real, dimension, 1>& eigen_vector1) const;
+
+        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         
         //-----VARIABLES-----
+
         
      protected:
         //-----METHODS-----
@@ -108,12 +110,9 @@ namespace pcl
         Eigen::Matrix<real, dimension, dimension> covariance_;
   };
 
-  typedef VectorAverage<float, 2> VectorAverage2f;
-  typedef VectorAverage<float, 3> VectorAverage3f;
-  typedef VectorAverage<float, 4> VectorAverage4f;
+  using VectorAverage2f = VectorAverage<float, 2>;
+  using VectorAverage3f = VectorAverage<float, 3>;
+  using VectorAverage4f = VectorAverage<float, 4>;
 }  // END namespace
 
 #include <pcl/common/impl/vector_average.hpp>
-
-#endif  // #ifndef PCL_VECTOR_AVERAGE_H
-

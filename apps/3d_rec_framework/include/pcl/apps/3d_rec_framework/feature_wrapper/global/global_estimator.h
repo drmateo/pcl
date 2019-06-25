@@ -5,8 +5,7 @@
  *      Author: aitor
  */
 
-#ifndef REC_FRAMEWORK_GLOBAL_ESTIMATOR_H_
-#define REC_FRAMEWORK_GLOBAL_ESTIMATOR_H_
+#pragma once
 
 #include <pcl/apps/3d_rec_framework/feature_wrapper/normal_estimator.h>
 
@@ -18,14 +17,17 @@ namespace pcl
     class GlobalEstimator {
       protected:
         bool computed_normals_;
-        typedef typename pcl::PointCloud<PointInT>::Ptr PointInTPtr;
-        typedef typename pcl::PointCloud<FeatureT>::Ptr FeatureTPtr;
+        using PointInTPtr = typename pcl::PointCloud<PointInT>::Ptr;
+        using FeatureTPtr = typename pcl::PointCloud<FeatureT>::Ptr;
 
         typename boost::shared_ptr<PreProcessorAndNormalEstimator<PointInT, pcl::Normal> > normal_estimator_;
 
         pcl::PointCloud<pcl::Normal>::Ptr normals_;
 
       public:
+        virtual
+        ~GlobalEstimator() = default;
+
         virtual void
         estimate (PointInTPtr & in, PointInTPtr & processed, std::vector<pcl::PointCloud<FeatureT>, Eigen::aligned_allocator<
             pcl::PointCloud<FeatureT> > > & signatures, std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f> > & centroids)=0;
@@ -43,6 +45,3 @@ namespace pcl
     };
   }
 }
-
-
-#endif /* REC_FRAMEWORK_ESTIMATOR_H_ */

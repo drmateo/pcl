@@ -36,8 +36,7 @@
  *
  */
 
-#ifndef PCL_NARF_H_
-#define PCL_NARF_H_
+#pragma once
 
 #include <pcl/features/eigen.h>
 #include <pcl/common/common_headers.h>
@@ -146,7 +145,7 @@ namespace pcl
       
       //! How many points on each beam of the gradient star are used to calculate the descriptor?
       inline int 
-      getNoOfBeamPoints () const { return (static_cast<int> (pcl_lrint (ceil (0.5f * float (surface_patch_pixel_size_))))); }
+      getNoOfBeamPoints () const { return (static_cast<int> (pcl_lrint (std::ceil (0.5f * float (surface_patch_pixel_size_))))); }
       
       //! Copy the descriptor and pose to the point struct Narf36
       inline void 
@@ -221,7 +220,7 @@ namespace pcl
       getSurfacePatch () { return surface_patch_;}
       //! Method to erase the surface patch and free the memory
       inline void 
-      freeSurfacePatch () { delete[] surface_patch_; surface_patch_=NULL; surface_patch_pixel_size_=0; }
+      freeSurfacePatch () { delete[] surface_patch_; surface_patch_=nullptr; surface_patch_pixel_size_=0; }
       
       // =====SETTERS=====
       //! Setter for the descriptor
@@ -236,11 +235,11 @@ namespace pcl
       // =====PUBLIC STRUCTS=====
       struct FeaturePointRepresentation : public PointRepresentation<Narf*>
       {
-        typedef Narf* PointT;
+        using PointT = Narf *;
         FeaturePointRepresentation(int nr_dimensions) { this->nr_dimensions_ = nr_dimensions; }
         /** \brief Empty destructor */
-        virtual ~FeaturePointRepresentation () {}
-        virtual void copyToFloatArray (const PointT& p, float* out) const { memcpy(out, p->getDescriptor(), sizeof(*p->getDescriptor())*this->nr_dimensions_); }
+        ~FeaturePointRepresentation () {}
+        void copyToFloatArray (const PointT& p, float* out) const override { memcpy(out, p->getDescriptor(), sizeof(*p->getDescriptor())*this->nr_dimensions_); }
       };
       
     protected:
@@ -289,5 +288,3 @@ namespace pcl
 }  // end namespace pcl
 
 #include <pcl/features/impl/narf.hpp>
-
-#endif  //#ifndef PCL_NARF_H_

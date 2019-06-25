@@ -8,8 +8,10 @@ PCL_SUBSYS_DEPEND(build "${SUBSYS_NAME}" DEPS ${SUBSYS_DEPS})
 
 PCL_ADD_DOC("${SUBSYS_NAME}")
 
-if(build)
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+if(NOT build)
+  return()
+endif()
+
 
     set(incs
         "include/pcl/${SUBSYS_NAME}/boost.h"
@@ -179,4 +181,59 @@ if(build)
     PCL_ADD_INCLUDES("${SUBSYS_NAME}" "${SUBSYS_NAME}" ${incs})
     PCL_ADD_INCLUDES("${SUBSYS_NAME}" "${SUBSYS_NAME}/impl" ${impl_incs})
 
-endif(build)
+set(srcs
+  src/board.cpp
+  src/flare.cpp
+  src/brisk_2d.cpp
+  src/boundary.cpp
+  src/cppf.cpp
+  src/cvfh.cpp
+  src/our_cvfh.cpp
+  src/crh.cpp
+  src/don.cpp
+  src/fpfh.cpp
+  src/gasd.cpp
+  src/gfpfh.cpp
+  src/integral_image_normal.cpp
+  src/intensity_gradient.cpp
+  src/intensity_spin.cpp
+  src/linear_least_squares_normal.cpp
+  src/moment_invariants.cpp
+  src/moment_of_inertia_estimation.cpp
+  src/multiscale_feature_persistence.cpp
+  src/narf.cpp
+  src/normal_3d.cpp
+  src/normal_based_signature.cpp
+  src/organized_edge_detection.cpp
+  src/pfh.cpp
+  src/ppf.cpp
+  src/shot.cpp
+  src/shot_lrf.cpp
+  src/spin_image.cpp
+  src/principal_curvatures.cpp
+  src/rift.cpp
+  src/rops_estimation.cpp
+  src/rsd.cpp
+  src/grsd.cpp
+  src/statistical_multiscale_interest_region_extraction.cpp
+  src/vfh.cpp
+  src/esf.cpp
+  src/3dsc.cpp
+  src/usc.cpp
+  src/range_image_border_extractor.cpp
+)
+
+if(MSVC)
+  # Workaround to avoid hitting the MSVC 4GB linker memory limit when building pcl_features.
+  # Disable whole program optimization (/GL) and link-time code generation (/LTCG).
+  string(REPLACE "/GL" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+  string(REPLACE "/LTCG" "" CMAKE_SHARED_LINKER_FLAGS_RELEASE ${CMAKE_SHARED_LINKER_FLAGS_RELEASE})
+endif()
+
+set(LIB_NAME "pcl_${SUBSYS_NAME}")
+PCL_ADD_LIBRARY(${LIB_NAME} COMPONENT ${SUBSYS_NAME} SOURCES ${srcs} ${incs} ${impl_incs})
+target_link_libraries("${LIB_NAME}" pcl_common pcl_search pcl_kdtree pcl_octree pcl_filters)
+PCL_MAKE_PKGCONFIG(${LIB_NAME} COMPONENT ${SUBSYS_NAME} DESC ${SUBSYS_DESC} PCL_DEPS ${SUBSYS_DEPS})
+# Install headers
+PCL_ADD_INCLUDES("${SUBSYS_NAME}" "${SUBSYS_NAME}" ${incs})
+PCL_ADD_INCLUDES("${SUBSYS_NAME}" "${SUBSYS_NAME}/impl" ${impl_incs})

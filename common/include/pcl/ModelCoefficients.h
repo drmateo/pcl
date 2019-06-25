@@ -1,5 +1,5 @@
-#ifndef PCL_MESSAGE_MODELCOEFFICIENTS_H
-#define PCL_MESSAGE_MODELCOEFFICIENTS_H
+#pragma once
+
 #include <string>
 #include <vector>
 #include <ostream>
@@ -11,7 +11,7 @@ namespace pcl
 {
   struct ModelCoefficients
   {
-    ModelCoefficients () : header (), values ()
+    ModelCoefficients ()
     {
     }
 
@@ -20,12 +20,12 @@ namespace pcl
     std::vector<float> values;
 
   public:
-    typedef boost::shared_ptr< ::pcl::ModelCoefficients> Ptr;
-    typedef boost::shared_ptr< ::pcl::ModelCoefficients  const> ConstPtr;
+    using Ptr = boost::shared_ptr< ::pcl::ModelCoefficients>;
+    using ConstPtr = boost::shared_ptr<const ::pcl::ModelCoefficients>;
   }; // struct ModelCoefficients
 
-  typedef boost::shared_ptr< ::pcl::ModelCoefficients> ModelCoefficientsPtr;
-  typedef boost::shared_ptr< ::pcl::ModelCoefficients const> ModelCoefficientsConstPtr;
+  using ModelCoefficientsPtr = boost::shared_ptr< ::pcl::ModelCoefficients>;
+  using ModelCoefficientsConstPtr = boost::shared_ptr<const ::pcl::ModelCoefficients>;
 
   inline std::ostream& operator<<(std::ostream& s, const  ::pcl::ModelCoefficients & v)
   {
@@ -41,6 +41,3 @@ namespace pcl
   }
 
 } // namespace pcl
-
-#endif // PCL_MESSAGE_MODELCOEFFICIENTS_H
-

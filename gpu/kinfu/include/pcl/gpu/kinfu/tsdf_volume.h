@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef PCL_KINFU_TSDF_VOLUME_H_
-#define PCL_KINFU_TSDF_VOLUME_H_
+#pragma once
 
 #include <pcl/pcl_macros.h>
 #include <pcl/gpu/containers/device_array.h>
@@ -55,11 +54,11 @@ namespace pcl
     class PCL_EXPORTS TsdfVolume
     {
     public:
-      typedef boost::shared_ptr<TsdfVolume> Ptr;
+      using Ptr = boost::shared_ptr<TsdfVolume>;
 
       /** \brief Supported Point Types */
-      typedef PointXYZ PointType;
-      typedef Normal  NormalType;
+      using PointType = PointXYZ;
+      using NormalType = Normal;
 
       /** \brief Default buffer size for fetching cloud. It limits max number of points that can be extracted */
       enum { DEFAULT_CLOUD_BUFFER_SIZE = 10 * 1000 * 1000 };
@@ -165,5 +164,3 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     };
   }
 }
-
-#endif /* PCL_KINFU_TSDF_VOLUME_H_ */

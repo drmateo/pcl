@@ -1,5 +1,4 @@
-#ifndef PLC_GPU_PEOPLE_PERSON_ATTRIBS_H_
-#define PLC_GPU_PEOPLE_PERSON_ATTRIBS_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -17,7 +16,7 @@ namespace pcl
       class PCL_EXPORTS PersonAttribs
       {
         public:
-          typedef boost::shared_ptr<PersonAttribs> Ptr;
+          using Ptr = boost::shared_ptr<PersonAttribs>;
 
           /** \brief Constructor creates generic values from **/
           PersonAttribs();
@@ -46,5 +45,3 @@ namespace pcl
     }
   }
 }
-
-#endif /* PLC_GPU_PEOPLE_PERSON_ATTRIBS_H_ */

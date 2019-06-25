@@ -38,8 +38,7 @@
  *
  */
 
-#ifndef PCL_PYRAMID_FEATURE_MATCHING_H_
-#define PCL_PYRAMID_FEATURE_MATCHING_H_
+#pragma once
 
 #include <pcl/pcl_base.h>
 #include <pcl/point_representation.h>
@@ -70,9 +69,9 @@ namespace pcl
     public:
       using PCLBase<PointFeature>::input_;
 
-      typedef boost::shared_ptr<PyramidFeatureHistogram<PointFeature> > Ptr;
-      typedef Ptr PyramidFeatureHistogramPtr;
-      typedef boost::shared_ptr<const pcl::PointRepresentation<PointFeature> > FeatureRepresentationConstPtr;
+      using Ptr = boost::shared_ptr<PyramidFeatureHistogram<PointFeature> >;
+      using PyramidFeatureHistogramPtr = Ptr;
+      using FeatureRepresentationConstPtr = boost::shared_ptr<const pcl::PointRepresentation<PointFeature> >;
 
 
       /** \brief Empty constructor that instantiates the feature representation variable */
@@ -169,15 +168,11 @@ namespace pcl
       /** \brief Structure for representing a single pyramid histogram level */
       struct PyramidFeatureHistogramLevel
       {
-        PyramidFeatureHistogramLevel () :
-          hist (), 
-          bins_per_dimension (),
-          bin_step ()
+        PyramidFeatureHistogramLevel () 
         {
         }
 
         PyramidFeatureHistogramLevel (std::vector<size_t> &a_bins_per_dimension, std::vector<float> &a_bin_step) : 
-          hist (), 
           bins_per_dimension (a_bins_per_dimension),
           bin_step (a_bin_step)
         {
@@ -198,5 +193,3 @@ namespace pcl
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/registration/impl/pyramid_feature_matching.hpp>
 #endif
-
-#endif    // PCL_PYRAMID_FEATURE_MATCHING_H_

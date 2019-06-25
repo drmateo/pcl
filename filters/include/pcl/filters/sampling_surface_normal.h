@@ -35,12 +35,11 @@
  *
  */
 
-#ifndef PCL_FILTERS_SAMPLING_SURFACE_NORMAL_H_
-#define PCL_FILTERS_SAMPLING_SURFACE_NORMAL_H_
+#pragma once
 
 #include <pcl/filters/filter.h>
-#include <time.h>
-#include <limits.h>
+#include <ctime>
+#include <climits>
 
 namespace pcl
 {
@@ -59,20 +58,20 @@ namespace pcl
     using Filter<PointT>::indices_;
     using Filter<PointT>::input_;
 
-    typedef typename Filter<PointT>::PointCloud PointCloud;
-    typedef typename PointCloud::Ptr PointCloudPtr;
-    typedef typename PointCloud::ConstPtr PointCloudConstPtr;
+    using PointCloud = typename Filter<PointT>::PointCloud;
+    using PointCloudPtr = typename PointCloud::Ptr;
+    using PointCloudConstPtr = typename PointCloud::ConstPtr;
 
-    typedef typename Eigen::Matrix<float, Eigen::Dynamic, 1> Vector;
+    using Vector = Eigen::Matrix<float, Eigen::Dynamic, 1>;
 
     public:
 
-      typedef boost::shared_ptr< SamplingSurfaceNormal<PointT> > Ptr;
-      typedef boost::shared_ptr< const SamplingSurfaceNormal<PointT> > ConstPtr;
+      using Ptr = boost::shared_ptr<SamplingSurfaceNormal<PointT> >;
+      using ConstPtr = boost::shared_ptr<const SamplingSurfaceNormal<PointT> >;
 
       /** \brief Empty constructor. */
       SamplingSurfaceNormal () : 
-        sample_ (10), seed_ (static_cast<unsigned int> (time (NULL))), ratio_ ()
+        sample_ (10), seed_ (static_cast<unsigned int> (time (nullptr))), ratio_ ()
       {
         filter_name_ = "SamplingSurfaceNormal";
         srand (seed_);
@@ -140,11 +139,11 @@ namespace pcl
         * \param[out] output the resultant point cloud
         */
       void
-      applyFilter (PointCloud &output);
+      applyFilter (PointCloud &output) override;
 
     private:
 
-      /** \brief @b CompareDim is a comparator object for sorting across a specific dimenstion (i,.e X, Y or Z)
+      /** \brief @b CompareDim is a comparator object for sorting across a specific dimension (i,.e X, Y or Z)
        */
       struct CompareDim
       {
@@ -249,5 +248,3 @@ namespace pcl
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/filters/impl/sampling_surface_normal.hpp>
 #endif
-
-#endif  //#ifndef PCL_FILTERS_SAMPLING_SURFACE_NORMAL_H_

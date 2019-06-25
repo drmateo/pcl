@@ -37,8 +37,7 @@
  * @author: Koen Buys
  */
 
-#ifndef PCL_GPU_EXTRACT_CLUSTERS_H_
-#define PCL_GPU_EXTRACT_CLUSTERS_H_
+#pragma once
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -66,18 +65,18 @@ namespace pcl
     class EuclideanClusterExtraction
     {
       public:
-        typedef pcl::PointXYZ PointType;
-        typedef pcl::PointCloud<pcl::PointXYZ> PointCloudHost;
-        typedef PointCloudHost::Ptr PointCloudHostPtr;
-        typedef PointCloudHost::ConstPtr PointCloudHostConstPtr;
+        using PointType = pcl::PointXYZ;
+        using PointCloudHost = pcl::PointCloud<pcl::PointXYZ>;
+        using PointCloudHostPtr = PointCloudHost::Ptr;
+        using PointCloudHostConstPtr = PointCloudHost::ConstPtr;
 
-        typedef PointIndices::Ptr PointIndicesPtr;
-        typedef PointIndices::ConstPtr PointIndicesConstPtr;
+        using PointIndicesPtr = PointIndices::Ptr;
+        using PointIndicesConstPtr = PointIndices::ConstPtr;
 
-        typedef pcl::gpu::Octree GPUTree;
-        typedef pcl::gpu::Octree::Ptr GPUTreePtr;
+        using GPUTree = pcl::gpu::Octree;
+        using GPUTreePtr = pcl::gpu::Octree::Ptr;
 
-        typedef pcl::gpu::Octree::PointCloud CloudDevice;
+        using CloudDevice = pcl::gpu::Octree::PointCloud;
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /** \brief Empty constructor. */
@@ -165,9 +164,3 @@ namespace pcl
     }
   }
 }
-
-#endif //PCL_GPU_EXTRACT_CLUSTERS_H_
-
-
-
-

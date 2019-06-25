@@ -33,8 +33,7 @@
  *
  */
 
-#ifndef PCL_POLYNOMIAL_CALCULATIONS_H_
-#define PCL_POLYNOMIAL_CALCULATIONS_H_
+#pragma once
 
 #include <pcl/common/eigen.h>
 #include <pcl/common/bivariate_polynomial.h>
@@ -125,11 +124,9 @@ namespace pcl
       Parameters parameters_;
   };
 
-  typedef PolynomialCalculationsT<double> PolynomialCalculationsd;
-  typedef PolynomialCalculationsT<float>  PolynomialCalculations;
+  using PolynomialCalculationsd = PolynomialCalculationsT<double>;
+  using PolynomialCalculations = PolynomialCalculationsT<float>;
 
 }  // end namespace
 
 #include <pcl/common/impl/polynomial_calculations.hpp>
-
-#endif

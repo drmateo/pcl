@@ -36,8 +36,7 @@
  * $Id$
  */
 
-#ifndef PCL_ORGANIZED_POINT_COMPRESSION_H_
-#define PCL_ORGANIZED_POINT_COMPRESSION_H_
+#pragma once
 
 #include <pcl/pcl_macros.h>
 #include <pcl/point_cloud.h>
@@ -61,9 +60,9 @@ namespace pcl
     class OrganizedPointCloudCompression
     {
       public:
-        typedef pcl::PointCloud<PointT> PointCloud;
-        typedef boost::shared_ptr<PointCloud> PointCloudPtr;
-        typedef boost::shared_ptr<const PointCloud> PointCloudConstPtr;
+        using PointCloud = pcl::PointCloud<PointT>;
+        using PointCloudPtr = boost::shared_ptr<PointCloud>;
+        using PointCloudConstPtr = boost::shared_ptr<const PointCloud>;
 
         /** \brief Empty Constructor. */
         OrganizedPointCloudCompression ()
@@ -151,5 +150,3 @@ namespace pcl
     const char* OrganizedPointCloudCompression<PointT>::frameHeaderIdentifier_ = "<PCL-ORG-COMPRESSED>";
   }
 }
-
-#endif

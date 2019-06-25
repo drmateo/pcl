@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef PCL_GPU_SURFACE_INTERNAL_H_
-#define PCL_GPU_SURFACE_INTERNAL_H_
+#pragma once
 
 #include <pcl/gpu/containers/device_array.h>
 #include <cuda_runtime.h>
@@ -45,13 +44,13 @@ namespace pcl
 {
   namespace device
   {
-	  typedef unsigned long long uint64_type;
+	  using uint64_type = unsigned long long;
 
-	  typedef float4 PointType;
-	  typedef pcl::gpu::DeviceArray<PointType> Cloud;
+	  using PointType = float4;
+	  using Cloud = pcl::gpu::DeviceArray<PointType>;
 
-	  typedef DeviceArray<uint64_type> FacetsDists;
-	  typedef DeviceArray<int> Perm;
+	  using FacetsDists = DeviceArray<uint64_type>;
+	  using Perm = DeviceArray<int>;
 
 	  struct InitalSimplex
 	  {
@@ -120,5 +119,3 @@ namespace pcl
 	  void pack_hull(const DeviceArray<PointType>& points, const DeviceArray<int>& indeces, DeviceArray<PointType>& output);
   }
 }
-
-#endif /* PCL_GPU_SURFACE_INTERNAL_H_ */ 

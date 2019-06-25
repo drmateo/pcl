@@ -37,8 +37,7 @@
  *  $Id$
  */
 
-#ifndef PCL_MULTISCALE_FEATURE_PERSISTENCE_H_
-#define PCL_MULTISCALE_FEATURE_PERSISTENCE_H_
+#pragma once
 
 #include <pcl/pcl_base.h>
 #include <pcl/features/feature.h>
@@ -64,12 +63,12 @@ namespace pcl
   class MultiscaleFeaturePersistence : public PCLBase<PointSource>
   {
     public:
-      typedef boost::shared_ptr<MultiscaleFeaturePersistence<PointSource, PointFeature> > Ptr;
-      typedef boost::shared_ptr<const MultiscaleFeaturePersistence<PointSource, PointFeature> > ConstPtr;
-      typedef pcl::PointCloud<PointFeature> FeatureCloud;
-      typedef typename pcl::PointCloud<PointFeature>::Ptr FeatureCloudPtr;
-      typedef typename pcl::Feature<PointSource, PointFeature>::Ptr FeatureEstimatorPtr;
-      typedef boost::shared_ptr<const pcl::PointRepresentation <PointFeature> > FeatureRepresentationConstPtr;
+      using Ptr = boost::shared_ptr<MultiscaleFeaturePersistence<PointSource, PointFeature> >;
+      using ConstPtr = boost::shared_ptr<const MultiscaleFeaturePersistence<PointSource, PointFeature> >;
+      using FeatureCloud = pcl::PointCloud<PointFeature>;
+      using FeatureCloudPtr = typename pcl::PointCloud<PointFeature>::Ptr;
+      using FeatureEstimatorPtr = typename pcl::Feature<PointSource, PointFeature>::Ptr;
+      using FeatureRepresentationConstPtr = boost::shared_ptr<const pcl::PointRepresentation<PointFeature> >;
 
       using pcl::PCLBase<PointSource>::input_;
 
@@ -77,7 +76,7 @@ namespace pcl
       MultiscaleFeaturePersistence ();
       
       /** \brief Empty destructor */
-      virtual ~MultiscaleFeaturePersistence () {}
+      ~MultiscaleFeaturePersistence () {}
 
       /** \brief Method that calls computeFeatureAtScale () for each scale parameter */
       void
@@ -205,5 +204,3 @@ namespace pcl
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/features/impl/multiscale_feature_persistence.hpp>
 #endif
-
-#endif /* PCL_MULTISCALE_FEATURE_PERSISTENCE_H_ */

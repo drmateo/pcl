@@ -59,7 +59,7 @@ compile a series of 3rd party library dependencies:
 .. note::
   
    Though not a dependency per se, don't forget that you also need the CMake
-   build system (http://www.cmake.org/), at least version **2.8.3**. A Git
+   build system (http://www.cmake.org/), at least version **3.5.0**. A Git
    client for Windows is also required to download the PCL source code.
    
 Building dependencies
@@ -135,7 +135,7 @@ like::
     then fill the **BUILD_PROJECTS** CMake entry (which is set to `ALL` by default) with a semicolon-seperated 
     list of boost modules::
     
-      BUILD_PROJECTS : system;filesystem;date_time;thread;iostreams;tr1;serialization
+      BUILD_PROJECTS : system;filesystem;date_time;iostreams;tr1;serialization
       
     Also, uncheck the **ENABLE_STATIC_RUNTIME** checkbox. Then, click "Configure" again. If you get some 
     errors related to Python, then uncheck **WITH_PYTHON** checkbox, and click "Configure" again. 
@@ -144,7 +144,6 @@ like::
       Reading boost project directories (per BUILD_PROJECTS) 
       
       + date_time
-      + thread
       + serialization
       + system
       + filesystem
@@ -177,7 +176,7 @@ like::
         Where to build binaries: C:/PCL_dependencies/flann-1.7.1-src/build
 
     Hit the "Configure" button. Proceed and be sure to choose the correct "Generator" on the next window. 
-    You can safley ignore any warning message about hdf5.    
+    You can safely ignore any warning message about hdf5.    
 
     Now, on my machine I had to manually set the `BUILD_PYTHON_BINDINGS`
     and `BUILD_MATLAB_BINDINGS` to OFF otherwise it would not continue to the next

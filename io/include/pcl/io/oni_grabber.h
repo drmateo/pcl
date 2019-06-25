@@ -35,11 +35,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
+
 #include <pcl/pcl_config.h>
 #ifdef HAVE_OPENNI
-
-#ifndef __PCL_IO_ONI_PLAYER__
-#define __PCL_IO_ONI_PLAYER__
 
 #include <pcl/io/eigen.h>
 #include <pcl/io/boost.h>
@@ -74,15 +73,15 @@ namespace pcl
   {
     public:
       //define callback signature typedefs
-      typedef void (sig_cb_openni_image) (const boost::shared_ptr<openni_wrapper::Image>&);
-      typedef void (sig_cb_openni_depth_image) (const boost::shared_ptr<openni_wrapper::DepthImage>&);
-      typedef void (sig_cb_openni_ir_image) (const boost::shared_ptr<openni_wrapper::IRImage>&);
-      typedef void (sig_cb_openni_image_depth_image) (const boost::shared_ptr<openni_wrapper::Image>&, const boost::shared_ptr<openni_wrapper::DepthImage>&, float constant) ;
-      typedef void (sig_cb_openni_ir_depth_image) (const boost::shared_ptr<openni_wrapper::IRImage>&, const boost::shared_ptr<openni_wrapper::DepthImage>&, float constant) ;
-      typedef void (sig_cb_openni_point_cloud) (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZ> >&);
-      typedef void (sig_cb_openni_point_cloud_rgb) (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZRGB> >&);
-      typedef void (sig_cb_openni_point_cloud_rgba) (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZRGBA> >&);
-      typedef void (sig_cb_openni_point_cloud_i) (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZI> >&);
+      using sig_cb_openni_image = void (const boost::shared_ptr<openni_wrapper::Image> &);
+      using sig_cb_openni_depth_image = void (const boost::shared_ptr<openni_wrapper::DepthImage> &);
+      using sig_cb_openni_ir_image = void (const boost::shared_ptr<openni_wrapper::IRImage> &);
+      using sig_cb_openni_image_depth_image = void (const boost::shared_ptr<openni_wrapper::Image> &, const boost::shared_ptr<openni_wrapper::DepthImage> &, float) ;
+      using sig_cb_openni_ir_depth_image = void (const boost::shared_ptr<openni_wrapper::IRImage> &, const boost::shared_ptr<openni_wrapper::DepthImage> &, float) ;
+      using sig_cb_openni_point_cloud = void (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZ> > &);
+      using sig_cb_openni_point_cloud_rgb = void (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZRGB> > &);
+      using sig_cb_openni_point_cloud_rgba = void (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZRGBA> > &);
+      using sig_cb_openni_point_cloud_i = void (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZI> > &);
 
       /** \brief constructor
         * \param[in] file_name the path to the ONI file
@@ -92,35 +91,35 @@ namespace pcl
       ONIGrabber (const std::string& file_name, bool repeat, bool stream);
 
       /** \brief destructor never throws an exception */
-      virtual ~ONIGrabber () throw ();
+      ~ONIGrabber () throw ();
 
       /** \brief For devices that are streaming, the streams are started by calling this method.
         *        Trigger-based devices, just trigger the device once for each call of start.
         */
-      virtual void 
-      start ();
+      void 
+      start () override;
 
       /** \brief For devices that are streaming, the streams are stopped.
         *        This method has no effect for triggered devices.
         */
-      virtual void 
-      stop ();
+      void 
+      stop () override;
 
       /** \brief returns the name of the concrete subclass.
         * \return the name of the concrete driver.
         */
-      virtual std::string 
-      getName () const;
+      std::string 
+      getName () const override;
 
       /** \brief Indicates whether the grabber is streaming or not. This value is not defined for triggered devices.
         * \return true if grabber is running / streaming. False otherwise.
         */
-      virtual bool 
-      isRunning () const;
+      bool 
+      isRunning () const override;
 
       /** \brief returns the frames pre second. 0 if it is trigger based. */
-      virtual float 
-      getFramesPerSecond () const;
+      float 
+      getFramesPerSecond () const override;
 
       /** \brief Check if there is any data left in the ONI file to process. */
       inline bool
@@ -204,7 +203,4 @@ namespace pcl
   };
 
 } // namespace
-
-#endif // __PCL_IO_ONI_PLAYER__
 #endif // HAVE_OPENNI
-

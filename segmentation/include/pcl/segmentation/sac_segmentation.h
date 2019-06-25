@@ -37,8 +37,7 @@
  *
  */
 
-#ifndef PCL_SEGMENTATION_SAC_SEGMENTATION_H_
-#define PCL_SEGMENTATION_SAC_SEGMENTATION_H_
+#pragma once
 
 #include <pcl/pcl_base.h>
 #include <pcl/PointIndices.h>
@@ -71,13 +70,13 @@ namespace pcl
       using PCLBase<PointT>::input_;
       using PCLBase<PointT>::indices_;
 
-      typedef pcl::PointCloud<PointT> PointCloud;
-      typedef typename PointCloud::Ptr PointCloudPtr;
-      typedef typename PointCloud::ConstPtr PointCloudConstPtr;
-      typedef typename pcl::search::Search<PointT>::Ptr SearchPtr;
+      using PointCloud = pcl::PointCloud<PointT>;
+      using PointCloudPtr = typename PointCloud::Ptr;
+      using PointCloudConstPtr = typename PointCloud::ConstPtr;
+      using SearchPtr = typename pcl::search::Search<PointT>::Ptr;
 
-      typedef typename SampleConsensus<PointT>::Ptr SampleConsensusPtr;
-      typedef typename SampleConsensusModel<PointT>::Ptr SampleConsensusModelPtr;
+      using SampleConsensusPtr = typename SampleConsensus<PointT>::Ptr;
+      using SampleConsensusModelPtr = typename SampleConsensusModel<PointT>::Ptr;
 
       /** \brief Empty constructor. 
         * \param[in] random if true set the random seed to the current time, else set to 12345 (default: false)
@@ -102,7 +101,7 @@ namespace pcl
       }
 
       /** \brief Empty destructor. */
-      virtual ~SACSegmentation () { /*srv_.reset ();*/ };
+      ~SACSegmentation () { /*srv_.reset ();*/ };
 
       /** \brief The type of model to use (user given parameter).
         * \param[in] model the model type (check \a model_types.h)
@@ -322,17 +321,17 @@ namespace pcl
       using PCLBase<PointT>::input_;
       using PCLBase<PointT>::indices_;
 
-      typedef typename SACSegmentation<PointT>::PointCloud PointCloud;
-      typedef typename PointCloud::Ptr PointCloudPtr;
-      typedef typename PointCloud::ConstPtr PointCloudConstPtr;
+      using PointCloud = typename SACSegmentation<PointT>::PointCloud;
+      using PointCloudPtr = typename PointCloud::Ptr;
+      using PointCloudConstPtr = typename PointCloud::ConstPtr;
 
-      typedef typename pcl::PointCloud<PointNT> PointCloudN;
-      typedef typename PointCloudN::Ptr PointCloudNPtr;
-      typedef typename PointCloudN::ConstPtr PointCloudNConstPtr;
+      using PointCloudN = pcl::PointCloud<PointNT>;
+      using PointCloudNPtr = typename PointCloudN::Ptr;
+      using PointCloudNConstPtr = typename PointCloudN::ConstPtr;
 
-      typedef typename SampleConsensus<PointT>::Ptr SampleConsensusPtr;
-      typedef typename SampleConsensusModel<PointT>::Ptr SampleConsensusModelPtr;
-      typedef typename SampleConsensusModelFromNormals<PointT, PointNT>::Ptr SampleConsensusModelFromNormalsPtr;
+      using SampleConsensusPtr = typename SampleConsensus<PointT>::Ptr;
+      using SampleConsensusModelPtr = typename SampleConsensusModel<PointT>::Ptr;
+      using SampleConsensusModelFromNormalsPtr = typename SampleConsensusModelFromNormals<PointT, PointNT>::Ptr;
 
       /** \brief Empty constructor.
         * \param[in] random if true set the random seed to the current time, else set to 12345 (default: false)
@@ -417,17 +416,15 @@ namespace pcl
       /** \brief Initialize the Sample Consensus model and set its parameters.
         * \param[in] model_type the type of SAC model that is to be used
         */
-      virtual bool 
-      initSACModel (const int model_type);
+      bool 
+      initSACModel (const int model_type) override;
 
       /** \brief Class get name method. */
-      virtual std::string 
-      getClassName () const { return ("SACSegmentationFromNormals"); }
+      std::string 
+      getClassName () const override { return ("SACSegmentationFromNormals"); }
   };
 }
 
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/segmentation/impl/sac_segmentation.hpp>
 #endif
-
-#endif  //#ifndef PCL_SEGMENTATION_SAC_SEGMENTATION_H_

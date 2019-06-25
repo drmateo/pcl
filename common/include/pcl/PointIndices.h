@@ -1,5 +1,5 @@
-#ifndef PCL_MESSAGE_POINTINDICES_H
-#define PCL_MESSAGE_POINTINDICES_H
+#pragma once
+
 #include <string>
 #include <vector>
 #include <ostream>
@@ -11,7 +11,7 @@ namespace pcl
 {
   struct PointIndices
   {
-    PointIndices () : header (), indices ()
+    PointIndices ()
     {}
 
     ::pcl::PCLHeader header;
@@ -19,12 +19,12 @@ namespace pcl
     std::vector<int> indices;
 
     public:
-      typedef boost::shared_ptr< ::pcl::PointIndices> Ptr;
-      typedef boost::shared_ptr< ::pcl::PointIndices const> ConstPtr;
+      using Ptr = boost::shared_ptr< ::pcl::PointIndices>;
+      using ConstPtr = boost::shared_ptr<const ::pcl::PointIndices>;
   }; // struct PointIndices
 
-  typedef boost::shared_ptr< ::pcl::PointIndices> PointIndicesPtr;
-  typedef boost::shared_ptr< ::pcl::PointIndices const> PointIndicesConstPtr;
+  using PointIndicesPtr = boost::shared_ptr< ::pcl::PointIndices>;
+  using PointIndicesConstPtr = boost::shared_ptr<const ::pcl::PointIndices>;
 
   inline std::ostream& operator << (std::ostream& s, const ::pcl::PointIndices &v)
   {
@@ -39,6 +39,3 @@ namespace pcl
     return (s);
   }
 } // namespace pcl
-
-#endif // PCL_MESSAGE_POINTINDICES_H
-

@@ -5,8 +5,7 @@
  *      Author: Aitor Aldoma
  */
 
-#ifndef PCL_RF_FACE_DETECTOR_TRAINER_H_
-#define PCL_RF_FACE_DETECTOR_TRAINER_H_
+#pragma once
 
 #include "pcl/recognition/face_detection/face_detector_data_provider.h"
 #include "pcl/recognition/face_detection/rf_face_utils.h"
@@ -44,7 +43,7 @@ namespace pcl
       pcl::PointCloud<pcl::PointXYZ>::Ptr input_;
       pcl::PointCloud<pcl::PointXYZI>::Ptr face_heat_map_;
 
-      typedef face_detection::RFTreeNode<face_detection::FeatureType> NodeType;
+      using NodeType = face_detection::RFTreeNode<face_detection::FeatureType>;
       pcl::DecisionForest<NodeType> forest_;
 
       std::string model_path_;
@@ -259,5 +258,3 @@ namespace pcl
       void detectFaces();
   };
 }
-
-#endif /* PCL_RF_FACE_DETECTOR_TRAINER_H_ */

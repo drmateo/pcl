@@ -35,11 +35,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#pragma once
-#include <pcl/pcl_config.h>
 
-#ifndef PCL_IO_IMAGE_DEPTH_H_
-#define PCL_IO_IMAGE_DEPTH_H_
+#pragma once
+
+#include <pcl/pcl_config.h>
 
 #include <pcl/pcl_exports.h>
 #include <pcl/io/boost.h>
@@ -56,11 +55,11 @@ namespace pcl
     class PCL_EXPORTS DepthImage
     {
       public:
-        typedef boost::shared_ptr<DepthImage> Ptr;
-        typedef boost::shared_ptr<const DepthImage> ConstPtr;
+        using Ptr = boost::shared_ptr<DepthImage>;
+        using ConstPtr = boost::shared_ptr<const DepthImage>;
 
-        typedef boost::chrono::high_resolution_clock Clock;
-        typedef boost::chrono::high_resolution_clock::time_point Timestamp;
+        using Clock = boost::chrono::high_resolution_clock;
+        using Timestamp = boost::chrono::high_resolution_clock::time_point;
 
         /** \brief Constructor
           * \param[in] depth_metadata the actual data from the OpenNI library
@@ -187,5 +186,3 @@ namespace pcl
     };
 
 }} // namespace
-
-#endif // PCL_IO_IMAGE_DEPTH_H_

@@ -5,11 +5,9 @@
  *      Author: aitor
  */
 
-#ifndef REC_FRAMEWORK_LOCAL_RECOGNIZER_H_
-#define REC_FRAMEWORK_LOCAL_RECOGNIZER_H_
+#pragma once
 
-//#include <opencv2/opencv.hpp>
-#include <flann/flann.h>
+#include <flann/util/matrix.h>
 #include <pcl/common/common.h>
 #include <pcl/apps/3d_rec_framework/pc_source/source.h>
 #include <pcl/apps/3d_rec_framework/feature_wrapper/local/local_estimator.h>
@@ -40,11 +38,11 @@ namespace pcl
       class PCL_EXPORTS LocalRecognitionPipeline
       {
 
-        typedef typename pcl::PointCloud<PointInT>::Ptr PointInTPtr;
-        typedef typename pcl::PointCloud<PointInT>::ConstPtr ConstPointInTPtr;
+        using PointInTPtr = typename pcl::PointCloud<PointInT>::Ptr;
+        using ConstPointInTPtr = typename pcl::PointCloud<PointInT>::ConstPtr;
 
-        typedef Distance<float> DistT;
-        typedef Model<PointInT> ModelT;
+        using DistT = Distance<float>;
+        using ModelT = Model<PointInT>;
 
         /** \brief Directory where the trained structure will be saved */
         std::string training_dir_;
@@ -88,8 +86,9 @@ namespace pcl
         std::vector<int> indices_;
 
         bool use_cache_;
-        std::map<std::pair<std::string, int>, Eigen::Matrix4f, std::less<std::pair<std::string, int> >, Eigen::aligned_allocator<std::pair<std::pair<
-            std::string, int>, Eigen::Matrix4f> > > poses_cache_;
+        std::map<std::pair<std::string, int>, Eigen::Matrix4f,
+                 std::less<std::pair<std::string, int> >,
+                 Eigen::aligned_allocator<std::pair<const std::pair<std::string, int>, Eigen::Matrix4f> > > poses_cache_;
         std::map<std::pair<std::string, int>, typename pcl::PointCloud<PointInT>::Ptr> keypoints_cache_;
 
         float threshold_accept_model_hypothesis_;
@@ -349,5 +348,3 @@ namespace pcl
       };
   }
 }
-
-#endif /* REC_FRAMEWORK_LOCAL_RECOGNIZER_H_ */

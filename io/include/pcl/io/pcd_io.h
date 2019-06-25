@@ -37,8 +37,7 @@
  *
  */
 
-#ifndef PCL_IO_PCD_IO_H_
-#define PCL_IO_PCD_IO_H_
+#pragma once
 
 #include <pcl/point_cloud.h>
 #include <pcl/io/file_io.h>
@@ -53,7 +52,7 @@ namespace pcl
   {
     public:
       /** Empty constructor */
-      PCDReader () : FileReader () {}
+      PCDReader () {}
       /** Empty destructor */
       ~PCDReader () {}
 
@@ -144,7 +143,7 @@ namespace pcl
       int 
       readHeader (const std::string &file_name, pcl::PCLPointCloud2 &cloud,
                   Eigen::Vector4f &origin, Eigen::Quaternionf &orientation, int &pcd_version,
-                  int &data_type, unsigned int &data_idx, const int offset = 0);
+                  int &data_type, unsigned int &data_idx, const int offset = 0) override;
 
 
       int
@@ -322,7 +321,7 @@ namespace pcl
   class PCL_EXPORTS PCDWriter : public FileWriter
   {
     public:
-      PCDWriter() : FileWriter(), map_synchronization_(false) {}
+      PCDWriter() : map_synchronization_(false) {}
       ~PCDWriter() {}
 
       /** \brief Set whether mmap() synchornization via msync() is desired before munmap() calls. 
@@ -479,12 +478,11 @@ namespace pcl
       write (const std::string &file_name, const pcl::PCLPointCloud2 &cloud,
              const Eigen::Vector4f &origin = Eigen::Vector4f::Zero (), 
              const Eigen::Quaternionf &orientation = Eigen::Quaternionf::Identity (),
-             const bool binary = false)
+             const bool binary = false) override
       {
         if (binary)
           return (writeBinary (file_name, cloud, origin, orientation));
-        else
-          return (writeASCII (file_name, cloud, origin, orientation, 8));
+        return (writeASCII (file_name, cloud, origin, orientation, 8));
       }
 
       /** \brief Save point cloud data to a PCD file containing n-D points
@@ -583,8 +581,7 @@ namespace pcl
       {
         if (binary)
           return (writeBinary<PointT> (file_name, cloud));
-        else
-          return (writeASCII<PointT> (file_name, cloud));
+        return (writeASCII<PointT> (file_name, cloud));
       }
 
       /** \brief Save point cloud data to a PCD file containing n-D points
@@ -609,8 +606,7 @@ namespace pcl
       {
         if (binary)
           return (writeBinary<PointT> (file_name, cloud, indices));
-        else
-          return (writeASCII<PointT> (file_name, cloud, indices));
+        return (writeASCII<PointT> (file_name, cloud, indices));
       }
 
     protected:
@@ -836,5 +832,3 @@ namespace pcl
 }
 
 #include <pcl/io/impl/pcd_io.hpp>
-
-#endif  //#ifndef PCL_IO_PCD_IO_H_

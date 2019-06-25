@@ -2,27 +2,27 @@ set(SUBSUBSYS_NAME 3d_rec_framework)
 set(SUBSUBSYS_DESC "3D recognition framework")
 set(SUBSUBSYS_DEPS common geometry io filters sample_consensus segmentation visualization kdtree features surface octree registration keypoints tracking search recognition ml)
 
-# Find VTK 
+# Find VTK
 if(NOT VTK_FOUND)
-    set(DEFAULT AUTO_OFF)
-    set(REASON "VTK was not found.")
-else(NOT VTK_FOUND)
-    set(DEFAULT TRUE)
-    set(REASON)
-    include("${VTK_USE_FILE}")
-endif(NOT VTK_FOUND)
+  set(DEFAULT AUTO_OFF)
+  set(REASON "VTK was not found.")
+else()
+  set(DEFAULT TRUE)
+  set(REASON)
+  include("${VTK_USE_FILE}")
+endif()
 
 # OpenNI found?
 if(NOT WITH_OPENNI)
-    set(DEFAULT AUTO_OFF)
-    set(REASON "OpenNI was not found or was disabled by the user.")
+  set(DEFAULT AUTO_OFF)
+  set(REASON "OpenNI was not found or was disabled by the user.")
 elseif(NOT ${DEFAULT} STREQUAL "AUTO_OFF")
-    set(DEFAULT TRUE)
-    set(REASON)
+  set(DEFAULT TRUE)
+  set(REASON)
 endif()
 
 # Default to not building for now
-if (${DEFAULT} STREQUAL "TRUE")
+if(${DEFAULT} STREQUAL "TRUE")
   set(DEFAULT FALSE)
 endif()
 
@@ -96,9 +96,19 @@ if(build)
       target_link_libraries("${LIB_NAME}" ${LIBUSB_1_LIBRARIES})
     endif()
   endif()
-      
-  PCL_MAKE_PKGCONFIG("${LIB_NAME}" "${SUBSUBSYS_NAME}" "${SUBSUBSYS_DESC}" "" "" "" "" "")
-  
-  add_subdirectory(tools)
+endif()
 
-endif(build)
+PCL_MAKE_PKGCONFIG(${LIB_NAME} COMPONENT ${SUBSUBSYS_NAME} DESC ${SUBSUBSYS_DESC})
+
+if(QHULL_FOUND)
+  add_executable(pcl_global_classification src/tools/global_classification.cpp)
+  target_link_libraries(pcl_global_classification pcl_apps pcl_3d_rec_framework pcl_common pcl_io pcl_filters pcl_visualization pcl_segmentation pcl_sample_consensus pcl_surface)
+endif()
+
+PCL_ADD_EXECUTABLE(pcl_local_or_mian COMPONENT ${SUBSUBSYS_NAME} SOURCES src/tools/local_recognition_mian_dataset.cpp)
+target_link_libraries(pcl_local_or_mian pcl_apps pcl_3d_rec_framework pcl_recognition pcl_common pcl_io pcl_filters pcl_visualization pcl_segmentation pcl_sample_consensus pcl_surface pcl_keypoints)
+
+# Add to the compound apps target
+string(TOUPPER ${SUBSUBSYS_NAME} SUBSUBSYS_NAME_UPPER)
+list(APPEND PCL_APPS_ALL_TARGETS ${PCL_${SUBSUBSYS_NAME_UPPER}_ALL_TARGETS})
+set(PCL_APPS_ALL_TARGETS ${PCL_APPS_ALL_TARGETS} PARENT_SCOPE)

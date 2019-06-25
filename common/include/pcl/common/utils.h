@@ -36,8 +36,7 @@
  * $Id$
  */
 
-#ifndef PCL_UTILS
-#define PCL_UTILS
+#pragma once
 
 #include <limits>
 
@@ -45,7 +44,7 @@ namespace pcl
 {
   namespace utils
   {
-    /** \brief Check if val1 and val2 are equals to an epsilon extent
+    /** \brief Check if val1 and val2 are equal to an epsilon extent
       * \param[in] val1 first number to check
       * \param[in] val2 second number to check
       * \param[in] eps epsilon
@@ -54,9 +53,7 @@ namespace pcl
     template<typename T> bool 
     equal (T val1, T val2, T eps = std::numeric_limits<T>::min ())
     {
-      return (fabs (val1 - val2) < eps);
+      return (std::fabs (val1 - val2) < eps);
     }
   }
 }
-
-#endif

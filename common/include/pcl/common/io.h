@@ -38,8 +38,7 @@
  *
  */
 
-#ifndef PCL_COMMON_IO_H_
-#define PCL_COMMON_IO_H_
+#pragma once
 
 #include <string>
 #include <pcl/pcl_base.h>
@@ -227,13 +226,13 @@ namespace pcl
     }
   }
 
-  typedef enum
+  enum InterpolationType
   {
     BORDER_CONSTANT = 0, BORDER_REPLICATE = 1,
     BORDER_REFLECT = 2, BORDER_WRAP = 3,
     BORDER_REFLECT_101 = 4, BORDER_TRANSPARENT = 5,
     BORDER_DEFAULT = BORDER_REFLECT_101
-  } InterpolationType;
+  };
 
   /** \brief \return the right index according to the interpolation type.
     * \note this is adapted from OpenCV
@@ -532,6 +531,3 @@ namespace pcl
 }
 
 #include <pcl/common/impl/io.hpp>
-
-#endif  //#ifndef PCL_COMMON_IO_H_
-

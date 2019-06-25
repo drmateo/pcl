@@ -35,11 +35,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
+#pragma once
+ 
 #include <pcl/pcl_config.h>
 #ifdef HAVE_OPENNI
-
-#ifndef __OPENNI_DEPTH_IMAGE__
-#define __OPENNI_DEPTH_IMAGE__
 
 #include "openni.h"
 
@@ -56,8 +56,8 @@ namespace openni_wrapper
   class PCL_EXPORTS DepthImage
   {
     public:
-      typedef boost::shared_ptr<DepthImage> Ptr;
-      typedef boost::shared_ptr<const DepthImage> ConstPtr;
+      using Ptr = boost::shared_ptr<DepthImage>;
+      using ConstPtr = boost::shared_ptr<const DepthImage>;
 
       /** \brief Constructor
         * \param[in] depth_meta_data the actual data from the OpenNI library
@@ -226,4 +226,3 @@ namespace openni_wrapper
   }
 } // namespace
 #endif
-#endif //__OPENNI_DEPTH_IMAGE

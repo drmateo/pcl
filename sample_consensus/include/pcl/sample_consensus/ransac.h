@@ -38,8 +38,7 @@
  *
  */
 
-#ifndef PCL_SAMPLE_CONSENSUS_RANSAC_H_
-#define PCL_SAMPLE_CONSENSUS_RANSAC_H_
+#pragma once
 
 #include <pcl/sample_consensus/sac.h>
 #include <pcl/sample_consensus/sac_model.h>
@@ -55,11 +54,11 @@ namespace pcl
   template <typename PointT>
   class RandomSampleConsensus : public SampleConsensus<PointT>
   {
-    typedef typename SampleConsensusModel<PointT>::Ptr SampleConsensusModelPtr;
+    using SampleConsensusModelPtr = typename SampleConsensusModel<PointT>::Ptr;
 
     public:
-      typedef boost::shared_ptr<RandomSampleConsensus> Ptr;
-      typedef boost::shared_ptr<const RandomSampleConsensus> ConstPtr;
+      using Ptr = boost::shared_ptr<RandomSampleConsensus<PointT> >;
+      using ConstPtr = boost::shared_ptr<const RandomSampleConsensus<PointT> >;
 
       using SampleConsensus<PointT>::max_iterations_;
       using SampleConsensus<PointT>::threshold_;
@@ -95,13 +94,10 @@ namespace pcl
         * \param[in] debug_verbosity_level enable/disable on-screen debug information and set the verbosity level
         */
       bool 
-      computeModel (int debug_verbosity_level = 0);
+      computeModel (int debug_verbosity_level = 0) override;
   };
 }
 
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/sample_consensus/impl/ransac.hpp>
 #endif
-
-#endif  //#ifndef PCL_SAMPLE_CONSENSUS_RANSAC_H_
-

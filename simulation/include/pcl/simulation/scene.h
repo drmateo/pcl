@@ -5,8 +5,7 @@
  *      Author: Hordur Johannsson
  */
 
-#ifndef PCL_SIMULATION_SCENE_HPP_
-#define PCL_SIMULATION_SCENE_HPP_
+#pragma once
 
 #include <boost/shared_ptr.hpp>
 
@@ -23,8 +22,8 @@ namespace pcl
     class PCL_EXPORTS Scene
     {
     public:
-      typedef boost::shared_ptr<Scene> Ptr;
-      typedef boost::shared_ptr<Scene> ConstPtr;
+      using Ptr = boost::shared_ptr<Scene>;
+      using ConstPtr = boost::shared_ptr<Scene>;
 
       void
       draw ();
@@ -44,5 +43,3 @@ namespace pcl
   
   } // namespace - simulation
 } // namespace - pcl
-
-#endif

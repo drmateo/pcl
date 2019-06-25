@@ -37,8 +37,7 @@
  * @authors: Cedric Cagniart, Koen Buys
  */
 
-#ifndef PCL_GPU_PEOPLE_TREE_H_
-#define PCL_GPU_PEOPLE_TREE_H_
+#pragma once
 
 #include "label_common.h"
 #include <boost/cstdint.hpp> 
@@ -70,10 +69,10 @@ namespace pcl
         using boost::int32_t;
         using boost::uint32_t;
 
-        typedef int16_t Attrib;
-        typedef uint8_t Label;
-        typedef uint32_t Label32;
-        typedef uint16_t Depth;
+        using Attrib = int16_t;
+        using Label = uint8_t;
+        using Label32 = uint32_t;
+        using Depth = uint16_t;
 
         struct AttribLocation
         {
@@ -137,4 +136,3 @@ namespace pcl
     } // end namespace people
   } // end namespace gpu
 } // end namespace pcl
-#endif  // PCL_GPU_PEOPLE_TREES_TREE_H_

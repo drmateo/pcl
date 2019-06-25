@@ -205,7 +205,7 @@ pcl::EnsensoGrabber::start ()
 
   frequency_.reset ();
   running_ = true;
-  grabber_thread_ = boost::thread (&pcl::EnsensoGrabber::processGrabbing, this);
+  grabber_thread_ = std::thread (&pcl::EnsensoGrabber::processGrabbing, this);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -323,7 +323,7 @@ pcl::EnsensoGrabber::grabSingleCloud (pcl::PointCloud<pcl::PointXYZ> &cloud)
     cloud.height = height;
     cloud.is_dense = false;
 
-    // Copy data in point cloud (and convert milimeters in meters)
+    // Copy data in point cloud (and convert millimeters in meters)
     for (size_t i = 0; i < pointMap.size (); i += 3)
     {
       cloud.points[i / 3].x = pointMap[i] / 1000.0;
@@ -433,7 +433,7 @@ pcl::EnsensoGrabber::estimateCalibrationPatternPose (Eigen::Affine3d &pattern_po
     // Convert tf into a matrix
     if (!jsonTransformationToMatrix (tf.asJson (), pattern_pose))
       return (false);
-    pattern_pose.translation () /= 1000.0;  // Convert translation in meters (Ensenso API returns milimeters)
+    pattern_pose.translation () /= 1000.0;  // Convert translation in meters (Ensenso API returns millimeters)
     return (true);
   }
   catch (NxLibException &ex)
@@ -638,7 +638,7 @@ pcl::EnsensoGrabber::setExtrinsicCalibration (const Eigen::Affine3d &transformat
 float
 pcl::EnsensoGrabber::getFramesPerSecond () const
 {
-  boost::mutex::scoped_lock lock (fps_mutex_);
+  std::lock_guard<std::mutex> lock (fps_mutex_);
   return (frequency_.getFrequency ());
 }
 
@@ -1043,7 +1043,7 @@ pcl::EnsensoGrabber::processGrabbing ()
           cloud->height = height;
           cloud->is_dense = false;
 
-          // Copy data in point cloud (and convert milimeters in meters)
+          // Copy data in point cloud (and convert millimeters in meters)
           for (size_t i = 0; i < pointMap.size (); i += 3)
           {
             cloud->points[i / 3].x = pointMap[i] / 1000.0;

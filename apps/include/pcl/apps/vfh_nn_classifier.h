@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef VFHCLASSIFICATION_H_
-#define VFHCLASSIFICATION_H_
+#pragma once
 
 #include <fstream>
 #include <pcl/point_types.h>
@@ -94,11 +93,11 @@ namespace pcl
   {
     public:
 
-      typedef pcl::PointCloud<pcl::VFHSignature308> FeatureCloud;
-      typedef pcl::PointCloud<pcl::VFHSignature308>::Ptr FeatureCloudPtr;
-      typedef pcl::PointCloud<pcl::VFHSignature308>::ConstPtr FeatureCloudConstPtr;
-      typedef NNClassification<pcl::VFHSignature308>::Result Result;
-      typedef NNClassification<pcl::VFHSignature308>::ResultPtr ResultPtr;
+      using FeatureCloud = pcl::PointCloud<pcl::VFHSignature308>;
+      using FeatureCloudPtr = pcl::PointCloud<pcl::VFHSignature308>::Ptr;
+      using FeatureCloudConstPtr = pcl::PointCloud<pcl::VFHSignature308>::ConstPtr;
+      using Result = NNClassification<pcl::VFHSignature308>::Result;
+      using ResultPtr = NNClassification<pcl::VFHSignature308>::ResultPtr;
 
     private:
 
@@ -111,7 +110,7 @@ namespace pcl
 
     public:
 
-      VFHClassifierNN () : training_features_ (), labels_ (), classifier_ ()
+      VFHClassifierNN ()
       {
         reset ();
       }
@@ -199,7 +198,7 @@ namespace pcl
         std::ifstream f (labels_file_name.c_str ());
         std::string label;
         while (getline (f, label))
-          if (label.size () > 0)
+          if (!label.empty ())
             labels.push_back(label);
         return addTrainingFeatures (cloud, labels);
       }
@@ -265,5 +264,3 @@ namespace pcl
       }
   };
 }
-
-#endif /* VFHCLASSIFICATION_H_ */

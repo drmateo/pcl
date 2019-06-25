@@ -33,11 +33,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  */
+
+#pragma once
+ 
 #include <pcl/pcl_config.h>
 #ifdef HAVE_OPENNI
-
-#ifndef __OPENNI_IMAGE__
-#define __OPENNI_IMAGE__
 
 #include <pcl/pcl_exports.h>
 #include "openni.h"
@@ -58,15 +58,15 @@ namespace openni_wrapper
   class PCL_EXPORTS Image
   {
   public:
-    typedef boost::shared_ptr<Image> Ptr;
-    typedef boost::shared_ptr<const Image> ConstPtr;
+    using Ptr = boost::shared_ptr<Image>;
+    using ConstPtr = boost::shared_ptr<const Image>;
 
-    typedef enum
+    enum Encoding
     {
       BAYER_GRBG,
       YUV422,
       RGB
-    } Encoding;
+    };
 
     /**
      * @author Suat Gedikli
@@ -206,4 +206,3 @@ namespace openni_wrapper
   }
 } // namespace
 #endif
-#endif //__OPENNI_IMAGE__

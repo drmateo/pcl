@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef PCL_KINFU_COLOR_VOLUME_H_
-#define PCL_KINFU_COLOR_VOLUME_H_
+#pragma once
 
 #include <pcl/pcl_macros.h>
 #include <pcl/gpu/containers/device_array.h>
@@ -56,8 +55,8 @@ namespace pcl
     class PCL_EXPORTS ColorVolume
     {
     public:
-      typedef PointXYZ PointType;
-      typedef boost::shared_ptr<ColorVolume> Ptr;
+      using PointType = PointXYZ;
+      using Ptr = boost::shared_ptr<ColorVolume>;
 
       /** \brief Constructor
         * \param[in] tsdf tsdf volume to get parameters from
@@ -106,5 +105,3 @@ public:
     };
   }
 }
-
-#endif /* PCL_KINFU_COLOR_VOLUME_H_ */

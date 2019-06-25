@@ -101,7 +101,7 @@ So let's look at the code. The following represents a simplified version of *vis
    {
      public:
        typedef pcl::PointCloud<pcl::PointXYZI> Cloud;
-       typedef typename Cloud::ConstPtr CloudConstPtr;
+       typedef Cloud::ConstPtr CloudConstPtr;
 
        SimpleHDLViewer (Grabber& grabber,
            pcl::visualization::PointCloudColorHandler<pcl::PointXYZI> &handler) :
@@ -113,7 +113,7 @@ So let's look at the code. The following represents a simplified version of *vis
 
        void cloud_callback (const CloudConstPtr& cloud)
        {
-         boost::mutex::scoped_lock lock (cloud_mutex_);
+         std::lock_guard<std::mutex> lock (cloud_mutex_);
          cloud_ = cloud;
        }
 
@@ -125,7 +125,7 @@ So let's look at the code. The following represents a simplified version of *vis
          cloud_viewer_->setCameraPosition (0.0, 0.0, 30.0, 0.0, 1.0, 0.0, 0);
          cloud_viewer_->setCameraClipDistances (0.0, 50.0);
 
-         boost::function<void (const CloudConstPtr&)> cloud_cb = boost::bind (
+         std::function<void (const CloudConstPtr&)> cloud_cb = boost::bind (
              &SimpleHDLViewer::cloud_callback, this, _1);
          boost::signals2::connection cloud_connection = grabber_.registerCallback (
              cloud_cb);
@@ -163,10 +163,10 @@ So let's look at the code. The following represents a simplified version of *vis
          cloud_connection.disconnect ();
        }
 
-       boost::shared_ptr<pcl::visualization::PCLVisualizer> cloud_viewer_;
+       pcl::visualization::PCLVisualizer::Ptr cloud_viewer_;
 
        pcl::Grabber& grabber_;
-       boost::mutex cloud_mutex_;
+       std::mutex cloud_mutex_;
 
        CloudConstPtr cloud_;
        pcl::visualization::PointCloudColorHandler<pcl::PointXYZI> &handler_;
@@ -197,7 +197,7 @@ the *Grabber* interface so generic, leading to the relatively complicated
 *boost::bind* line. In fact, we can register the following callback types as of
 this writing:
 
-* `void (const boost::shared_ptr<const pcl::PointCloud<pcl::PointXYZRGB> >&)`
+* `void (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)`
 
 Compiling and running the program
 ---------------------------------
@@ -231,7 +231,7 @@ is usually the broadcast network IP Address (eg, 255.255.255.255 for a global br
 x.y.z.255 for a Class C Network [where x.y.z are the first three octets of a Class C network, such as
 192.168.1]).
 
-The Source IP Address, on the otherhand, indicates where the packet originated from.  Packets
+The Source IP Address, on the other hand, indicates where the packet originated from.  Packets
 can be hand-crafted for spoofing-type attacks (eg, pretending to come from somewhere they really
 didn't). The Reverse Path Filter attempts to detect these instances.  The default rule that it uses is
 that if a packet is received on Network Interface *A*, then if there is no **route** to the **Source IP Address**

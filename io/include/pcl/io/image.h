@@ -33,9 +33,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *
  */
+ 
+#pragma once
+
 #include <pcl/pcl_config.h>
-#ifndef PCL_IO_IMAGE_H_
-#define PCL_IO_IMAGE_H_
 
 #include <pcl/pcl_exports.h>
 #include <pcl/io/boost.h>
@@ -56,18 +57,18 @@ namespace pcl
     class PCL_EXPORTS Image
     {
       public:
-        typedef boost::shared_ptr<Image> Ptr;
-        typedef boost::shared_ptr<const Image> ConstPtr;
+        using Ptr = boost::shared_ptr<Image>;
+        using ConstPtr = boost::shared_ptr<const Image>;
 
-        typedef boost::chrono::high_resolution_clock Clock;
-        typedef boost::chrono::high_resolution_clock::time_point Timestamp;
+        using Clock = boost::chrono::high_resolution_clock;
+        using Timestamp = boost::chrono::high_resolution_clock::time_point;
 
-        typedef enum
+        enum Encoding
         {
           BAYER_GRBG,
           YUV422,
           RGB
-        } Encoding;
+        };
 
         Image (FrameWrapper::Ptr image_metadata)
           : wrapper_ (image_metadata)
@@ -211,5 +212,3 @@ namespace pcl
 
   } // namespace
 }
-
-#endif //PCL_IO_IMAGE_H_

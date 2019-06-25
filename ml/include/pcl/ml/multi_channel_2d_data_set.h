@@ -35,8 +35,7 @@
  *
  */
   
-#ifndef PCL_ML_MULTI_CHANNEL_2D_DATA_SET_H_
-#define PCL_ML_MULTI_CHANNEL_2D_DATA_SET_H_
+#pragma once
 
 #include <pcl/common/common.h>
 
@@ -226,11 +225,9 @@ namespace pcl
       std::vector<MultiChannel2DData<DATA_TYPE, NUM_OF_CHANNELS>*> data_set_;
   };
 
-  typedef MultiChannel2DDataSet<float, 1> Depth2DDataSet;
-  typedef MultiChannel2DDataSet<float, 2> IntensityDepth2DDataSet;
-  typedef MultiChannel2DDataSet<float, 3> RGB2DDataSet;
-  typedef MultiChannel2DDataSet<float, 4> RGBD2DDataSet;
+  using Depth2DDataSet = MultiChannel2DDataSet<float, 1>;
+  using IntensityDepth2DDataSet = MultiChannel2DDataSet<float, 2>;
+  using RGB2DDataSet = MultiChannel2DDataSet<float, 3>;
+  using RGBD2DDataSet = MultiChannel2DDataSet<float, 4>;
 
 }
-
-#endif

@@ -35,8 +35,7 @@
  *
  */
 
-#ifndef PCL_KINFU_DEVICE_H_
-#define PCL_KINFU_DEVICE_H_
+#pragma once
 
 #include <pcl/gpu/containers/device_array.h>
 #include <iostream> // used by operator << in Struct Intr
@@ -52,10 +51,10 @@ namespace pcl
     {
       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
       // Types
-      typedef unsigned short ushort;
-      typedef DeviceArray2D<float> MapArr;
-      typedef DeviceArray2D<ushort> DepthMap;
-      typedef float4 PointType;
+      using ushort = unsigned short;
+      using MapArr = DeviceArray2D<float>;
+      using DepthMap = DeviceArray2D<ushort>;
+      using PointType = float4;
 
       //TSDF fixed point divisor (if old format is enabled)
       const int DIVISOR = 32767;     // SHRT_MAX;
@@ -107,5 +106,3 @@ namespace pcl
     }
   }
 }
-
-#endif /* PCL_KINFU_DEVICE_H_ */

@@ -37,11 +37,11 @@
  *
  */
 
-#ifndef PCL_FILTERS_UNIFORM_SAMPLING_H_
-#define PCL_FILTERS_UNIFORM_SAMPLING_H_
+#pragma once
 
 #include <pcl/filters/filter.h>
-#include <boost/unordered_map.hpp>
+
+#include <unordered_map>
 
 namespace pcl
 {
@@ -60,7 +60,7 @@ namespace pcl
   template <typename PointT>
   class UniformSampling: public Filter<PointT>
   {
-    typedef typename Filter<PointT>::PointCloud PointCloud;
+    using PointCloud = typename Filter<PointT>::PointCloud;
 
     using Filter<PointT>::filter_name_;
     using Filter<PointT>::input_;
@@ -68,8 +68,8 @@ namespace pcl
     using Filter<PointT>::getClassName;
 
     public:
-      typedef boost::shared_ptr<UniformSampling<PointT> > Ptr;
-      typedef boost::shared_ptr<const UniformSampling<PointT> > ConstPtr;
+      using Ptr = boost::shared_ptr<UniformSampling<PointT> >;
+      using ConstPtr = boost::shared_ptr<const UniformSampling<PointT> >;
 
       /** \brief Empty constructor. */
       UniformSampling (bool extract_removed_indices = false) :
@@ -87,7 +87,7 @@ namespace pcl
       }
 
       /** \brief Destructor. */
-      virtual ~UniformSampling ()
+      ~UniformSampling ()
       {
         leaves_.clear();
       }
@@ -116,7 +116,7 @@ namespace pcl
       };
 
       /** \brief The 3D grid leaves. */
-      boost::unordered_map<size_t, Leaf> leaves_;
+      std::unordered_map<size_t, Leaf> leaves_;
 
       /** \brief The size of a leaf. */
       Eigen::Vector4f leaf_size_;
@@ -134,13 +134,10 @@ namespace pcl
         * \param[out] output the resultant point cloud message
         */
       void
-      applyFilter (PointCloud &output);
+      applyFilter (PointCloud &output) override;
   };
 }
 
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/filters/impl/uniform_sampling.hpp>
 #endif
-
-#endif  //#ifndef PCL_FILTERS_UNIFORM_SAMPLING_H_
-

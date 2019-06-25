@@ -36,8 +36,8 @@
  * $Id$
  *
  */
-#ifndef PCL_DATA_TYPES_H_
-#define PCL_DATA_TYPES_H_
+
+#pragma once
 
 #include <pcl/pcl_macros.h>
 #include <bitset>
@@ -308,7 +308,7 @@ namespace pcl
   /** \brief Data type to store extended information about a transition from foreground to backgroundSpecification of the fields for BorderDescription::traits.
     * \ingroup common
     */
-  typedef std::bitset<32> BorderTraits;
+  using BorderTraits = std::bitset<32>;
 
   /** \brief Specification of the fields for BorderDescription::traits.
     * \ingroup common
@@ -834,5 +834,3 @@ namespace pcl
   #pragma warning(default: 4201)
 #endif
 //#pragma warning(pop)
-
-#endif  //#ifndef PCL_DATA_TYPES_H_
